@@ -1,52 +1,14 @@
 // types.ts — Core data structures for Vij city, citizens, events, and simulation state
 
-import type {
-  ChangeExplanation,
-  CitizenMemory,
-  DecisionRecord,
-  LedgerEntry,
-  LifeLogEntry,
-  SignedFactor,
-} from './citizenInspectorTypes';
-import type {
-  CitizenSnapshot,
-  CitizenTraits,
-  DeathCause,
-  EducationLevel,
-  EventCategory,
-  Gender,
-  HomeType,
-  RoleLevel,
-  TierId,
-} from './cityBaseTypes';
-import type {
-  Company,
-  CompanyId,
-  CompanyVacancy,
-  JobMarketEvent,
-  WorkHistoryEntry,
-} from './companyTypes';
-import type {
-  CitizenInventory,
-  CitizenStandards,
-  MartState,
-  PurchaseRecord,
-  ShoppingCategory,
-} from './martTypes';
+import type { CompanyBoardState } from './boardTypes';
+import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, LifeLogEntry, SignedFactor } from './citizenInspectorTypes';
+import type { CitizenSnapshot, CitizenTraits, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId } from './cityBaseTypes';
+import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
+import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
 
 export type {
-  CitizenSnapshot,
-  CitizenSort,
-  CitizenTraits,
-  DeathCause,
-  EducationLevel,
-  EventCategory,
-  Gender,
-  HomeType,
-  NavTab,
-  RoleLevel,
-  SimSpeed,
-  TierId,
+  CitizenSnapshot, CitizenSort, CitizenTraits, DeathCause, EducationLevel,
+  EventCategory, Gender, HomeType, NavTab, RoleLevel, SimSpeed, TierId,
 } from './cityBaseTypes';
 
 export interface Citizen {
@@ -59,6 +21,7 @@ export interface Citizen {
   experience: number;
   traits: CitizenTraits;
   savings: number;
+  rentArrears: number;
   mood: number;
   stress: number;
   hunger: number;
@@ -101,6 +64,7 @@ export interface Citizen {
   monthsSincePromotion: number;
   performanceScore: number;
   unemployedDays: number;
+  jobHunting: boolean;
   workHistory: WorkHistoryEntry[];
   householdId: string | null;
   sharityHandle: string;
@@ -130,6 +94,8 @@ export interface TierMovement {
 
 export interface CityState {
   version: string;
+  seed: number;
+  rngState: number;
   cityName: string;
   day: number;
   month: number;
@@ -146,4 +112,5 @@ export interface CityState {
   lastMonthTaxCollected: number;
   lastTotalPayroll: number;
   lastBusinessTaxCollected: number;
+  boardState: CompanyBoardState;
 }

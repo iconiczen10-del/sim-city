@@ -7,6 +7,7 @@ import type {
   LifeLogEntry,
 } from './citizenInspectorTypes';
 import { LIFE_LOG_RETENTION_DAYS } from './constants';
+import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
 export function appendLifeLog(
@@ -17,7 +18,7 @@ export function appendLifeLog(
   summary: string
 ): void {
   const entry: LifeLogEntry = {
-    id: `life_${totalDay}_${citizen.id}_${category}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `life_${totalDay}_${citizen.id}_${category}_${simIdSuffix()}`,
     totalDay,
     dateLabel,
     category,
@@ -40,7 +41,7 @@ export function appendLedgerEntry(
 ): void {
   if (amount <= 0) return;
   const entry: LedgerEntry = {
-    id: `led_${totalDay}_${citizen.id}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `led_${totalDay}_${citizen.id}_${simIdSuffix()}`,
     totalDay,
     dateLabel,
     kind,
@@ -60,7 +61,7 @@ export function appendChangeExplanation(
   decisionId?: string
 ): void {
   const item: ChangeExplanation = {
-    id: `chg_${totalDay}_${citizen.id}_${kind}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `chg_${totalDay}_${citizen.id}_${kind}_${simIdSuffix()}`,
     totalDay,
     dateLabel,
     kind,

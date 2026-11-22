@@ -1,4 +1,4 @@
-// App.tsx — Root Vij simulator controller with 10s/day 1x clock, Companies, and Job Market
+// App.tsx — Root Vij simulator controller with async IndexedDB load, 10s/day clock, and Board UI
 
 import { useEffect, useMemo, useState } from 'react';
 import { CitizenProfileModal } from './CitizenProfileModal';
@@ -9,56 +9,57 @@ import { EventLogView } from './EventLogView';
 import { JobMarketView } from './JobMarketView';
 import { MartView } from './MartView';
 import { OverviewView } from './OverviewView';
-import { createInitialCityState } from './seeder';
 import { Sidebar } from './Sidebar';
-import { advanceSimulationDay } from './simulation';
-import { clearSavedCity, loadSavedCity, saveCityState } from './storage';
 import { TopBar } from './TopBar';
-import type { CityState, NavTab, SimSpeed } from './types';
+import type { NavTab, SimSpeed } from './types';
+import { useCityPersistence } from './useCityPersistence';
 
-const SPEED_INTERVAL_MS: Record<Exclude<SimSpeed, 0>, number> = {
-  1: 10000,
-  5: 2000,
-  20: 500,
-};
+const SPEED_INTERVAL_MS: Record<Exclude<SimSpeed, 0>, number> = { 1: 10000, 5: 2000, 20: 500 };
 
 export default function App() {
-  const [city, setCity] = useState<CityState>(() => loadSavedCity() ?? createInitialCityState());
+  const { loading, city, meetings, warning, dismissWarning, stepOneDay, updateCity, markMeetingRead, resetCity, exportJson, importJson } = useCityPersistence();
+
   const [speed, setSpeed] = useState<SimSpeed>(1);
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(null);
   const [showNewCityConfirm, setShowNewCityConfirm] = useState(false);
+  const [seedInput, setSeedInput] = useState('');
 
   useEffect(() => {
-    saveCityState(city);
-  }, [city]);
-
-  useEffect(() => {
-    if (speed === 0) return;
-    const ms = SPEED_INTERVAL_MS[speed];
-    const timer = window.setInterval(() => {
-      setCity((prev) => advanceSimulationDay(prev));
-    }, ms);
+    if (loading || speed === 0) return;
+    const timer = window.setInterval(stepOneDay, SPEED_INTERVAL_MS[speed]);
     return () => window.clearInterval(timer);
-  }, [speed]);
+  }, [loading, speed, stepOneDay]);
 
-  const livingPopulation = useMemo(() => city.citizens.filter((c) => c.alive).length, [city.citizens]);
+  const livingPopulation = useMemo(() => (city ? city.citizens.filter((c) => c.alive).length : 0), [city]);
   const martLowStockCount = useMemo(
-    () => city.mart.stock.filter((s) => s.quantity / Math.max(0.2, s.dailyForecast) < 4).length,
-    [city.mart.stock]
+    () => (city ? city.mart.stock.filter((s) => s.quantity / Math.max(0.2, s.dailyForecast) < 4).length : 0),
+    [city]
   );
   const selectedCitizen = useMemo(
-    () => city.citizens.find((c) => c.id === selectedCitizenId) ?? null,
-    [city.citizens, selectedCitizenId]
+    () => (city ? city.citizens.find((c) => c.id === selectedCitizenId) ?? null : null),
+    [city, selectedCitizenId]
   );
+  const boardUnreadCount = useMemo(() => meetings.filter((m) => !m.read).length, [meetings]);
 
-  function handleConfirmNewCity() {
-    clearSavedCity();
-    const fresh = createInitialCityState();
-    setCity(fresh);
-    saveCityState(fresh);
+  if (loading || !city) {
+    return (
+      <div className="h-screen w-screen bg-[#090d16] text-slate-100 flex items-center justify-center">
+        <div className="bg-[#111827] border border-slate-800 rounded-lg px-6 py-5 text-center space-y-2">
+          <div className="font-display text-base font-semibold text-slate-100">Loading Vij</div>
+          <div className="text-xs text-slate-400">Restoring city state and board archives from IndexedDB...</div>
+        </div>
+      </div>
+    );
+  }
+
+  async function handleConfirmNewCity() {
+    const trimmed = seedInput.trim();
+    const parsedSeed = trimmed ? Number.parseInt(trimmed, 10) : undefined;
+    await resetCity(Number.isFinite(parsedSeed) ? parsedSeed : undefined);
     setSelectedCitizenId(null);
     setShowNewCityConfirm(false);
+    setSeedInput('');
     setSpeed(1);
   }
 
@@ -66,6 +67,7 @@ export default function App() {
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#090d16] text-slate-100">
       <TopBar
         cityName={city.cityName}
+        seed={city.seed}
         day={city.day}
         month={city.month}
         year={city.year}
@@ -75,6 +77,15 @@ export default function App() {
         population={livingPopulation}
       />
 
+      {warning && (
+        <div className="bg-rose-950/80 border-b border-rose-500/40 px-6 py-2 flex items-center justify-between text-xs text-rose-200">
+          <span>{warning}</span>
+          <button type="button" onClick={dismissWarning} className="text-rose-300 hover:text-white underline cursor-pointer">
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="flex-1 flex min-h-0">
         <Sidebar
           activeTab={activeTab}
@@ -83,34 +94,28 @@ export default function App() {
           vacancyCount={city.vacancies.length}
           eventCount={city.events.length}
           martLowStockCount={martLowStockCount}
+          boardUnreadCount={boardUnreadCount}
+          onExportJson={exportJson}
+          onImportJson={importJson}
           onRequestNewCity={() => setShowNewCityConfirm(true)}
         />
 
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-[1200px] mx-auto">
             {activeTab === 'overview' && (
-              <OverviewView
-                city={city}
-                onOpenEvents={() => setActiveTab('events')}
-                onOpenCompanies={() => setActiveTab('companies')}
-                onSelectCitizen={(id) => setSelectedCitizenId(id)}
-              />
+              <OverviewView city={city} onOpenEvents={() => setActiveTab('events')} onOpenCompanies={() => setActiveTab('companies')} onSelectCitizen={setSelectedCitizenId} />
             )}
             {activeTab === 'citizens' && (
-              <CitizensView city={city} onUpdateCity={setCity} onSelectCitizen={(id) => setSelectedCitizenId(id)} />
+              <CitizensView city={city} onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)} onSelectCitizen={setSelectedCitizenId} />
             )}
             {activeTab === 'companies' && (
-              <CompaniesView city={city} onSelectCitizen={(id) => setSelectedCitizenId(id)} />
+              <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} />
             )}
-            {activeTab === 'jobs' && (
-              <JobMarketView city={city} onSelectCitizen={(id) => setSelectedCitizenId(id)} />
-            )}
+            {activeTab === 'jobs' && <JobMarketView city={city} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'mart' && (
-              <MartView city={city} onUpdateCity={setCity} onSelectCitizen={(id) => setSelectedCitizenId(id)} />
+              <MartView city={city} onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)} onSelectCitizen={setSelectedCitizenId} />
             )}
-            {activeTab === 'events' && (
-              <EventLogView events={city.events} onSelectCitizen={(id) => setSelectedCitizenId(id)} />
-            )}
+            {activeTab === 'events' && <EventLogView events={city.events} onSelectCitizen={setSelectedCitizenId} />}
           </div>
         </main>
       </div>
@@ -119,7 +124,7 @@ export default function App() {
         <CitizenProfileModal
           citizen={selectedCitizen}
           city={city}
-          onUpdateCity={setCity}
+          onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)}
           onClose={() => setSelectedCitizenId(null)}
         />
       )}
@@ -127,10 +132,12 @@ export default function App() {
       {showNewCityConfirm && (
         <ConfirmModal
           title="Start a New City?"
-          message="This will replace the current simulation of Vij, reset the municipal treasury to ∆20,000, seed 4 companies at ∆40,000 each, and generate 50 fresh citizens from Day 1."
+          message="This replaces the current simulation of Vij, clears stored board meetings, resets treasury to ∆20,000, seeds 4 companies at ∆40,000 each, and creates 50 fresh citizens."
           confirmLabel="Create New City"
+          seedValue={seedInput}
+          onSeedChange={setSeedInput}
           onConfirm={handleConfirmNewCity}
-          onCancel={() => setShowNewCityConfirm(false)}
+          onCancel={() => { setShowNewCityConfirm(false); setSeedInput(''); }}
         />
       )}
     </div>

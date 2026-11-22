@@ -9,6 +9,7 @@ import {
 } from './constants';
 import { calculateFixedMonthlyCosts, clamp } from './economy';
 import { estimateMonthlyShoppingCost } from './standards';
+import { simRand } from './rng';
 import type { Citizen, TierId } from './types';
 
 export function computeSavingsScore(savings: number): number {
@@ -115,6 +116,6 @@ export function stepDailyMood(
 ): number {
   const target = computeTargetMood(citizen, netPay, hadShortageToday, martReputation);
   const drift = (target - citizen.mood) * 0.14;
-  const noise = (Math.random() - 0.5) * 2.0;
+  const noise = (simRand() - 0.5) * 2.0;
   return Math.round(clamp(citizen.mood + drift + noise, 0, 100) * 10) / 10;
 }

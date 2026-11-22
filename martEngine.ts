@@ -10,6 +10,7 @@ import { getMartFloorManager } from './martManager';
 import { processMartOrdering } from './martOrdering';
 import { findStockItem, round2 } from './martSetup';
 import type { MarginMood, MartState } from './martTypes';
+import { simRand, simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
 export function processMartDayStart(
@@ -30,8 +31,8 @@ export function processMartDayStart(
   for (const order of mart.deliveries) {
     order.etaDays -= 1;
     // 10% chance non-rush delivery slips 1-3 days late when about to arrive
-    if (order.etaDays <= 0 && !order.isRush && !order.isLate && Math.random() < 0.1) {
-      const delay = 1 + Math.floor(Math.random() * 3);
+    if (order.etaDays <= 0 && !order.isRush && !order.isLate && simRand() < 0.1) {
+      const delay = simRandInt(1, 3);
       order.etaDays = delay;
       order.isLate = true;
       mart.lateDeliveryCount += 1;
@@ -68,7 +69,8 @@ export function processMartDayEnd(
   citizens: Citizen[],
   clock: SimClock,
   dateLabel: string,
-  events: CityEvent[]
+  events: CityEvent[],
+  outsideSupplierActive = false
 ): void {
   // 1. Food spoilage (> 4 days)
   for (const item of mart.stock) {
@@ -129,8 +131,8 @@ export function processMartDayEnd(
 
   // 3. Forecast -> Mood & Prices -> New Orders
   updateSalesForecasts(mart, citizens, clock.day);
-  updateMartMoodsAndPrices(mart, citizens, avgSavings, avgMood, clock, dateLabel, events);
-  processMartOrdering(mart, citizens, clock, dateLabel, events);
+  updateMartMoodsAndPrices(mart, citizens, avgSavings, avgMood, clock, dateLabel, events, outsideSupplierActive);
+  processMartOrdering(mart, citizens, clock, dateLabel, events, outsideSupplierActive);
 
   const avgIndex = mart.stock.reduce((sum, s) => sum + (s.sellPrice / s.basePrice) * 100, 0) / mart.stock.length;
   const dominantMood: MarginMood = mart.categoryMoods.food.mood;

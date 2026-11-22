@@ -37,7 +37,7 @@
           '<pre style="white-space:pre-wrap;font-size:0.85rem;color:#cbd5e1;margin:0 0 1rem;">' +
           String(msg).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) +
           '</pre>' +
-          '<button onclick="localStorage.clear();location.reload();" style="padding:0.5rem 0.9rem;background:#f59e0b;color:#090d16;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Reset City &amp; Reload</button>' +
+          '<button onclick="localStorage.clear();if(window.indexedDB){indexedDB.deleteDatabase(\'vij_simulator_db\');}setTimeout(function(){location.reload();},150);" style="padding:0.5rem 0.9rem;background:#f59e0b;color:#090d16;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Reset City &amp; Reload</button>' +
           '</div>';
       };
       window.addEventListener('error', function (e) {

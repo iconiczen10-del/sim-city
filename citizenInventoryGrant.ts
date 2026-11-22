@@ -2,6 +2,7 @@
 
 import { HOUSEHOLD_PACK_DAYS } from './constants';
 import type { LivingStandard, ShoppingCategory } from './martTypes';
+import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
 export function addInventoryToCitizen(
@@ -19,7 +20,7 @@ export function addInventoryToCitizen(
   } else if (category === 'clothes') {
     for (let i = 0; i < qty; i++) {
       citizen.inventory.outfits.push({
-        id: `out_${citizen.id}_${totalDays}_${Math.random().toString(36).slice(2, 6)}`,
+        id: `out_${citizen.id}_${totalDays}_${simIdSuffix()}`,
         standard,
         condition: 100,
       });

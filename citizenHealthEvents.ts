@@ -6,6 +6,7 @@ import { getStressHealthDrain } from './citizenStress';
 import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { DEATH_CAUSE_LABELS, formatDelta, STANDARD_LABELS } from './formatters';
+import { simRand } from './rng';
 import type { Citizen, CityEvent, DeathCause } from './types';
 
 export function applyDailyHealthAndAlerts(
@@ -24,7 +25,7 @@ export function applyDailyHealthAndAlerts(
   } else {
     const minQuality = Math.min(foodStd, waterStd) as 1 | 2 | 3 | 4 | 5;
     const illnessChance = minQuality === 1 ? 0.025 : minQuality <= 3 ? 0.004 : 0.001;
-    if (Math.random() < illnessChance) {
+    if (simRand() < illnessChance) {
       const hit = minQuality === 1 ? 10 : 6;
       citizen.health = clamp(citizen.health - hit * agePenalty, 0, 100);
       addCitizenMemory(citizen, clock, dateLabel, 'illness', `Fell ill (${STANDARD_LABELS[minQuality]} food/water).`, -26);

@@ -3,6 +3,7 @@
 import { EDU_RANK, ROLE_RANK, ROLE_REQUIREMENTS } from './companyRules';
 import type { Company, CompanyVacancy, VacancyApplicant } from './companyTypes';
 import type { SimClock } from './eventFactory';
+import { simIdSuffix } from './rng';
 import type { Citizen, RoleLevel } from './types';
 
 export function openVacancy(
@@ -18,7 +19,7 @@ export function openVacancy(
   if (dup >= 2) return;
   const req = ROLE_REQUIREMENTS[role];
   vacancies.push({
-    id: `vac_${clock.totalDays}_${company.id}_${role}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `vac_${clock.totalDays}_${company.id}_${role}_${simIdSuffix()}`,
     companyId: company.id,
     companyName: company.name,
     role,

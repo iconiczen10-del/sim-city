@@ -8,6 +8,7 @@ import type {
 import { getMemorySignals, linkMemoriesToDecision } from './citizenMemory';
 import { STANDARD_LABELS } from './formatters';
 import type { LivingStandard, ShoppingCategory } from './martTypes';
+import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
 export function pushDecision(
@@ -16,7 +17,7 @@ export function pushDecision(
 ): DecisionRecord {
   const full: DecisionRecord = {
     ...record,
-    id: `dec_${record.totalDay}_${citizen.id}_${record.kind}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `dec_${record.totalDay}_${citizen.id}_${record.kind}_${simIdSuffix()}`,
   };
   citizen.decisions = [full, ...citizen.decisions].slice(0, 70);
   linkMemoriesToDecision(citizen, full.linkedMemoryIds, full.id);

@@ -7,6 +7,7 @@ import { ROLE_STATUS_SCORES } from './constants';
 import { calculateFixedMonthlyCosts, clamp } from './economy';
 import { estimateMonthlyShoppingCost } from './standards';
 import { computeIncomeScore, computeSavingsScore } from './status';
+import { simRand } from './rng';
 import type { Citizen } from './types';
 
 function r1(n: number): number {
@@ -82,7 +83,7 @@ export function stepMoodWithBreakdown(
 ): { mood: number; breakdown: SignedFactor[] } {
   const { targetMood, factors } = buildMoodFactors(citizen, netPay, hadShortageToday, martReputation);
   const drift = (targetMood - citizen.mood) * 0.14;
-  const noise = (Math.random() - 0.5) * 1.8;
+  const noise = (simRand() - 0.5) * 1.8;
   const nextMood = r1(clamp(citizen.mood + drift + noise - griefPenalty, 0, 100));
 
   const outFactors = [...factors];

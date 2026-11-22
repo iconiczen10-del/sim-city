@@ -6,6 +6,7 @@ import { CATEGORY_LABELS, MOOD_META } from './formatters';
 import { getManagerTraitProfile, getMartFloorManager, type MartManagerTraits } from './martManager';
 import { computeSkuPrice } from './martPricing';
 import type { CategoryMoodState, MarginMood, MartState, ShoppingCategory } from './martTypes';
+import { simRand, simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
 const MOOD_LADDER: MarginMood[] = ['clearance', 'generous', 'good', 'typical', 'greedy', 'gouging'];
@@ -67,7 +68,7 @@ function pickCategoryMood(
       ];
 
   const total = weights.reduce((s, w) => s + w[1], 0);
-  let roll = Math.random() * total;
+  let roll = simRand() * total;
   let picked = weights[0];
   for (const w of weights) {
     roll -= w[1];
@@ -78,7 +79,7 @@ function pickCategoryMood(
   const pct = Math.round(((minM + maxM) / 2) * 100);
   const traitNote = profile.resentfulMood ? 'Low mood (<40) resentment shift' : profile.greedyBonus > 0 ? 'Greed trait >70' : profile.generousBonus > 0 ? 'Low greed (<30)' : 'Routine market balance';
   return {
-    state: { mood: finalMood, marginPct: pct, daysRemaining: 2 + Math.floor(Math.random() * 3), reason: profile.resentfulMood ? `${picked[2]} (resentment shift)` : picked[2] },
+    state: { mood: finalMood, marginPct: pct, daysRemaining: 2 + simRandInt(0, 2), reason: profile.resentfulMood ? `${picked[2]} (resentment shift)` : picked[2] },
     traitNote,
   };
 }
@@ -90,7 +91,8 @@ export function updateMartMoodsAndPrices(
   avgCitizenMood: number,
   clock: SimClock,
   dateLabel: string,
-  events: CityEvent[]
+  events: CityEvent[],
+  outsideSupplierActive = false
 ): void {
   const manager = getMartFloorManager(citizens);
   const profile = getManagerTraitProfile(manager);
@@ -133,7 +135,7 @@ export function updateMartMoodsAndPrices(
       if (override.daysLeft <= 0) delete mart.overrides[cat];
     }
     for (const item of items) {
-      item.sellPrice = computeSkuPrice(item, moodState, mart, avgCitizenSavings, avgCitizenMood, delayRate, override);
+      item.sellPrice = computeSkuPrice(item, moodState, mart, avgCitizenSavings, avgCitizenMood, delayRate, override, outsideSupplierActive);
     }
   }
 }

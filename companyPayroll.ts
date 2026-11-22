@@ -1,5 +1,6 @@
 // companyPayroll.ts — Monthly company payroll payouts, cash fallback, and 5% business tax
 
+import type { CompanyBoardState } from './boardTypes';
 import { addCitizenMemory } from './citizenMemory';
 import { applyCompanyStreaksAndBankruptcy, generateSimulatedRevenue } from './companyFinances';
 import { getCompanyHealthMultiplier } from './companyRules';
@@ -25,8 +26,9 @@ export function runCompanyMonthEndFinances(params: {
   clock: SimClock;
   dateLabel: string;
   events: CityEvent[];
+  boardState?: CompanyBoardState;
 }): MonthlyPayrollSummary {
-  const { companies, citizens, mart, jobEvents, clock, dateLabel, events } = params;
+  const { companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState } = params;
   const citizenPayMap = new Map<string, { grossPay: number; tax: number; payRatio: number }>();
   let totalPayroll = 0;
   let businessTaxCollected = 0;
@@ -55,10 +57,14 @@ export function runCompanyMonthEndFinances(params: {
     const healthMult = getCompanyHealthMultiplier(comp);
     const freezeMult = comp.payFreeze ? 0.92 : 1.0;
 
-    const planned = employees.map((emp) => ({
-      emp,
-      gross: Math.round(calculateMonthlyPay(emp, healthMult * freezeMult, comp.industryMultiplier)),
-    }));
+    const planned = employees.map((emp) => {
+      let cutMult = 1;
+      if (comp.id === 'vijindustries' && boardState) {
+        const cutPct = emp.roleLevel === 'CEO' || emp.roleLevel === 'Executive' ? boardState.executivePayCutPct : boardState.companyPayCutPct;
+        cutMult = Math.max(0.5, 1 - cutPct / 100);
+      }
+      return { emp, gross: Math.round(calculateMonthlyPay(emp, healthMult * freezeMult * cutMult, comp.industryMultiplier)) };
+    });
     const fullPayroll = planned.reduce((s, p) => s + p.gross, 0);
     const payRatio = fullPayroll > 0 && comp.cash < fullPayroll ? clamp(Math.max(0, comp.cash) / fullPayroll, 0, 1) : 1;
 
@@ -97,7 +103,7 @@ export function runCompanyMonthEndFinances(params: {
     totalPayroll += actualPayroll;
     businessTaxCollected += bizTax;
 
-    applyCompanyStreaksAndBankruptcy({ comp, employees, profit, payRatio, mart, jobEvents, clock, dateLabel, events });
+    applyCompanyStreaksAndBankruptcy({ comp, employees, profit, payRatio, mart, jobEvents, clock, dateLabel, events, boardState });
   }
 
   return { totalPayroll, businessTaxCollected, citizenPayMap };

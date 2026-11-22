@@ -23,7 +23,11 @@ export type MemoryKind =
   | 'death'
   | 'broke'
   | 'big_buy'
-  | 'rationing';
+  | 'rationing'
+  | 'board_contribution'
+  | 'employee_investment'
+  | 'investment_repaid'
+  | 'investment_lost';
 
 export interface CitizenMemory {
   id: string;
@@ -55,7 +59,9 @@ export type DecisionKind =
   | 'standard_choice'
   | 'meal_choice'
   | 'downgrade_upgrade'
-  | 'tier_change';
+  | 'tier_change'
+  | 'employee_investment'
+  | 'board_vote';
 
 export interface DecisionRecord {
   id: string;

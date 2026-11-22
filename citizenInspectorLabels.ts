@@ -39,6 +39,10 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   broke: 'Ran Out of Money',
   big_buy: 'Big Purchase',
   rationing: 'Mart Rationing',
+  board_contribution: 'Board Capital Call',
+  employee_investment: 'Staff Investment',
+  investment_repaid: 'Investment Repaid',
+  investment_lost: 'Investment Lost',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
@@ -47,6 +51,8 @@ export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
   meal_choice: 'Daily Meal',
   downgrade_upgrade: 'Standard Shift',
   tier_change: 'Status Tier',
+  employee_investment: 'Staff Investment',
+  board_vote: 'Board Vote',
 };
 
 export const LIFE_LOG_LABELS: Record<LifeLogCategory, string> = {

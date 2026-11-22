@@ -1,6 +1,7 @@
-// Sidebar.tsx — Navigation sidebar with Overview, Citizens, Companies, Job Market, Vij Mart, and Events
+// Sidebar.tsx — Main navigation with board unread indicator, JSON export/import, and New City
 
-import { Briefcase, Building2, LayoutDashboard, RotateCcw, ScrollText, Store, Users } from 'lucide-react';
+import { Briefcase, Building2, Download, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
+import { useRef } from 'react';
 import type { NavTab } from './types';
 
 interface SidebarProps {
@@ -10,6 +11,9 @@ interface SidebarProps {
   vacancyCount: number;
   eventCount: number;
   martLowStockCount: number;
+  boardUnreadCount: number;
+  onExportJson: () => void;
+  onImportJson: (file: File) => void;
   onRequestNewCity: () => void;
 }
 
@@ -20,8 +24,12 @@ export function Sidebar({
   vacancyCount,
   eventCount,
   martLowStockCount,
+  boardUnreadCount,
+  onExportJson,
+  onImportJson,
   onRequestNewCity,
 }: SidebarProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
   const navItems: { id: NavTab; label: string; count?: number; icon: typeof LayoutDashboard }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'citizens', label: 'Citizens', count: citizenCount, icon: Users },
@@ -37,6 +45,7 @@ export function Sidebar({
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activeTab === item.id;
+          const showUnread = item.id === 'companies' && boardUnreadCount > 0;
           return (
             <button
               key={item.id}
@@ -52,17 +61,53 @@ export function Sidebar({
                 <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>{item.label}</span>
               </span>
-              {typeof item.count === 'number' && (
-                <span className={`font-mono text-xs ${item.id === 'mart' || item.id === 'jobs' ? 'text-amber-300' : 'text-slate-400'}`}>
-                  {item.count}
-                </span>
-              )}
+              <span className="flex items-center gap-2 font-mono text-xs tabular-nums">
+                {showUnread && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-amber-500 text-slate-950 rounded">
+                    {boardUnreadCount} new
+                  </span>
+                )}
+                {typeof item.count === 'number' && (
+                  <span className={item.id === 'mart' || item.id === 'jobs' ? 'text-amber-300' : 'text-slate-400'}>
+                    {item.count}
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}
       </nav>
 
-      <div className="pt-4 border-t border-slate-800/80">
+      <div className="pt-4 border-t border-slate-800/80 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onExportJson}
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium text-slate-300 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:text-slate-50 transition-colors cursor-pointer"
+          >
+            <Download className="w-3 h-3 shrink-0" aria-hidden="true" />
+            <span>Export</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium text-slate-300 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:text-slate-50 transition-colors cursor-pointer"
+          >
+            <Upload className="w-3 h-3 shrink-0" aria-hidden="true" />
+            <span>Import</span>
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onImportJson(file);
+              e.target.value = '';
+            }}
+          />
+        </div>
         <button
           type="button"
           onClick={onRequestNewCity}

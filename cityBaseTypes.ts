@@ -52,7 +52,10 @@ export type EventCategory =
   | 'pay-cut'
   | 'late-pay'
   | 'company-milestone'
-  | 'bankruptcy';
+  | 'bankruptcy'
+  | 'board'
+  | 'contribution'
+  | 'investment';
 
 export interface CitizenTraits {
   ambition: number;

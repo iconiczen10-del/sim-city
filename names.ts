@@ -1,5 +1,6 @@
 // names.ts — Unique realistic Indian city citizen names and gender roster
 
+import { simShuffle } from './rng';
 import type { Gender } from './types';
 
 export interface NameEntry {
@@ -65,10 +66,5 @@ export const CITIZEN_NAME_POOL: NameEntry[] = [
 ];
 
 export function shuffleNames(pool: NameEntry[]): NameEntry[] {
-  const copy = [...pool];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
+  return simShuffle(pool);
 }

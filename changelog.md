@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.2 — 2026-11-22
+- Rebalanced monthly survival baseline: citizens now protect minimum food and water spending before rent (recording unpaid rent in `rentArrears` and falling back to lower-tier food/water when needed), Entry (`∆620–∆920`) and Unemployed (`∆660–∆1,080`) start with ~45 days of savings, Vij Industries starting payroll targets ~70–85% of revenue, and bankrupt Vij Industries loses Mart wholesale revenue while Vij Mart falls back to `Outside Vij Wholesale` (`1.24x` cost).
+- Replaced all simulation `Math.random()` calls with deterministic seeded `mulberry32` PRNG (`rng.ts`), storing `seed` and `rngState` in `CityState`, displaying `City seed: <seed>` in the header, and adding an optional `Start with seed` input on New City.
+- Migrated browser persistence from `localStorage` to IndexedDB (`city` and `boardMeetings` stores) with async startup loading screen, one-time legacy `localStorage` import and cleanup, debounced auto-saves (every 5 days, month-end, `pagehide`), visible storage error warnings, and JSON Export / Import bundle buttons.
+- Implemented Vij Industries 4-seat Board Engine (`1 CEO, 2 Executives, 1 Manager`) with internal promotions, monthly & emergency cash-runway meetings, 60-day severe-action cooldowns, trait/memory-driven softmax option scoring across 13 resolutions, and 2-2 CEO tie-breaking.
+- Added compulsory weighted Board Contribution calls above a 4-month survival reserve (with 38% cap, default redistribution, non-revenue cash accounting, negative-cash streak reset, and personality/resignation reactions) plus voluntary 9-choice Employee Investment drives, proportional profit repayments, and bankruptcy write-offs.
+- Added Vij Industries Boardroom tab in Companies (unread badge, seat stances, 1x/5x/Instant transcript playback with `Hide thoughts` and `Jump to vote`, live probability & post-vote breakdown, filterable meeting archive) plus `board`, `contribution`, and `investment` Event Log categories and a 712-fragment render-time template composition engine.
+
 ## v0.5.1 — 2026-11-21
 - Rewrote Vij Mart demand forecasting around living citizens' ground-truth daily consumption (80%) blended with a 14-day sales EMA (20%) and a 1.08x days 28–30 payday cap, capping food orders at 4 days of shelf life and enforcing a ∆2,250 cash reserve floor on all orders.
 - Enforced a strict 1.0x wholesale cost price floor on every SKU across all moods and SimGod overrides, disabled clearance pricing on water, and raised clearance trigger threshold above 8 days of supply.

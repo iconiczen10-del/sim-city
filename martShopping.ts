@@ -47,6 +47,18 @@ export function purchaseFromMart(
     if (desiredQty > qty) addCitizenMemory(citizen, clock, dateLabel, 'rationing', `Vij Mart rationed ${CATEGORY_LABELS[category]} purchases.`, -16);
   }
   while (qty > 0 && citizen.savings < round2(qty * item.sellPrice)) qty -= 1;
+  if (qty <= 0 && (category === 'food' || category === 'water')) {
+    for (let std = chosenStandard - 1; std >= 1; std -= 1) {
+      const cheap = findStockItem(mart, category, std as LivingStandard);
+      if (cheap && cheap.quantity > 0 && citizen.savings >= round2(cheap.sellPrice)) {
+        item = cheap;
+        chosenStandard = std as LivingStandard;
+        qty = Math.min(desiredQty, cheap.quantity);
+        while (qty > 0 && citizen.savings < round2(qty * cheap.sellPrice)) qty -= 1;
+        break;
+      }
+    }
+  }
   if (qty <= 0) return false;
 
   const remembered = citizen.lastPaidPrices[category] || item.basePrice;

@@ -1,7 +1,7 @@
 // ErrorBoundary.tsx — Catches React render or initialization failures with visible recovery UI
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { clearSavedCity } from './storage';
+import { clearAllDbData } from './storage';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -23,8 +23,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   handleReset = () => {
-    clearSavedCity();
-    window.location.reload();
+    clearAllDbData().finally(() => window.location.reload());
   };
 
   render() {

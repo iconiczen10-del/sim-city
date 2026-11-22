@@ -9,6 +9,7 @@ import { makeCityEvent, type SimClock } from './eventFactory';
 import { openVacancy } from './jobScoring';
 import { evaluateMartManagerMonthly, getMartFloorManager } from './martManager';
 import type { MartState } from './martTypes';
+import { simRand } from './rng';
 import type { Citizen, CityEvent, RoleLevel } from './types';
 
 function releaseEmployee(params: {
@@ -80,7 +81,7 @@ export function runCompanyMonthlyAI(params: {
       if (boss && boss.alive) {
         const bossPush = (boss.traits.kindness - boss.traits.greed) * 0.12;
         const slow = 1 - emp.traits.loyalty * 0.005;
-        emp.bossRelationship = Math.round(clamp(emp.bossRelationship + bossPush * slow + (Math.random() - 0.5) * 3, -100, 100));
+        emp.bossRelationship = Math.round(clamp(emp.bossRelationship + bossPush * slow + (simRand() - 0.5) * 3, -100, 100));
       }
       emp.performanceScore = computeCitizenPerformance(emp);
     }
@@ -88,22 +89,23 @@ export function runCompanyMonthlyAI(params: {
     // Voluntary quitting
     for (const emp of employees) {
       if (emp.roleLevel === 'CEO') continue;
-      if (emp.traits.ambition < 55 || emp.traits.loyalty > 72) continue;
-      let quitProb = 0.01;
+      if (!emp.jobHunting && (emp.traits.ambition < 55 || emp.traits.loyalty > 72)) continue;
+      let quitProb = emp.jobHunting ? 0.14 : 0.01;
       if (emp.mood < 42) quitProb += 0.05;
       if (emp.bossRelationship < -20) quitProb += 0.07;
       if (emp.monthsSincePromotion >= 6) quitProb += 0.04;
       if (comp.payFreeze) quitProb += 0.04;
-      if (Math.random() < quitProb * ((100 - emp.traits.loyalty) / 100)) {
+      if (simRand() < quitProb * ((100 - emp.traits.loyalty) / 100)) {
+        emp.jobHunting = false;
         releaseEmployee({ emp, comp, kind: 'quit', reason: `${emp.name} quit ${comp.name} (${emp.roleLevel}) seeking better prospects.`, vacancies, jobEvents, clock, dateLabel, events });
       }
     }
 
-    // Performance firing (below Executive)
+    // Performance firing (below Executive; skip vijindustries when handled by board cooldowns)
     const active = citizens.filter((c) => c.alive && c.employerId === comp.id && ROLE_RANK[c.roleLevel] <= 4);
     for (const emp of active) {
       if (comp.id === 'vijmart' && emp.roleLevel === 'Team Lead') continue;
-      if (emp.performanceScore < 32 && emp.bossRelationship < 10 && Math.random() < 0.35) {
+      if (emp.performanceScore < 32 && emp.bossRelationship < 10 && simRand() < 0.35) {
         releaseEmployee({ emp, comp, kind: 'fired', reason: `${emp.name} was fired from ${comp.name} for low performance (${emp.performanceScore}/100).`, vacancies, jobEvents, clock, dateLabel, events });
       }
     }
@@ -116,7 +118,7 @@ export function runCompanyMonthlyAI(params: {
     }
 
     // 2-month negative profit layoffs starting from Entry
-    if (comp.negativeProfitStreak >= 2) {
+    if (comp.id !== 'vijindustries' && comp.negativeProfitStreak >= 2) {
       const layoffPool = citizens
         .filter((c) => c.alive && c.employerId === comp.id && c.roleLevel !== 'CEO')
         .sort((a, b) => ROLE_RANK[a.roleLevel] - ROLE_RANK[b.roleLevel] || a.performanceScore - b.performanceScore);
@@ -124,7 +126,7 @@ export function runCompanyMonthlyAI(params: {
       if (cut) {
         releaseEmployee({ emp: cut, comp, kind: 'layoff', reason: `${comp.name} laid off ${cut.name} (${cut.roleLevel}) after ${comp.negativeProfitStreak} unprofitable months.`, vacancies, jobEvents, clock, dateLabel, events });
       }
-    } else if (comp.positiveProfitStreak >= 2 && comp.direction === 'aggressive' && comp.cash > 25000) {
+    } else if (comp.id !== 'vijindustries' && comp.positiveProfitStreak >= 2 && comp.direction === 'aggressive' && comp.cash > 25000) {
       const openRole: Exclude<RoleLevel, 'Unemployed'> = comp.id === 'vijtech' || comp.id === 'vijcapital' ? 'Staff' : 'Entry';
       openVacancy(vacancies, comp, openRole, `${comp.name} growth expansion`, clock, dateLabel);
     }

@@ -4,6 +4,7 @@ import { HOUSEHOLD_PACK_DAYS, OUTFIT_WEAR_DAYS } from './constants';
 import { getManagerTraitProfile, getMartFloorManager } from './martManager';
 import { round2 } from './martSetup';
 import type { MartState } from './martTypes';
+import { simRand } from './rng';
 import type { Citizen } from './types';
 
 function computeEma14(history: number[], alpha: number, fallback: number): number {
@@ -33,7 +34,7 @@ export function updateSalesForecasts(mart: MartState, citizens: Citizen[], dayOf
     }
     const ema = computeEma14(item.salesHistory, profile.emaAlpha, groundTruth);
     const blended = groundTruth * profile.gtWeight + ema * profile.emaWeight;
-    const stressNoise = profile.stressForecastErr > 0 ? 1 + (Math.random() * 2 - 1) * profile.stressForecastErr : 1;
+    const stressNoise = profile.stressForecastErr > 0 ? 1 + (simRand() * 2 - 1) * profile.stressForecastErr : 1;
 
     item.groundTruthForecast = round2(groundTruth);
     item.salesEma = round2(ema);

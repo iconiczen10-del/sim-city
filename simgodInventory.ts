@@ -3,6 +3,7 @@
 import type { MassTargetScope } from './citizenInspectorTypes';
 import { HOUSEHOLD_PACK_DAYS, MART_BASE_PRICES, SHOPPING_CATEGORIES } from './constants';
 import type { LivingStandard, ShoppingCategory } from './martTypes';
+import { simIdSuffix, simShuffle } from './rng';
 import type { Citizen, RoleLevel, TierId } from './types';
 
 export function getUnitValue(category: ShoppingCategory, std: LivingStandard): number {
@@ -32,7 +33,7 @@ export function selectTargetCitizens(
   if (scope === 'role') return living.filter((c) => c.roleLevel === opts.role);
   if (scope === 'all') return living;
   const n = Math.max(1, Math.min(living.length, opts.randomCount ?? 5));
-  return [...living].sort(() => Math.random() - 0.5).slice(0, n);
+  return simShuffle(living).slice(0, n);
 }
 
 export function addItemUnits(citizen: Citizen, cat: ShoppingCategory, std: LivingStandard, qty: number, totalDays: number): number {
@@ -41,7 +42,7 @@ export function addItemUnits(citizen: Citizen, cat: ShoppingCategory, std: Livin
   else if (cat === 'water') citizen.inventory.water.push({ standard: std, days: qty });
   else if (cat === 'clothes') {
     for (let i = 0; i < qty; i++) {
-      citizen.inventory.outfits.push({ id: `sg_${totalDays}_${Math.random().toString(36).slice(2, 6)}`, standard: std, condition: 100 });
+      citizen.inventory.outfits.push({ id: `sg_${totalDays}_${simIdSuffix()}`, standard: std, condition: 100 });
     }
   } else {
     for (let i = 0; i < qty; i++) citizen.inventory.household.push({ standard: std, daysLeft: HOUSEHOLD_PACK_DAYS });

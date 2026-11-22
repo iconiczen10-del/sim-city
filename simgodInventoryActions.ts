@@ -12,6 +12,7 @@ import {
   removeCategoryUnits,
   selectTargetCitizens,
 } from './simgodInventory';
+import { getSimRngState, syncSimRng } from './rng';
 import { resolveCauseLabel } from './simgodInventoryTransfer';
 import type { CityState, RoleLevel, TierId } from './types';
 
@@ -67,6 +68,7 @@ export function executeMassInventoryAction(
   }
 ): CityState {
   if (opts.targetIds.length === 0) return prev;
+  syncSimRng(prev.rngState || prev.seed);
   const next = structuredClone(prev);
   const clock = simClock(next);
   const dateLabel = formatSimDate(next.day, next.month, next.year);
@@ -104,5 +106,6 @@ export function executeMassInventoryAction(
   const detail = `${opts.action === 'add' ? 'Granted' : `Removed (${causeLabel})`} across ${affected} citizen(s) · Total value ${formatDelta(totalValue)}.`;
   next.events.unshift(makeCityEvent(clock, `sg_mass_${opts.action}`, { type: 'simgod', citizenId: affected === 1 ? opts.targetIds[0] : undefined, title, detail }));
   next.events = next.events.slice(0, 600);
+  next.rngState = getSimRngState();
   return next;
 }

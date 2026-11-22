@@ -3,6 +3,7 @@
 import type { CitizenMemory, MemoryKind } from './citizenInspectorTypes';
 import { clamp } from './economy';
 import type { SimClock } from './eventFactory';
+import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
 function computeDecayRate(initialWeight: number): number {
@@ -29,7 +30,7 @@ export function addCitizenMemory(
   const initialWeight = Math.round(clamp(rawWeight * stressAmp * traitAmp, -100, 100));
 
   const mem: CitizenMemory = {
-    id: `mem_${clock.totalDays}_${citizen.id}_${kind}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `mem_${clock.totalDays}_${citizen.id}_${kind}_${simIdSuffix()}`,
     totalDay: clock.totalDays,
     dateLabel,
     kind,

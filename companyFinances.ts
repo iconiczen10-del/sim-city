@@ -1,31 +1,36 @@
 // companyFinances.ts — Simulated non-retail revenue, profit streaks, and 3-month bankruptcy closure
 
+import { wipeEmployeeInvestmentsOnBankruptcy } from './boardRepayments';
+import type { CompanyBoardState } from './boardTypes';
 import { addCitizenMemory } from './citizenMemory';
 import type { Company, JobMarketEvent } from './companyTypes';
 import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta, formatMonthYear } from './formatters';
 import type { MartState } from './martTypes';
+import { simRandFloat } from './rng';
 import type { Citizen, CityEvent } from './types';
 
 function randRange(min: number, max: number): number {
-  return min + Math.random() * (max - min);
+  return simRandFloat(min, max);
 }
 
 export function generateSimulatedRevenue(comp: Company): number {
   if (comp.bankrupt) return 0;
   const prev = comp.lastMonthRevenue;
   if (comp.id === 'vijtech') {
-    const base = prev > 0 ? prev * randRange(0.75, 1.25) : randRange(7500, 13000);
-    return Math.round(clamp(base, 5000, 15000));
+    const base = prev > 0 ? prev * randRange(0.78, 1.22) : randRange(16500, 23500);
+    return Math.round(clamp(base, 10000, 28000));
   }
   if (comp.id === 'vijcapital') {
-    const base = prev > 0 ? prev * randRange(0.85, 1.15) : randRange(2400, 4400);
-    return Math.round(clamp(base, 2000, 5000));
+    const base = prev > 0 ? prev * randRange(0.82, 1.18) : randRange(14500, 21000);
+    return Math.round(clamp(base, 9000, 25000));
   }
   if (comp.id === 'vijindustries') {
-    const baseExport = randRange(3000, 7000) * randRange(0.8, 1.2);
-    return Math.round(clamp(baseExport, 2400, 8400));
+    const prevExport = prev > 0 ? Math.max(14000, prev - 9000) : 0;
+    const baseExport = prevExport > 0 ? prevExport * randRange(0.82, 1.16) : randRange(31500, 37000);
+    const repFactor = 0.88 + (comp.reputation / 100) * 0.22;
+    return Math.round(clamp(baseExport * repFactor, 13000, 44000));
   }
   return 0;
 }
@@ -40,8 +45,9 @@ export function applyCompanyStreaksAndBankruptcy(params: {
   clock: SimClock;
   dateLabel: string;
   events: CityEvent[];
+  boardState?: CompanyBoardState;
 }): void {
-  const { comp, employees, profit, payRatio, mart, jobEvents, clock, dateLabel, events } = params;
+  const { comp, employees, profit, payRatio, mart, jobEvents, clock, dateLabel, events, boardState } = params;
 
   if (profit >= 0) {
     comp.positiveProfitStreak += 1;
@@ -69,6 +75,9 @@ export function applyCompanyStreaksAndBankruptcy(params: {
       }));
     } else if (comp.negativeCashStreak >= 3) {
       comp.bankrupt = true;
+      if (comp.id === 'vijindustries' && boardState) {
+        wipeEmployeeInvestmentsOnBankruptcy(comp, employees, boardState, clock, dateLabel, events);
+      }
       for (const emp of employees) {
         emp.employerId = null;
         emp.bossId = null;

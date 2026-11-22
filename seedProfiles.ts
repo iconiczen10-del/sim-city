@@ -94,11 +94,11 @@ export const SEED_ROSTER: SeedSlot[] = [
     role: 'Staff', targetTier: 'T4', savingsRange: [120, 340],
   })),
   ...Array.from({ length: 11 }, (): SeedSlot => ({
-    role: 'Entry', targetTier: 'T4', savingsRange: [140, 390],
+    role: 'Entry', targetTier: 'T4', savingsRange: [650, 920],
   })),
-  { role: 'Entry', targetTier: 'T5', savingsRange: [200, 290] },
-  { role: 'Unemployed', targetTier: 'T4', savingsRange: [300, 500] },
+  { role: 'Entry', targetTier: 'T5', savingsRange: [620, 740] },
+  { role: 'Unemployed', targetTier: 'T4', savingsRange: [760, 1080] },
   ...Array.from({ length: 8 }, (): SeedSlot => ({
-    role: 'Unemployed', targetTier: 'T5', savingsRange: [300, 500],
+    role: 'Unemployed', targetTier: 'T5', savingsRange: [660, 880],
   })),
 ];

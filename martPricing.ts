@@ -1,5 +1,6 @@
 // martPricing.ts — Multi-factor SKU pricing with strict 1.0x wholesale cost floor
 
+import { OUTSIDE_WHOLESALE_MULT } from './constants';
 import { clamp } from './economy';
 import { round2 } from './martSetup';
 import type {
@@ -16,8 +17,10 @@ export function computeSkuPrice(
   avgSavings: number,
   avgMood: number,
   delayRate: number,
-  override?: { mode: 'fixed' | 'multiplier'; value: number }
+  override?: { mode: 'fixed' | 'multiplier'; value: number },
+  outsideSupplierActive = false
 ): number {
+  const effectiveBuy = round2(item.buyCost * (outsideSupplierActive ? OUTSIDE_WHOLESALE_MULT : 1));
   const daysLeft = item.quantity / Math.max(0.2, item.dailyForecast);
   const stockAdjPct = Math.round(clamp((6 - daysLeft) * 8, -22, 65));
   const nearExp = item.foodAges?.[2] ?? 0;
@@ -40,12 +43,12 @@ export function computeSkuPrice(
     (1 + reputationAdjPct / 100) *
     (1 + delaySabotageAdjPct / 100);
 
-  const rawPrice = item.buyCost * (1 + moodState.marginPct / 100) * adjFactor;
-  let finalPrice = Math.max(item.buyCost, rawPrice);
+  const rawPrice = effectiveBuy * (1 + moodState.marginPct / 100) * adjFactor;
+  let finalPrice = Math.max(effectiveBuy, rawPrice);
 
   if (override) {
     const overridden = override.mode === 'fixed' ? override.value : finalPrice * override.value;
-    finalPrice = Math.max(item.buyCost, overridden);
+    finalPrice = Math.max(effectiveBuy, overridden);
   }
 
   const factors: PriceFactorBreakdown = {
@@ -57,8 +60,8 @@ export function computeSkuPrice(
     cashAdjPct,
     reputationAdjPct,
     delaySabotageAdjPct,
-    finalMultiplier: round2(finalPrice / item.buyCost),
+    finalMultiplier: round2(finalPrice / effectiveBuy),
   };
   item.priceFactors = factors;
-  return round2(Math.max(item.buyCost, finalPrice));
+  return round2(Math.max(effectiveBuy, finalPrice));
 }

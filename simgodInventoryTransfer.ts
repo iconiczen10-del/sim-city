@@ -7,6 +7,7 @@ import { makeCityEvent, type SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta, formatSimDate } from './formatters';
 import type { ShoppingCategory } from './martTypes';
 import { addItemUnits, removeCategoryUnits } from './simgodInventory';
+import { getSimRngState, simPick, syncSimRng } from './rng';
 import type { CityState } from './types';
 
 function simClock(city: CityState): SimClock {
@@ -16,7 +17,7 @@ function simClock(city: CityState): SimClock {
 export function resolveCauseLabel(cause: LossCause): string {
   const actual =
     cause === 'random'
-      ? NATURAL_LOSS_CAUSES[Math.floor(Math.random() * NATURAL_LOSS_CAUSES.length)]
+      ? simPick(NATURAL_LOSS_CAUSES)
       : cause;
   return LOSS_CAUSE_LABELS[actual];
 }
@@ -31,6 +32,7 @@ export function applySimGodInventoryTransfer(
   thiefName?: string
 ): CityState {
   if (fromId === toId || qty <= 0) return prev;
+  syncSimRng(prev.rngState || prev.seed);
   const next = structuredClone(prev);
   const clock = simClock(next);
   const dateLabel = formatSimDate(next.day, next.month, next.year);
@@ -60,5 +62,6 @@ export function applySimGodInventoryTransfer(
     detail: `Moved ${summary} (${formatDelta(addedVal)}) from ${giver.name} to ${receiver.name}${thiefTag}.`,
   }));
   next.events = next.events.slice(0, 600);
+  next.rngState = getSimRngState();
   return next;
 }

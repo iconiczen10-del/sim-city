@@ -53,6 +53,12 @@ export function CitizenFinancials({ citizen }: CitizenFinancialsProps) {
           <span className="text-slate-400">Est. Vij Mart Living Spend</span>
           <span className="font-mono text-slate-300">-{formatDelta(estMartSpend)}</span>
         </div>
+        {citizen.rentArrears > 0 && (
+          <div className="flex justify-between text-xs">
+            <span className="text-rose-300">Unpaid Rent Arrears</span>
+            <span className="font-mono text-rose-300">{formatDelta(citizen.rentArrears)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-xs pt-1.5 border-t border-slate-800">
           <span className="font-medium text-slate-200">Est. Net Monthly Surplus</span>
           <span className={`font-mono font-semibold ${estMonthlyBalance >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>

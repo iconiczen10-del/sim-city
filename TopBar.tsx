@@ -1,4 +1,4 @@
-// TopBar.tsx — Control-room header with city name, date, speed controls, treasury, and population
+// TopBar.tsx — Control-room header with city name, seed, date, speed controls, treasury, and population
 
 import { Pause, Play } from 'lucide-react';
 import { formatDelta, formatSimDate } from './formatters';
@@ -6,6 +6,7 @@ import type { SimSpeed } from './types';
 
 interface TopBarProps {
   cityName: string;
+  seed: number;
   day: number;
   month: number;
   year: number;
@@ -24,6 +25,7 @@ const SPEED_OPTIONS: { value: SimSpeed; label: string }[] = [
 
 export function TopBar({
   cityName,
+  seed,
   day,
   month,
   year,
@@ -33,18 +35,22 @@ export function TopBar({
   population,
 }: TopBarProps) {
   return (
-    <header className="h-14 shrink-0 border-b border-slate-800/90 bg-[#0d1320] px-6 flex items-center justify-between gap-8">
-      <div className="flex items-center gap-6 min-w-0">
+    <header className="h-14 shrink-0 border-b border-slate-800/90 bg-[#0d1320] px-6 flex items-center justify-between gap-6">
+      <div className="flex items-center gap-4 min-w-0">
         <span className="font-display text-lg font-semibold tracking-tight text-slate-50 whitespace-nowrap shrink-0">
           {cityName}
         </span>
         <span className="h-4 w-px bg-slate-800 shrink-0" aria-hidden="true" />
         <div className="flex items-center gap-2 text-xs whitespace-nowrap shrink-0">
           <span className="text-slate-400">Date</span>
-          <span className="font-mono font-medium text-slate-100">
+          <span className="font-mono font-medium text-slate-100 tabular-nums">
             {formatSimDate(day, month, year)}
           </span>
         </div>
+        <span className="h-4 w-px bg-slate-800 shrink-0" aria-hidden="true" />
+        <span className="font-mono text-xs text-slate-400 whitespace-nowrap shrink-0 tabular-nums">
+          City seed: <span className="text-slate-200">{seed}</span>
+        </span>
       </div>
 
       <div
@@ -76,17 +82,17 @@ export function TopBar({
         })}
       </div>
 
-      <div className="flex items-center gap-6 shrink-0">
+      <div className="flex items-center gap-5 shrink-0">
         <div className="flex items-center gap-2 text-xs whitespace-nowrap">
           <span className="text-slate-400">Treasury</span>
-          <span className="font-mono font-semibold text-amber-300">
+          <span className="font-mono font-semibold text-amber-300 tabular-nums">
             {formatDelta(treasury)}
           </span>
         </div>
         <span className="h-4 w-px bg-slate-800" aria-hidden="true" />
         <div className="flex items-center gap-2 text-xs whitespace-nowrap">
           <span className="text-slate-400">Population</span>
-          <span className="font-mono font-semibold text-slate-100">
+          <span className="font-mono font-semibold text-slate-100 tabular-nums">
             {population}
           </span>
         </div>

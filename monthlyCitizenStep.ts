@@ -8,7 +8,7 @@ import { makeCityEvent, type SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta, formatMonthYear, formatSimDate, HOME_LABELS } from './formatters';
 import type { LivingStandard } from './martTypes';
 import { applyMonthlyStatusAndTier, checkMonthlyMilestones } from './monthlyTierUpdate';
-import { chooseLivingStandards } from './standards';
+import { chooseLivingStandards, getCategoryMonthlyCost } from './standards';
 import type { Citizen, CityEvent, TierMovement } from './types';
 
 export function processLivingCitizenMonthEnd(
@@ -25,24 +25,37 @@ export function processLivingCitizenMonthEnd(
   const homeType = selectHomeType(netPay, citizen.savings, citizen.traits.greed, citizen.traits.discipline);
   const fixed = calculateFixedMonthlyCosts(homeType);
 
+  const survivalReserve = Math.round(getCategoryMonthlyCost('food', 1) + getCategoryMonthlyCost('water', 1));
+  const afterTaxCash = citizen.savings + netPay;
+  const availableForBills = Math.max(0, afterTaxCash - survivalReserve);
+  const nonRentPaid = Math.min(availableForBills, fixed.nonRent);
+  const remAfterNonRent = Math.max(0, availableForBills - nonRentPaid);
+  const rentDue = fixed.rent + citizen.rentArrears;
+  const rentPaid = Math.min(remAfterNonRent, rentDue);
+  const rentArrears = Math.round(Math.max(0, rentDue - rentPaid));
+  const totalPaidBills = Math.round(nonRentPaid + rentPaid);
+
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'income', 'Salary', `${citizen.roleLevel} Monthly Pay`, grossPay);
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Tax', 'Marginal Income Tax', tax);
-  appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Housing', `Rent (${HOME_LABELS[homeType]})`, fixed.rent);
-  appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Fixed Living', 'Transport, Utilities, Health, Net', fixed.nonRent);
-  appendLifeLog(citizen, clock.totalDays, dateLabel, 'money', `Payday +${formatDelta(netPay)} net; paid ${formatDelta(fixed.total)} rent & bills.`);
+  appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Housing', `Rent (${HOME_LABELS[homeType]})`, rentPaid);
+  appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Fixed Living', 'Transport, Utilities, Health, Net', nonRentPaid);
+  appendLifeLog(citizen, clock.totalDays, dateLabel, 'money', `Payday +${formatDelta(netPay)} net; paid ${formatDelta(totalPaidBills)} bills${rentArrears > 0 ? ` (${formatDelta(rentArrears)} rent arrears)` : ''}.`);
 
-  const rawBalance = citizen.savings + netPay - fixed.total;
-  const hitZero = rawBalance <= 0 && citizen.savings > 0;
-  const unableToPay = rawBalance < 0;
-  const savings = Math.max(0, Math.round(rawBalance));
-  const mood = unableToPay ? Math.max(0, Math.round((citizen.mood - 12) * 10) / 10) : citizen.mood;
+  const savings = Math.max(0, Math.round(afterTaxCash - totalPaidBills));
+  const hitZero = savings <= 0 && citizen.savings > 0;
+  const unableToPay = rentArrears > 0 || nonRentPaid < fixed.nonRent;
+  const mood = unableToPay ? Math.max(0, Math.round((citizen.mood - 10) * 10) / 10) : citizen.mood;
 
   if (hitZero || unableToPay) {
-    addCitizenMemory(citizen, clock, dateLabel, 'broke', `Ran out of money after ${formatDelta(fixed.total)} monthly bills.`, -38);
-    if (hitZero) {
+    const detail = rentArrears > 0
+      ? `Rent fell into ${formatDelta(rentArrears)} arrears while protecting food & water money.`
+      : `Ran out of money after ${formatDelta(totalPaidBills)} monthly bills.`;
+    addCitizenMemory(citizen, clock, dateLabel, 'broke', detail, -34);
+    if (hitZero || rentArrears >= fixed.rent) {
       events.push(makeCityEvent(clock, `zero_${citizen.id}`, {
         type: 'money', citizenId: citizen.id, citizenName: citizen.name,
-        title: 'Savings Depleted', detail: `${citizen.name} hit ∆0 after fixed monthly costs of ${formatDelta(fixed.total)}.`,
+        title: rentArrears > 0 ? 'Rent Arrears' : 'Savings Depleted',
+        detail: rentArrears > 0 ? `${citizen.name} kept food/water money and owes ${formatDelta(rentArrears)} rent.` : `${citizen.name} hit ∆0 after monthly bills.`,
       }));
     }
   }
@@ -53,7 +66,7 @@ export function processLivingCitizenMonthEnd(
   });
   if (citizen.giftShieldDays > 0 && nextStandards.food < citizen.standards.food) nextStandards.food = citizen.standards.food;
 
-  const draft: Citizen = { ...citizen, savings, standards: nextStandards };
+  const draft: Citizen = { ...citizen, savings, rentArrears, standards: nextStandards };
   if (nextStandards.food !== citizen.standards.food) {
     const down = nextStandards.food < citizen.standards.food;
     const dec = recordStandardOrTierDecision({
@@ -69,12 +82,12 @@ export function processLivingCitizenMonthEnd(
     if (down) appendChangeExplanation(draft, clock.totalDays, dateLabel, 'standard_downgrade', `Month-end ${CATEGORY_LABELS.food} cut L${citizen.standards.food} → L${nextStandards.food}.`, dec.id);
   }
 
-  const tierRes = applyMonthlyStatusAndTier(draft, grossPay, netPay, fixed.total, unableToPay, clock, events, movements);
+  const tierRes = applyMonthlyStatusAndTier(draft, grossPay, netPay, totalPaidBills, unableToPay, clock, events, movements);
   return {
     taxPaid: tax,
     updated: {
       ...draft, mood, respect: tierRes.respect, statusScore: tierRes.statusScore, tier: tierRes.tier, homeType,
-      lastGrossPay: grossPay, lastTax: tax, lastFixedCosts: fixed.total, highestMilestone,
+      lastGrossPay: grossPay, lastTax: tax, lastFixedCosts: totalPaidBills, highestMilestone,
       history: [...citizen.history.slice(-59), { totalDay: clock.totalDays, label: formatMonthYear(clock.month, clock.year), savings, mood, statusScore: tierRes.statusScore }],
     },
   };

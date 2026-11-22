@@ -1,9 +1,11 @@
-// ConfirmModal.tsx — Confirmation dialog before resetting Vij with fresh citizens
+// ConfirmModal.tsx — Confirmation dialog with optional custom city seed input
 
 interface ConfirmModalProps {
   title: string;
   message: string;
   confirmLabel: string;
+  seedValue?: string;
+  onSeedChange?: (val: string) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -12,6 +14,8 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel,
+  seedValue,
+  onSeedChange,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -30,6 +34,25 @@ export function ConfirmModal({
           {title}
         </h2>
         <p className="text-xs text-slate-300 leading-relaxed">{message}</p>
+
+        {onSeedChange && (
+          <div className="space-y-1.5">
+            <label htmlFor="new-city-seed-input" className="block text-[11px] font-medium text-slate-400">
+              Start with seed (optional integer — leave blank for random)
+            </label>
+            <input
+              id="new-city-seed-input"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              value={seedValue ?? ''}
+              onChange={(e) => onSeedChange(e.target.value)}
+              placeholder="Random seed (e.g. 48213)"
+              className="w-full bg-[#090d16] border border-slate-700 rounded-md px-3 py-1.5 font-mono text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/70"
+            />
+          </div>
+        )}
+
         <div className="flex items-center justify-end gap-2.5 pt-2">
           <button
             type="button"

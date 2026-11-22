@@ -3,8 +3,9 @@
 import type { LivingStandard, MarginMood, ShoppingCategory } from './martTypes';
 import type { EducationLevel, HomeType, RoleLevel, TierId } from './types';
 
-export const APP_VERSION = '0.5.1';
-export const STORAGE_KEY = 'vij_city_state_v5_1';
+export const APP_VERSION = '0.5.2';
+export const STORAGE_KEY = 'vij_city_state_v5_2';
+export const LEGACY_STORAGE_KEYS = ['vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
 export const INITIAL_TREASURY = 20000;
 export const DAYS_PER_MONTH = 30;
 export const MONTHS_PER_YEAR = 12;
@@ -16,6 +17,7 @@ export const MART_INITIAL_CASH = 40000;
 export const MART_CASH_RESERVE = 2250;
 export const MART_MONTHLY_OP_COST = 0;
 export const MART_WHOLESALE_RATIO = 0.65;
+export const OUTSIDE_WHOLESALE_MULT = 1.24;
 export const MART_SUPPLIER = 'Vij Industries';
 export const MART_TRIP_FEE = 40;
 export const MART_RUSH_FEE = 100;

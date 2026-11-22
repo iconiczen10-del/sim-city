@@ -1,5 +1,6 @@
 // monthlyCycle.ts — End-of-month company payroll, taxes, job market, citizen settlement, and treasury
 
+import type { CompanyBoardState } from './boardTypes';
 import { runCompanyMonthlyAI } from './companyAI';
 import { runCompanyMonthEndFinances } from './companyPayroll';
 import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
@@ -20,6 +21,7 @@ export function runCityMonthEnd(params: {
   mart: MartState;
   clock: SimClock;
   events: CityEvent[];
+  boardState: CompanyBoardState;
 }): {
   citizens: Citizen[];
   vacancies: CompanyVacancy[];
@@ -30,12 +32,12 @@ export function runCityMonthEnd(params: {
   businessTaxCollected: number;
   movements: TierMovement[];
 } {
-  const { citizens, companies, treasury, mart, clock, events } = params;
+  const { citizens, companies, treasury, mart, clock, events, boardState } = params;
   const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
   let vacancies = [...params.vacancies];
   let jobEvents = [...params.jobEvents];
 
-  const payrollRes = runCompanyMonthEndFinances({ companies, citizens, mart, jobEvents, clock, dateLabel, events });
+  const payrollRes = runCompanyMonthEndFinances({ companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState });
   let taxCollected = 0;
   const movements: TierMovement[] = [];
 

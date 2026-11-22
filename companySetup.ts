@@ -5,6 +5,7 @@ import type { Company, CompanyId } from './companyTypes';
 import { COMPANY_INITIAL_CASH } from './constants';
 import { calculateMarginalTax, calculateMonthlyPay, clamp } from './economy';
 import type { MartState } from './martTypes';
+import { simRandInt } from './rng';
 import type { Citizen, RoleLevel } from './types';
 
 export function createInitialCompanies(): Company[] {
@@ -86,7 +87,7 @@ export function assignInitialCitizensToCompanies(
     const cid = pools[c.roleLevel].shift() ?? 'vijindustries';
     const comp = companies.find((co) => co.id === cid)!;
     c.employerId = cid;
-    c.tenureMonths = 6 + Math.floor(Math.random() * 24);
+    c.tenureMonths = 6 + simRandInt(0, 23);
     c.bossRelationship = Math.round(clamp((c.traits.kindness + c.traits.loyalty - 100) * 0.4 + 18, -30, 65));
     c.lastGrossPay = calculateMonthlyPay(c, 0.96, comp.industryMultiplier);
     c.lastTax = calculateMarginalTax(c.lastGrossPay);

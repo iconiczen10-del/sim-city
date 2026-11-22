@@ -8,6 +8,7 @@ import {
 } from './constants';
 import { calculateFixedMonthlyCosts, clamp } from './economy';
 import type { CitizenStandards, LivingStandard, ShoppingCategory } from './martTypes';
+import { simRand } from './rng';
 import type { CitizenTraits, HomeType, RoleLevel } from './types';
 
 // Monthly cost of a single category at a given standard (baseline prices)
@@ -109,8 +110,8 @@ export function chooseLivingStandards(params: {
 
   // High greed + low discipline impulse overspending
   if (allowImpulse && traits.greed > 68 && traits.discipline < 42 && savings > 180) {
-    if (Math.random() < 0.25) {
-      const cat: ShoppingCategory = Math.random() < 0.5 ? 'clothes' : 'food';
+    if (simRand() < 0.25) {
+      const cat: ShoppingCategory = simRand() < 0.5 ? 'clothes' : 'food';
       result[cat] = clamp(result[cat] + 1, 1, 5) as LivingStandard;
     }
   }

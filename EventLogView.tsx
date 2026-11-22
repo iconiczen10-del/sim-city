@@ -55,7 +55,7 @@ export function EventLogView({ events, onSelectCitizen }: EventLogViewProps) {
           </select>
 
           <div className="flex items-center gap-1 p-0.5 bg-[#090d16] border border-slate-800 rounded-md">
-            {(['all', 'death', 'stock-out', 'shortage', 'delivery'] as const).map((quick) => (
+            {(['all', 'board', 'death', 'stock-out', 'delivery'] as const).map((quick) => (
               <button
                 key={quick}
                 type="button"

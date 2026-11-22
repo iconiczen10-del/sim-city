@@ -6,6 +6,7 @@ import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta } from './formatters';
 import type { MartState } from './martTypes';
+import { simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
 export function applyContaminationPoisoning(
@@ -16,7 +17,7 @@ export function applyContaminationPoisoning(
   events: CityEvent[],
   sourceLabel: string
 ): void {
-  const medBill = Math.min(citizen.savings, 50 + Math.floor(Math.random() * 101));
+  const medBill = Math.min(citizen.savings, 50 + simRandInt(0, 100));
   citizen.savings = Math.max(0, Math.round(citizen.savings - medBill));
   const hit = citizen.age > 55 ? 26 : 20;
   citizen.health = clamp(citizen.health - hit, 0, 100);
