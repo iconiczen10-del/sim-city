@@ -1,0 +1,6 @@
+{
+  "name": "Vij",
+  "description": "Real-life city simulator tracking 50 individual citizens, salaries, marginal taxes, monthly living costs, daily mood, and status tiers in Vij.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
