@@ -48,8 +48,8 @@ export function CitizenWorkSection({ citizen, city }: CitizenWorkSectionProps) {
 
       {citizen.workHistory.length > 0 && (
         <div className="pt-2 border-t border-slate-800/70 space-y-1 max-h-28 overflow-y-auto">
-          {citizen.workHistory.slice(0, 6).map((w) => (
-            <div key={w.id} className="flex items-center justify-between text-[11px]">
+          {citizen.workHistory.slice(0, 6).map((w, idx) => (
+            <div key={`${w.id}_${idx}`} className="flex items-center justify-between text-[11px]">
               <span className="text-slate-300 truncate">{w.note}</span>
               <span className="font-mono text-slate-500 shrink-0 ml-2">{w.dateLabel}</span>
             </div>

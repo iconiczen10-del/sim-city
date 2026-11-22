@@ -73,9 +73,9 @@ export function processJobMarketMonthEnd(params: {
       ? `${hiree.name} promoted from ${prevRole} to ${vac.role} at ${comp.name}.`
       : `${hiree.name} hired as ${vac.role} at ${comp.name} (score ${picked.score}).`;
 
-    hiree.workHistory = [{ id: `wh_${clock.totalDays}_${hiree.id}`, dateLabel, companyId: comp.id, companyName: comp.name, role: vac.role, kind, note: detail }, ...hiree.workHistory].slice(0, 24);
-    jobEvents.unshift({ id: `je_${clock.totalDays}_${hiree.id}`, dateLabel, kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, companyName: comp.name, role: vac.role, detail });
-    events.push(makeCityEvent(clock, `${kind}_${hiree.id}`, { type: kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, title: wasInternal ? 'Citizen Promoted' : 'Citizen Hired', detail }));
+    hiree.workHistory = [{ id: `wh_${clock.totalDays}_${hiree.id}_${safety}`, dateLabel, companyId: comp.id, companyName: comp.name, role: vac.role, kind, note: detail }, ...hiree.workHistory].slice(0, 24);
+    jobEvents.unshift({ id: `je_${clock.totalDays}_${hiree.id}_${safety}`, dateLabel, kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, companyName: comp.name, role: vac.role, detail });
+    events.push(makeCityEvent(clock, `${kind}_${hiree.id}_${safety}`, { type: kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, title: wasInternal ? 'Citizen Promoted' : 'Citizen Hired', detail }));
     comp.reputation = Math.round(clamp(comp.reputation + (wasInternal ? 1.2 : 0.4), 0, 100) * 10) / 10;
   }
 

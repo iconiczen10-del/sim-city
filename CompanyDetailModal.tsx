@@ -77,8 +77,8 @@ export function CompanyDetailModal({
               <div className="text-slate-500 py-8 text-center">No company events logged yet.</div>
             ) : (
               <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                {compEvents.map((evt) => (
-                  <div key={evt.id} className="border-b border-slate-800/60 pb-1.5">
+                {compEvents.map((evt, idx) => (
+                  <div key={`${evt.id}_${idx}`} className="border-b border-slate-800/60 pb-1.5">
                     <div className="flex justify-between">
                       <span className="font-medium text-slate-200">{evt.title}</span>
                       <span className="font-mono text-[11px] text-slate-500">{evt.dateLabel}</span>

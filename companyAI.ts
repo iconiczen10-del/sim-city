@@ -41,9 +41,9 @@ function releaseEmployee(params: {
     comp.reputation = Math.round(clamp(comp.reputation - (kind === 'layoff' ? 4 : 1.5), 0, 100) * 10) / 10;
   }
 
-  emp.workHistory = [{ id: `wh_${kind}_${clock.totalDays}_${emp.id}`, dateLabel, companyId: comp.id, companyName: comp.name, role: oldRole, kind, note: reason }, ...emp.workHistory].slice(0, 24);
-  jobEvents.unshift({ id: `je_${kind}_${clock.totalDays}_${emp.id}`, dateLabel, kind, citizenId: emp.id, citizenName: emp.name, companyId: comp.id, companyName: comp.name, role: oldRole, detail: reason });
-  events.push(makeCityEvent(clock, `${kind}_${emp.id}`, {
+  emp.workHistory = [{ id: `wh_${kind}_${clock.totalDays}_${emp.id}_${emp.workHistory.length}`, dateLabel, companyId: comp.id, companyName: comp.name, role: oldRole, kind, note: reason }, ...emp.workHistory].slice(0, 24);
+  jobEvents.unshift({ id: `je_${kind}_${clock.totalDays}_${emp.id}_${jobEvents.length}`, dateLabel, kind, citizenId: emp.id, citizenName: emp.name, companyId: comp.id, companyName: comp.name, role: oldRole, detail: reason });
+  events.push(makeCityEvent(clock, `${kind}_${emp.id}_${jobEvents.length}`, {
     type: kind, citizenId: emp.id, citizenName: emp.name, companyId: comp.id,
     title: kind === 'fired' ? 'Citizen Fired' : kind === 'layoff' ? 'Company Layoff' : 'Citizen Quit Job',
     detail: reason,

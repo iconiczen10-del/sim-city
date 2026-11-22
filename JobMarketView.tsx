@@ -99,8 +99,8 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
             </div>
           ) : (
             <div className="divide-y divide-slate-800/80 max-h-[460px] overflow-y-auto pr-1 text-xs">
-              {city.jobEvents.slice(0, 25).map((je) => (
-                <div key={je.id} className="py-2.5 space-y-1">
+              {city.jobEvents.slice(0, 25).map((je, idx) => (
+                <div key={`${je.id}_${idx}`} className="py-2.5 space-y-1">
                   <div className="flex items-center justify-between">
                     <button type="button" onClick={() => onSelectCitizen(je.citizenId)} className="font-medium text-slate-100 hover:text-amber-300 cursor-pointer">
                       {je.citizenName}

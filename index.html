@@ -16,8 +16,41 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
-  <body class="bg-[#090d16] text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-100">
+  <body
+    class="bg-[#090d16] text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-100"
+    style="background-color:#090d16;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;margin:0;"
+  >
     <div id="root"></div>
-    <script type="module" src="/main.tsx"></script>
+    <noscript>
+      <div style="padding:2rem;max-width:600px;margin:3rem auto;border:1px solid #ef4444;border-radius:8px;background:#111827;color:#fecaca;">
+        <h1 style="margin:0 0 0.5rem;font-size:1.1rem;">JavaScript Required</h1>
+        <p style="margin:0;font-size:0.9rem;color:#cbd5e1;">Please enable JavaScript to run Vij.</p>
+      </div>
+    </noscript>
+    <script>
+      window.__vijBootError = function (msg) {
+        var root = document.getElementById('root');
+        if (!root || root.dataset.mounted === '1') return;
+        root.innerHTML =
+          '<div style="padding:2rem;max-width:640px;margin:3rem auto;border:1px solid #ef4444;border-radius:8px;background:#111827;color:#f1f5f9;">' +
+          '<h1 style="margin:0 0 0.5rem;font-size:1.1rem;color:#fca5a5;">Vij failed to start</h1>' +
+          '<pre style="white-space:pre-wrap;font-size:0.85rem;color:#cbd5e1;margin:0 0 1rem;">' +
+          String(msg).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) +
+          '</pre>' +
+          '<button onclick="localStorage.clear();location.reload();" style="padding:0.5rem 0.9rem;background:#f59e0b;color:#090d16;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Reset City &amp; Reload</button>' +
+          '</div>';
+      };
+      window.addEventListener('error', function (e) {
+        if (!document.getElementById('root')?.dataset.mounted) {
+          window.__vijBootError(e.message || 'Script load error');
+        }
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        if (!document.getElementById('root')?.dataset.mounted) {
+          window.__vijBootError((e.reason && e.reason.message) || e.reason || 'Unhandled startup error');
+        }
+      });
+    </script>
+    <script type="module" src="./main.tsx" onerror="window.__vijBootError('Failed to load application module bundle.')"></script>
   </body>
 </html>

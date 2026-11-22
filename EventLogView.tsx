@@ -84,9 +84,9 @@ export function EventLogView({ events, onSelectCitizen }: EventLogViewProps) {
           </div>
         ) : (
           <div className="divide-y divide-slate-800/80">
-            {filtered.map((evt) => (
+            {filtered.map((evt, idx) => (
               <div
-                key={evt.id}
+                key={`${evt.id}_${idx}`}
                 className="px-5 py-3 flex items-center justify-between gap-6 hover:bg-slate-800/25 transition-colors"
               >
                 <div className="flex items-baseline gap-4 min-w-0">

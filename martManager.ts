@@ -123,9 +123,9 @@ export function fireMartManagerSimGod(prev: CityState): CityState {
   mgr.tenureMonths = 0;
   mgr.monthsSincePromotion = 0;
   addCitizenMemory(mgr, clock, dateLabel, 'loss', 'Fired from Vij Mart floor manager role.', -38);
-  mgr.workHistory = [{ id: `wh_sgfire_${clock.totalDays}_${mgr.id}`, dateLabel, companyId: comp.id, companyName: comp.name, role: 'Team Lead' as const, kind: 'fired' as const, note }, ...mgr.workHistory].slice(0, 24);
-  next.jobEvents.unshift({ id: `je_sgfire_${clock.totalDays}_${mgr.id}`, dateLabel, kind: 'fired', citizenId: mgr.id, citizenName: mgr.name, companyId: comp.id, companyName: comp.name, role: 'Team Lead', detail: note });
-  next.events.unshift(makeCityEvent(clock, `sg_fire_${mgr.id}`, { type: 'fired', citizenId: mgr.id, citizenName: mgr.name, companyId: comp.id, title: 'Mart Manager Fired', detail: note }));
+  mgr.workHistory = [{ id: `wh_sgfire_${clock.totalDays}_${mgr.id}_${mgr.workHistory.length}`, dateLabel, companyId: comp.id, companyName: comp.name, role: 'Team Lead' as const, kind: 'fired' as const, note }, ...mgr.workHistory].slice(0, 24);
+  next.jobEvents.unshift({ id: `je_sgfire_${clock.totalDays}_${mgr.id}_${next.jobEvents.length}`, dateLabel, kind: 'fired', citizenId: mgr.id, citizenName: mgr.name, companyId: comp.id, companyName: comp.name, role: 'Team Lead', detail: note });
+  next.events.unshift(makeCityEvent(clock, `sg_fire_${mgr.id}_${next.jobEvents.length}`, { type: 'fired', citizenId: mgr.id, citizenName: mgr.name, companyId: comp.id, title: 'Mart Manager Fired', detail: note }));
   openVacancy(next.vacancies as CompanyVacancy[], comp, 'Team Lead', 'Floor manager fired by SimGod', clock, dateLabel);
   rebuildCompanyBossTree('vijmart', next.citizens);
 

@@ -116,8 +116,8 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
             </button>
           </div>
           <div className="divide-y divide-slate-800/80">
-            {latestEvents.map((evt) => (
-              <div key={evt.id} className="py-2.5 flex items-start justify-between gap-4">
+            {latestEvents.map((evt, idx) => (
+              <div key={`${evt.id}_${idx}`} className="py-2.5 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-xs">
                     <span className="font-medium text-slate-200">{evt.title}</span>
