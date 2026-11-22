@@ -39,8 +39,8 @@ export function executeBoardResolution(params: {
     return { outcomeSummary: 'Ordered immediate hiring & raise freeze across Vij Industries.' };
   }
   if (optionId === 'board_contribution') {
-    const summary = executeCompulsoryBoardContribution({ comp, members, board, requiredCash: metrics.requiredWithReserve, clock, dateLabel, events });
-    return { outcomeSummary: `Compulsory board capital call raised ${formatDelta(summary.totalContributed)} (defaulted ${formatDelta(summary.totalDefaulted)}).`, contributionSummary: summary };
+    const summary = executeCompulsoryBoardContribution({ comp, members, board, requiredCash: metrics.requiredWithReserve, runwayMonths: metrics.runwayMonths, clock, dateLabel, events });
+    return { outcomeSummary: `Compulsory board capital call raised ${formatDelta(summary.totalContributed)} (unpaid ${formatDelta(summary.totalDefaulted)}).`, contributionSummary: summary };
   }
   if (optionId === 'employee_ask') {
     const res = runEmployeeInvestmentAsk({ comp, citizens, board, hadRecentBoardContrib: board.totalBoardContributions > 0, clock, dateLabel, events });

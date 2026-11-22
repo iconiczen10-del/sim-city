@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.5.6 — 2026-11-22
+- Implemented **Sharity (S2: Posts, Templates, Topics, Trending, Company Pages)** driving live citizen and company posts from real simulation events and active states across all 16 topic categories.
+- Built the weighted citizen posting pipeline (`sociability × (event strength + social need + mood swing)`), 2-day per-citizen post cooldown (bypassed on major events), quiet suppression when mood/sociability are very low under high stress, and full deceased-citizen silence.
+- Added 9 distinct voices (`humble`, `show_off`, `bitter`, `kind`, `funny`, `anxious`, `angry`, `hopeful`, `neutral`), education/age/stress-driven writing styles, `@handle` mentions, and a 300+ template/fragment library with 14-day global anti-repeat and per-citizen template cooldowns.
+- Enabled verified event-driven official posts from `@vijtech`, `@vijcapital`, `@vijindustries`, and `@vijmart` with CEO trait spin (`greed` vs `kindness`) on vacancies, layoffs, pay freezes, monthly profit/loss, board resolutions, and Vij Mart closures, rationing, delays, or price moves.
+- Upgraded the **Feed** view with live post cards, **Why this post?** breakdowns (trigger, gate scores, voice reason, template ID), topic filter chips across all 16 categories, author/text/hashtag filters, clickable **Top 10 Trending Hashtags (Last 7 Days)** with rising/falling arrows, author profile post lists, and **Network** analytics charts (posts per day, topic mix bar, and city voice sentiment over time).
+
+## v0.5.5 — 2026-11-22
+- Added **Sharity (S1 Foundation)** as a new sidebar tab with **Feed**, **People**, and **Network** sub-views plus full profile drill-down pages; SimGod operates strictly in observer mode (`No posts yet` shell ready for S2).
+- Created unique lowercase Sharity handles (`@firstname.lastname`, plus `@vijtech`, `@vijcapital`, `@vijindustries`, `@vijmart`), tier-colored initial avatars, Day-1 join dates, official company bios, and event/trait/status-driven citizen bios with a 10-day refresh cooldown and `In memory` preservation for deceased citizens.
+- Implemented **Verified & Rising Badges**: company pages stay permanently verified while citizens earn a **Rising** verified badge on upward tier moves and lose it if they fall below the tier where it was earned, with full profile badge history and `sharity` Event Log entries.
+- Built the pairwise citizen **Affinity** matrix (`-100` to `+100`) seeded from workplace, boss ties, trait similarity, tier distance, and greed/kindness clashes with slow monthly drift, displaying Top 5 highest and lowest affinity peers on each Sharity profile.
+- Added the seeded **Follower Network** (`>= 2` citizen follows each, employer + Vij Mart follows, skewed status/sociability distribution), monthly/event-driven follow updates, `10 / 25 / 50` follower milestones, and the **Posting Rate Engine** (`0.7–1` expected posts/day with `0–3` variation, `5+` surge on major city events, `0` when paused; added `2x` and `10x` speed controls).
+- Added a Sharity preview section inside the Citizen Profile Modal linking directly to that citizen's Sharity profile, and updated IndexedDB/JSON save migration cleanly.
+
+## v0.5.4 — 2026-11-22
+- Updated Vij Industries' simulated export payout clamp from `∆13,000–∆44,000` to **`∆10,000–∆25,000`** (`∆10,000` prior-export floor and `∆20,000–∆24,500` Month 1 export range) in `companyFinances.ts`.
+- Removed the personal survival-floor exemption from compulsory Vij Industries board contributions so all 4 directors share compulsory calls evenly (with zero-cash shortfall redistribution across directors).
+- Calibrated compulsory board contribution tiers to **`∆5,000–∆10,000`** during low-cash danger and **`∆10,000–∆25,000`** when cash/runway is severely distressed (`cash < 0`, negative cash streak, or `< 0.7` months runway).
+- Updated board voting and emergency meeting triggers so board contributions only activate in genuine danger/low cash, and the board actively fights bankruptcy using hiring freezes, pay cuts, targeted layoffs, and capital calls instead of passive waiting or premature wind-down.
+
+## v0.5.3 — 2026-11-22
+- Added the **Company Full Ledger** tab inside Companies alongside **All Companies** and **Vij Industries Board**, with **Per Day**, **Per Week**, and **Per Month** sub-tabs.
+- Implemented real transaction ledger recording (`CompanyLedgerEntry`) with exact running cash balances across all four companies: Vij Mart retail sales, wholesale stock orders, monthly staff payroll, 5% business revenue taxes, Vij Industries export revenue, Vijtech/Vij Capital client & banking revenue, compulsory board capital calls, employee investments, investor principal repayments, and store cash/rush adjustments.
+- Added company selector buttons, category filtering (`Retail Sales`, `Wholesale`, `Export Revenue`, `Client Revenue`, `Staff Payroll`, `Business Tax`, `Board Capital`, `Staff Investment`, `Debt Repayment`, `Cash Adjustment`), summary KPI cards, and clickable period rows that drill down into the full transaction journal.
+
 ## v0.5.2 — 2026-11-22
 - Rebalanced monthly survival baseline: citizens now protect minimum food and water spending before rent (recording unpaid rent in `rentArrears` and falling back to lower-tier food/water when needed), Entry (`∆620–∆920`) and Unemployed (`∆660–∆1,080`) start with ~45 days of savings, Vij Industries starting payroll targets ~70–85% of revenue, and bankrupt Vij Industries loses Mart wholesale revenue while Vij Mart falls back to `Outside Vij Wholesale` (`1.24x` cost).
 - Replaced all simulation `Math.random()` calls with deterministic seeded `mulberry32` PRNG (`rng.ts`), storing `seed` and `rngState` in `CityState`, displaying `City seed: <seed>` in the header, and adding an optional `Start with seed` input on New City.

@@ -9,12 +9,13 @@ import { EventLogView } from './EventLogView';
 import { JobMarketView } from './JobMarketView';
 import { MartView } from './MartView';
 import { OverviewView } from './OverviewView';
+import { SharityView } from './SharityView';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import type { NavTab, SimSpeed } from './types';
 import { useCityPersistence } from './useCityPersistence';
 
-const SPEED_INTERVAL_MS: Record<Exclude<SimSpeed, 0>, number> = { 1: 10000, 5: 2000, 20: 500 };
+const SPEED_INTERVAL_MS: Record<Exclude<SimSpeed, 0>, number> = { 1: 10000, 2: 5000, 5: 2000, 10: 1000, 20: 500 };
 
 export default function App() {
   const { loading, city, meetings, warning, dismissWarning, stepOneDay, updateCity, markMeetingRead, resetCity, exportJson, importJson } = useCityPersistence();
@@ -22,12 +23,13 @@ export default function App() {
   const [speed, setSpeed] = useState<SimSpeed>(1);
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(null);
+  const [selectedSharityProfileId, setSelectedSharityProfileId] = useState<string | null>(null);
   const [showNewCityConfirm, setShowNewCityConfirm] = useState(false);
   const [seedInput, setSeedInput] = useState('');
 
   useEffect(() => {
     if (loading || speed === 0) return;
-    const timer = window.setInterval(stepOneDay, SPEED_INTERVAL_MS[speed]);
+    const timer = window.setInterval(() => stepOneDay(speed), SPEED_INTERVAL_MS[speed]);
     return () => window.clearInterval(timer);
   }, [loading, speed, stepOneDay]);
 
@@ -54,13 +56,9 @@ export default function App() {
   }
 
   async function handleConfirmNewCity() {
-    const trimmed = seedInput.trim();
-    const parsedSeed = trimmed ? Number.parseInt(trimmed, 10) : undefined;
+    const parsedSeed = seedInput.trim() ? Number.parseInt(seedInput.trim(), 10) : undefined;
     await resetCity(Number.isFinite(parsedSeed) ? parsedSeed : undefined);
-    setSelectedCitizenId(null);
-    setShowNewCityConfirm(false);
-    setSeedInput('');
-    setSpeed(1);
+    setSelectedCitizenId(null); setSelectedSharityProfileId(null); setShowNewCityConfirm(false); setSeedInput(''); setSpeed(1);
   }
 
   return (
@@ -89,12 +87,14 @@ export default function App() {
       <div className="flex-1 flex min-h-0">
         <Sidebar
           activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          onSelectTab={(t) => { if (t !== 'sharity') setSelectedSharityProfileId(null); setActiveTab(t); }}
           citizenCount={livingPopulation}
           vacancyCount={city.vacancies.length}
           eventCount={city.events.length}
           martLowStockCount={martLowStockCount}
           boardUnreadCount={boardUnreadCount}
+          sharityPostCount={city.sharity.posts.length}
+          sharityUnreadCount={city.sharity.unreadPostCount}
           onExportJson={exportJson}
           onImportJson={importJson}
           onRequestNewCity={() => setShowNewCityConfirm(true)}
@@ -102,18 +102,17 @@ export default function App() {
 
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-[1200px] mx-auto">
-            {activeTab === 'overview' && (
-              <OverviewView city={city} onOpenEvents={() => setActiveTab('events')} onOpenCompanies={() => setActiveTab('companies')} onSelectCitizen={setSelectedCitizenId} />
-            )}
-            {activeTab === 'citizens' && (
-              <CitizensView city={city} onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)} onSelectCitizen={setSelectedCitizenId} />
-            )}
-            {activeTab === 'companies' && (
-              <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} />
-            )}
+            {activeTab === 'overview' && <OverviewView city={city} onOpenEvents={() => setActiveTab('events')} onOpenCompanies={() => setActiveTab('companies')} onSelectCitizen={setSelectedCitizenId} />}
+            {activeTab === 'citizens' && <CitizensView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
+            {activeTab === 'companies' && <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'jobs' && <JobMarketView city={city} onSelectCitizen={setSelectedCitizenId} />}
-            {activeTab === 'mart' && (
-              <MartView city={city} onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)} onSelectCitizen={setSelectedCitizenId} />
+            {activeTab === 'mart' && <MartView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
+            {activeTab === 'sharity' && (
+              <SharityView
+                city={city} speed={speed} selectedProfileId={selectedSharityProfileId} onSelectProfileId={setSelectedSharityProfileId}
+                onSelectCitizen={setSelectedCitizenId}
+                onMarkPostsRead={() => updateCity((c) => ({ ...c, sharity: { ...c.sharity, unreadPostCount: 0 } }))}
+              />
             )}
             {activeTab === 'events' && <EventLogView events={city.events} onSelectCitizen={setSelectedCitizenId} />}
           </div>
@@ -122,9 +121,9 @@ export default function App() {
 
       {selectedCitizen && (
         <CitizenProfileModal
-          citizen={selectedCitizen}
-          city={city}
-          onUpdateCity={(updater) => updateCity(typeof updater === 'function' ? updater : () => updater)}
+          citizen={selectedCitizen} city={city}
+          onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)}
+          onOpenSharityProfile={(pid) => { setSelectedCitizenId(null); setSelectedSharityProfileId(pid); setActiveTab('sharity'); }}
           onClose={() => setSelectedCitizenId(null)}
         />
       )}

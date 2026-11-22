@@ -1,20 +1,22 @@
 // boardInvestments.ts — Employee voluntary investment asks, principal repayments, and bankruptcy losses
 
-import { getMemberSurvivalFloor } from './boardContributions';
 import type { CompanyBoardState } from './boardTypes';
 import { pushDecision, sumDecisionFactors } from './citizenDecisions';
 import { appendLedgerEntry, appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
+import { appendCompanyLedger } from './companyLedger';
 import type { Company } from './companyTypes';
-import { clamp } from './economy';
+import { calculateFixedMonthlyCosts, clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta } from './formatters';
 import { simIdSuffix, simRand, simRandFloat } from './rng';
+import { estimateMonthlyShoppingCost } from './standards';
 import type { Citizen, CityEvent } from './types';
 
-type InvestChoice =
-  | 'refuse' | 'refuse_job_hunt' | 'wait_and_see' | 'small'
-  | 'medium' | 'large' | 'all_in' | 'conditional' | 'reluctant';
+function getEmployeeReserveFloor(c: Citizen): number {
+  return Math.round((calculateFixedMonthlyCosts(c.homeType).total + estimateMonthlyShoppingCost(c.standards)) * 4);
+}
+type InvestChoice = 'refuse' | 'refuse_job_hunt' | 'wait_and_see' | 'small' | 'medium' | 'large' | 'all_in' | 'conditional' | 'reluctant';
 
 function decideEmployeeInvest(
   emp: Citizen,
@@ -78,7 +80,7 @@ export function runEmployeeInvestmentAsk(params: {
   });
 
   const evals = nonBoard.map((emp) => {
-    const spare = Math.max(0, emp.savings - getMemberSurvivalFloor(emp));
+    const spare = Math.max(0, emp.savings - getEmployeeReserveFloor(emp));
     return { emp, spare, res: decideEmployeeInvest(emp, comp, spare, hadRecentBoardContrib) };
   });
 
@@ -134,9 +136,11 @@ export function runEmployeeInvestmentAsk(params: {
   }
 
   board.pendingEmployeeAskIds = nextPending;
-  if (raised > 0) comp.cash = Math.round((comp.cash + raised) * 100) / 100;
+  if (raised > 0) {
+    comp.cash = Math.round((comp.cash + raised) * 100) / 100;
+    appendCompanyLedger(comp, clock, dateLabel, { kind: 'inflow', category: 'employee_investment', label: 'Employee Investment Drive', detail: `${participants} worker(s) backed reserves`, amount: raised, balanceAfter: comp.cash });
+  }
   if (comp.cash >= 0) comp.negativeCashStreak = 0;
-
   events.push(makeCityEvent(clock, `empinv_${comp.id}`, {
     type: 'investment', companyId: comp.id, title: `${comp.name} Employee Investment Drive`,
     detail: `Raised ${formatDelta(raised)} from ${participants} worker(s) · ${waiting} wait-and-see · ${refused} refused.`,

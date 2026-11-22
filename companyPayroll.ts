@@ -3,6 +3,7 @@
 import type { CompanyBoardState } from './boardTypes';
 import { addCitizenMemory } from './citizenMemory';
 import { applyCompanyStreaksAndBankruptcy, generateSimulatedRevenue } from './companyFinances';
+import { appendCompanyLedger } from './companyLedger';
 import { getCompanyHealthMultiplier } from './companyRules';
 import type { Company, JobMarketEvent } from './companyTypes';
 import { BUSINESS_TAX_RATE } from './constants';
@@ -51,6 +52,15 @@ export function runCompanyMonthEndFinances(params: {
     if (simRev > 0) {
       comp.monthlyRevenue = Math.round((comp.monthlyRevenue + simRev) * 100) / 100;
       comp.cash = Math.round((comp.cash + simRev) * 100) / 100;
+      const isExport = comp.id === 'vijindustries';
+      appendCompanyLedger(comp, clock, dateLabel, {
+        kind: 'inflow',
+        category: isExport ? 'export' : 'client_revenue',
+        label: isExport ? 'Export Sales Revenue' : comp.id === 'vijtech' ? 'Client & IT Revenue' : 'Banking & Advisory Revenue',
+        detail: isExport ? `Rep ${comp.reputation.toFixed(0)}/100 export settlement` : `${comp.sector} monthly receipts`,
+        amount: simRev,
+        balanceAfter: comp.cash,
+      });
     }
 
     const employees = citizens.filter((c) => c.alive && c.employerId === comp.id);
@@ -93,7 +103,14 @@ export function runCompanyMonthEndFinances(params: {
     const bizTax = Math.round(comp.monthlyRevenue * BUSINESS_TAX_RATE);
     comp.monthlyPayrollCost = actualPayroll;
     comp.monthlyBusinessTax = bizTax;
-    comp.cash = Math.round((comp.cash - actualPayroll - bizTax) * 100) / 100;
+    const afterPayroll = Math.round((comp.cash - actualPayroll) * 100) / 100;
+    comp.cash = Math.round((afterPayroll - bizTax) * 100) / 100;
+    if (actualPayroll > 0) {
+      appendCompanyLedger(comp, clock, dateLabel, { kind: 'outflow', category: 'payroll', label: 'Monthly Staff Payroll', detail: `${employees.length} employee(s) · ${Math.round(payRatio * 100)}% paid`, amount: actualPayroll, balanceAfter: afterPayroll });
+    }
+    if (bizTax > 0) {
+      appendCompanyLedger(comp, clock, dateLabel, { kind: 'outflow', category: 'business_tax', label: 'Business Revenue Tax (5%)', detail: `5% on ${formatDelta(comp.monthlyRevenue)} revenue`, amount: bizTax, balanceAfter: comp.cash });
+    }
 
     const totalCosts = Math.round((actualPayroll + comp.monthlyOtherCost + bizTax) * 100) / 100;
     const profit = Math.round((comp.monthlyRevenue - totalCosts) * 100) / 100;

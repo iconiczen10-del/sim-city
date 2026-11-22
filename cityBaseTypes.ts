@@ -20,8 +20,8 @@ export type RoleLevel =
 export type TierId = 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
 export type HomeType = 'shared_room' | 'small_flat' | 'apartment' | 'villa' | 'mansion';
 export type Gender = 'Female' | 'Male' | 'Non-Binary';
-export type SimSpeed = 0 | 1 | 5 | 20;
-export type NavTab = 'overview' | 'citizens' | 'companies' | 'jobs' | 'mart' | 'events';
+export type SimSpeed = 0 | 1 | 2 | 5 | 10 | 20;
+export type NavTab = 'overview' | 'citizens' | 'companies' | 'jobs' | 'mart' | 'sharity' | 'events';
 export type CitizenSort = 'richest' | 'happiest' | 'status';
 export type DeathCause = 'starvation' | 'dehydration' | 'illness';
 
@@ -55,7 +55,8 @@ export type EventCategory =
   | 'bankruptcy'
   | 'board'
   | 'contribution'
-  | 'investment';
+  | 'investment'
+  | 'sharity';
 
 export interface CitizenTraits {
   ambition: number;

@@ -27,10 +27,10 @@ export function generateSimulatedRevenue(comp: Company): number {
     return Math.round(clamp(base, 9000, 25000));
   }
   if (comp.id === 'vijindustries') {
-    const prevExport = prev > 0 ? Math.max(14000, prev - 9000) : 0;
-    const baseExport = prevExport > 0 ? prevExport * randRange(0.82, 1.16) : randRange(31500, 37000);
+    const prevExport = prev > 0 ? Math.max(10000, prev - 9000) : 0;
+    const baseExport = prevExport > 0 ? prevExport * randRange(0.82, 1.16) : randRange(20000, 24500);
     const repFactor = 0.88 + (comp.reputation / 100) * 0.22;
-    return Math.round(clamp(baseExport * repFactor, 13000, 44000));
+    return Math.round(clamp(baseExport * repFactor, 10000, 25000));
   }
   return 0;
 }

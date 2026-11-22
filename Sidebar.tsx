@@ -1,6 +1,6 @@
 // Sidebar.tsx — Main navigation with board unread indicator, JSON export/import, and New City
 
-import { Briefcase, Building2, Download, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
+import { AtSign, Briefcase, Building2, Download, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
 import { useRef } from 'react';
 import type { NavTab } from './types';
 
@@ -12,6 +12,8 @@ interface SidebarProps {
   eventCount: number;
   martLowStockCount: number;
   boardUnreadCount: number;
+  sharityPostCount: number;
+  sharityUnreadCount: number;
   onExportJson: () => void;
   onImportJson: (file: File) => void;
   onRequestNewCity: () => void;
@@ -25,6 +27,8 @@ export function Sidebar({
   eventCount,
   martLowStockCount,
   boardUnreadCount,
+  sharityPostCount,
+  sharityUnreadCount,
   onExportJson,
   onImportJson,
   onRequestNewCity,
@@ -36,6 +40,7 @@ export function Sidebar({
     { id: 'companies', label: 'Companies', count: 4, icon: Building2 },
     { id: 'jobs', label: 'Job Market', count: vacancyCount > 0 ? vacancyCount : undefined, icon: Briefcase },
     { id: 'mart', label: 'Vij Mart', count: martLowStockCount > 0 ? martLowStockCount : undefined, icon: Store },
+    { id: 'sharity', label: 'Sharity', count: sharityPostCount > 0 ? sharityPostCount : undefined, icon: AtSign },
     { id: 'events', label: 'Event Log', count: eventCount, icon: ScrollText },
   ];
 
@@ -45,7 +50,8 @@ export function Sidebar({
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activeTab === item.id;
-          const showUnread = item.id === 'companies' && boardUnreadCount > 0;
+          const showUnread = (item.id === 'companies' && boardUnreadCount > 0) || (item.id === 'sharity' && sharityPostCount > 0 && sharityUnreadCount > 0);
+          const unreadVal = item.id === 'sharity' ? sharityUnreadCount : boardUnreadCount;
           return (
             <button
               key={item.id}
@@ -64,7 +70,7 @@ export function Sidebar({
               <span className="flex items-center gap-2 font-mono text-xs tabular-nums">
                 {showUnread && (
                   <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-amber-500 text-slate-950 rounded">
-                    {boardUnreadCount} new
+                    {unreadVal} new
                   </span>
                 )}
                 {typeof item.count === 'number' && (

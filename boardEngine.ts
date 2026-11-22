@@ -72,7 +72,7 @@ export function runVijIndustriesBoardStep(params: {
 
   const metrics = computeBoardMetrics(comp, citizens);
   const dueRegular = isMonthEnd && clock.totalDays >= board.nextMeetingDay;
-  const dueEmergency = !dueRegular && metrics.runwayMonths < 1.0 && clock.totalDays - board.lastEmergencyDay >= 10 && clock.totalDays > 5;
+  const dueEmergency = !dueRegular && (comp.cash < 0 || metrics.runwayMonths < 0.85) && clock.totalDays - board.lastEmergencyDay >= 8 && clock.totalDays > 5;
   if (!dueRegular && !dueEmergency) return null;
 
   const kind: 'regular' | 'emergency' = dueEmergency ? 'emergency' : 'regular';

@@ -1,5 +1,6 @@
 // simgodSabotage.ts — SimGod sabotage powers affecting stock, contamination, pricing, closure, cash, and manager
 
+import { appendCompanyLedger } from './companyLedger';
 import { makeCityEvent } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta, formatPrice, formatSimDate, STANDARD_LABELS } from './formatters';
 import { findStockItem, round2 } from './martSetup';
@@ -106,7 +107,14 @@ export function applyShopClosure(prev: CityState, days: number): CityState {
 
 export function applyMartCashChange(prev: CityState, delta: number): CityState {
   const next = structuredClone(prev);
+  const prevCash = next.mart.cash;
   next.mart.cash = Math.max(0, round2(next.mart.cash + delta));
+  const actualDelta = Math.round((next.mart.cash - prevCash) * 100) / 100;
+  const vijMart = next.companies.find((c) => c.id === 'vijmart');
+  if (vijMart) {
+    vijMart.cash = next.mart.cash;
+    appendCompanyLedger(vijMart, clockFrom(prev), formatSimDate(prev.day, prev.month, prev.year), { kind: actualDelta >= 0 ? 'inflow' : 'outflow', category: 'adjustment', label: actualDelta >= 0 ? 'Cash Injection' : 'Cash Withdrawal', detail: 'Direct store reserve adjustment', amount: Math.abs(actualDelta), balanceAfter: next.mart.cash });
+  }
   if (next.mart.closedUntilFunded && next.mart.cash >= 1500) {
     next.mart.closedUntilFunded = false;
     next.mart.unpaidOpMonths = 0;

@@ -1,8 +1,9 @@
 // simgodDeliveries.ts — SimGod delivery schedule control and order rush/delay/cancel actions
 
+import { appendCompanyLedger } from './companyLedger';
 import { MART_RUSH_FEE } from './constants';
 import { makeCityEvent } from './eventFactory';
-import { CATEGORY_LABELS, formatDelta } from './formatters';
+import { CATEGORY_LABELS, formatDelta, formatSimDate } from './formatters';
 import type { ShoppingCategory } from './martTypes';
 import type { CityState } from './types';
 
@@ -47,7 +48,14 @@ export function applyOrderIntervention(
   let detail = '';
 
   if (action === 'rush') {
+    const prevCash = next.mart.cash;
     next.mart.cash = Math.max(0, Math.round((next.mart.cash - MART_RUSH_FEE) * 100) / 100);
+    const paid = Math.round((prevCash - next.mart.cash) * 100) / 100;
+    const vijMart = next.companies.find((c) => c.id === 'vijmart');
+    if (vijMart) {
+      vijMart.cash = next.mart.cash;
+      appendCompanyLedger(vijMart, clock, formatSimDate(prev.day, prev.month, prev.year), { kind: 'outflow', category: 'adjustment', label: 'Rush Delivery Fee', detail: `Rushed ${CATEGORY_LABELS[order.category]} L${order.standard}`, amount: paid, balanceAfter: next.mart.cash });
+    }
     order.etaDays = 1;
     order.isRush = true;
     detail = `Rushed ${order.quantity} ${CATEGORY_LABELS[order.category]} (L${order.standard}) for ${formatDelta(MART_RUSH_FEE)}.`;

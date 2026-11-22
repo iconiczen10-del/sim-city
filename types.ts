@@ -5,6 +5,7 @@ import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, Lif
 import type { CitizenSnapshot, CitizenTraits, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
 import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
+import type { SharityState } from './sharityTypes';
 
 export type {
   CitizenSnapshot, CitizenSort, CitizenTraits, DeathCause, EducationLevel,
@@ -113,4 +114,5 @@ export interface CityState {
   lastTotalPayroll: number;
   lastBusinessTaxCollected: number;
   boardState: CompanyBoardState;
+  sharity: SharityState;
 }

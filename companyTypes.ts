@@ -48,6 +48,33 @@ export interface CompanyHistoryPoint {
   cash: number;
 }
 
+export type CompanyLedgerCategory =
+  | 'retail'
+  | 'wholesale'
+  | 'export'
+  | 'client_revenue'
+  | 'payroll'
+  | 'business_tax'
+  | 'capital_call'
+  | 'employee_investment'
+  | 'investment_repayment'
+  | 'adjustment';
+
+export interface CompanyLedgerEntry {
+  id: string;
+  totalDay: number;
+  day: number;
+  month: number;
+  year: number;
+  dateLabel: string;
+  kind: 'inflow' | 'outflow';
+  category: CompanyLedgerCategory;
+  label: string;
+  detail: string;
+  amount: number;
+  balanceAfter: number;
+}
+
 export interface Company {
   id: CompanyId;
   name: string;
@@ -70,6 +97,7 @@ export interface Company {
   negativeCashStreak: number;
   bankrupt: boolean;
   history: CompanyHistoryPoint[];
+  ledger: CompanyLedgerEntry[];
 }
 
 export interface WorkHistoryEntry {

@@ -13,7 +13,7 @@ import {
   saveBoardMeetingToDb,
   saveCityToDb,
 } from './storage';
-import type { CityState } from './types';
+import type { CityState, SimSpeed } from './types';
 
 export function useCityPersistence() {
   const [loading, setLoading] = useState(true);
@@ -57,10 +57,10 @@ export function useCityPersistence() {
     return () => window.removeEventListener('pagehide', onPageHide);
   }, [reportDbError]);
 
-  const stepOneDay = useCallback(() => {
+  const stepOneDay = useCallback((speed: SimSpeed = 1) => {
     const prev = cityRef.current;
     if (!prev) return;
-    const { state: next, newMeeting } = advanceSimulationDayWithBoard(prev, meetingsRef.current[0]);
+    const { state: next, newMeeting } = advanceSimulationDayWithBoard(prev, meetingsRef.current[0], speed);
     setCity(next);
     if (newMeeting) {
       setMeetings((mPrev) => [newMeeting, ...mPrev]);

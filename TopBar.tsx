@@ -19,7 +19,9 @@ interface TopBarProps {
 const SPEED_OPTIONS: { value: SimSpeed; label: string }[] = [
   { value: 0, label: 'Pause' },
   { value: 1, label: '1x' },
+  { value: 2, label: '2x' },
   { value: 5, label: '5x' },
+  { value: 10, label: '10x' },
   { value: 20, label: '20x' },
 ];
 

@@ -27,13 +27,14 @@ export function createInitialCompanies(): Company[] {
     negativeCashStreak: 0,
     bankrupt: false,
     history: [{ label: '1 Jan', revenue: 0, costs: 0, profit: 0, cash: COMPANY_INITIAL_CASH }],
+    ledger: [],
   };
 
   return [
-    { ...base, id: 'vijtech', name: 'Vijtech Systems', sector: 'Software & IT', industryMultiplier: 1.15 },
-    { ...base, id: 'vijcapital', name: 'Vij Capital', sector: 'Finance & Banking', industryMultiplier: 1.1 },
-    { ...base, id: 'vijindustries', name: 'Vij Industries', sector: 'Manufacturing & Export', industryMultiplier: 1.0 },
-    { ...base, id: 'vijmart', name: 'Vij Mart', sector: 'Retail & Essentials', industryMultiplier: 0.9 },
+    { ...base, id: 'vijtech', name: 'Vijtech Systems', sector: 'Software & IT', industryMultiplier: 1.15, history: [...base.history], ledger: [] },
+    { ...base, id: 'vijcapital', name: 'Vij Capital', sector: 'Finance & Banking', industryMultiplier: 1.1, history: [...base.history], ledger: [] },
+    { ...base, id: 'vijindustries', name: 'Vij Industries', sector: 'Manufacturing & Export', industryMultiplier: 1.0, history: [...base.history], ledger: [] },
+    { ...base, id: 'vijmart', name: 'Vij Mart', sector: 'Retail & Essentials', industryMultiplier: 0.9, history: [...base.history], ledger: [] },
   ];
 }
 

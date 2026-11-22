@@ -9,6 +9,7 @@ import { createInitialMart } from './martSetup';
 import { CITIZEN_NAME_POOL, shuffleNames } from './names';
 import { createRandomSeed, getSimRngState, normalizeSeed, syncSimRng } from './rng';
 import { SEED_ROSTER } from './seedProfiles';
+import { createInitialSharityState } from './sharityEngine';
 import type { CityState } from './types';
 
 export function createInitialCityState(providedSeed?: number): CityState {
@@ -23,6 +24,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
   const companies = createInitialCompanies();
   assignInitialCitizensToCompanies(citizens, companies, mart);
   const boardState = createInitialBoardState(citizens);
+  const sharity = createInitialSharityState(citizens, companies);
   const dateLabel = formatSimDate(1, 1, 1);
 
   const initialPayroll = citizens
@@ -49,6 +51,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     lastTotalPayroll: initialPayroll,
     lastBusinessTaxCollected: 0,
     boardState,
+    sharity,
     events: [
       {
         id: 'evt_init_1',

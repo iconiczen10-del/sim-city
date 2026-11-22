@@ -1,10 +1,11 @@
-// CompaniesView.tsx — Company cards overview paired with Vij Industries Board sub-tab
+// CompaniesView.tsx — Company cards, Vij Industries Board, and Company Full Ledger tabs
 
 import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { BoardTabView } from './BoardTabView';
 import type { BoardMeeting } from './boardTypes';
 import { CompanyDetailModal } from './CompanyDetailModal';
+import { CompanyFullLedgerView } from './CompanyFullLedgerView';
 import type { CompanyId } from './companyTypes';
 import { formatDelta, formatSignedDelta } from './formatters';
 import type { CityState } from './types';
@@ -17,7 +18,7 @@ interface CompaniesViewProps {
 }
 
 export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitizen }: CompaniesViewProps) {
-  const [subTab, setSubTab] = useState<'companies' | 'board'>('companies');
+  const [subTab, setSubTab] = useState<'companies' | 'board' | 'ledger'>('companies');
   const [selectedId, setSelectedId] = useState<CompanyId | null>(null);
   const selectedCompany = city.companies.find((c) => c.id === selectedId) ?? null;
   const unreadCount = meetings.filter((m) => !m.read).length;
@@ -49,11 +50,22 @@ export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitiz
               </span>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setSubTab('ledger')}
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+              subTab === 'ledger' ? 'bg-amber-500 text-slate-950 font-semibold' : 'bg-[#111827] text-slate-300 hover:text-slate-100 border border-slate-800'
+            }`}
+          >
+            Company Full Ledger
+          </button>
         </div>
       </div>
 
       {subTab === 'board' ? (
         <BoardTabView city={city} meetings={meetings} onMarkMeetingRead={onMarkMeetingRead} onSelectCitizen={onSelectCitizen} />
+      ) : subTab === 'ledger' ? (
+        <CompanyFullLedgerView city={city} />
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {city.companies.map((comp) => {

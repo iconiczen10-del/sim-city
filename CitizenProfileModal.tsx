@@ -6,6 +6,7 @@ import { CitizenFinancials } from './CitizenFinancials';
 import { CitizenInventoryPanel } from './CitizenInventoryPanel';
 import { CitizenLifeLogTab } from './CitizenLifeLogTab';
 import { CitizenMemoryTab } from './CitizenMemoryTab';
+import { CitizenSharityCard } from './CitizenSharityCard';
 import { CitizenWhyTab } from './CitizenWhyTab';
 import { CitizenWorkSection } from './CitizenWorkSection';
 import { DEATH_CAUSE_LABELS, EDUCATION_LABELS, formatDelta, TIER_STYLES } from './formatters';
@@ -16,6 +17,7 @@ interface CitizenProfileModalProps {
   citizen: Citizen;
   city: CityState;
   onUpdateCity: (next: CityState) => void;
+  onOpenSharityProfile: (profileId: string) => void;
   onClose: () => void;
 }
 
@@ -29,7 +31,7 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: 'lifelog', label: 'Life Log' },
 ];
 
-export function CitizenProfileModal({ citizen, city, onUpdateCity, onClose }: CitizenProfileModalProps) {
+export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharityProfile, onClose }: CitizenProfileModalProps) {
   const [tab, setTab] = useState<ProfileTab>('overview');
   const [highlightedDecisionId, setHighlightedDecisionId] = useState<string | null>(null);
 
@@ -112,6 +114,7 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onClose }: Ci
                 )}
               </div>
             )}
+            <CitizenSharityCard citizen={citizen} city={city} onOpenSharityProfile={onOpenSharityProfile} />
             <CitizenWorkSection citizen={citizen} city={city} />
             <CitizenInventoryPanel citizen={citizen} />
             <CitizenFinancials citizen={citizen} />

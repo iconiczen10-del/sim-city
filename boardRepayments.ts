@@ -3,6 +3,7 @@
 import type { CompanyBoardState } from './boardTypes';
 import { appendLedgerEntry } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
+import { appendCompanyLedger } from './companyLedger';
 import type { Company } from './companyTypes';
 import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
@@ -55,6 +56,7 @@ export function repayEmployeeInvestmentsMonthly(params: {
 
   if (paidTotal > 0) {
     comp.cash = Math.round((comp.cash - paidTotal) * 100) / 100;
+    appendCompanyLedger(comp, clock, dateLabel, { kind: 'outflow', category: 'investment_repayment', label: 'Investor Principal Repaid', detail: `Repaid staff stakes (${fullCount} settled)`, amount: paidTotal, balanceAfter: comp.cash });
     events.push(makeCityEvent(clock, `invrepay_${comp.id}`, {
       type: 'investment',
       companyId: comp.id,

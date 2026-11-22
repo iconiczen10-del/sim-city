@@ -5,6 +5,7 @@ import type { BoardMeeting } from './boardTypes';
 import { stepMoodWithBreakdown } from './citizenBreakdowns';
 import { appendChangeExplanation, appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
+import { recordMartRetailLedger, recordWholesaleLedgers } from './companyLedger';
 import { DAYS_PER_MONTH, MONTHS_PER_YEAR } from './constants';
 import { processCitizenDailySurvival } from './dailyCitizen';
 import { makeCityEvent } from './eventFactory';
@@ -13,25 +14,23 @@ import { openVacancy } from './jobScoring';
 import { processMartDayEnd, processMartDayStart } from './martEngine';
 import { runCityMonthEnd } from './monthlyCycle';
 import { getSimRngState, syncSimRng } from './rng';
-import type { CityEvent, CityState } from './types';
+import { stepSharityDay } from './sharityEngine';
+import type { CityEvent, CityState, SimSpeed } from './types';
 
 export function advanceSimulationDayWithBoard(
   prev: CityState,
-  lastMeeting?: BoardMeeting
+  lastMeeting?: BoardMeeting,
+  speed: SimSpeed = 1
 ): { state: CityState; newMeeting: BoardMeeting | null } {
   syncSimRng(prev.rngState || prev.seed);
 
-  let day = prev.day + 1;
-  let month = prev.month;
-  let year = prev.year;
+  let day = prev.day + 1, month = prev.month, year = prev.year;
   const totalDays = prev.totalDays + 1;
-
   if (day > DAYS_PER_MONTH) {
     day = 1;
     month += 1;
     if (month > MONTHS_PER_YEAR) { month = 1; year += 1; }
   }
-
   const clock = { totalDays, day, month, year };
   const dateLabel = formatSimDate(day, month, year);
   const newEvents: CityEvent[] = [];
@@ -42,12 +41,14 @@ export function advanceSimulationDayWithBoard(
   const companies = structuredClone(prev.companies);
   const vacancies = structuredClone(prev.vacancies);
   const boardState = structuredClone(prev.boardState);
+  const sharity = {
+    ...prev.sharity, profiles: structuredClone(prev.sharity.profiles), follows: structuredClone(prev.sharity.follows),
+    affinities: day === DAYS_PER_MONTH ? { ...prev.sharity.affinities } : prev.sharity.affinities,
+  };
   let jobEvents = [...prev.jobEvents];
-
   const vijMartComp = companies.find((co) => co.id === 'vijmart');
   const vijIndComp = companies.find((co) => co.id === 'vijindustries');
   if (vijMartComp) mart.cash = Math.max(0, vijMartComp.cash);
-
   processMartDayStart(mart, clock, newEvents);
 
   let treasury = prev.treasury;
@@ -99,6 +100,7 @@ export function advanceSimulationDayWithBoard(
     return { ...c, mood: nextMood, moodBreakdown: moodRes.breakdown, moodCrashed: nextMood < 25, history };
   });
 
+  recordMartRetailLedger(vijMartComp, mart.todayRevenue, mart.customersTodayIds.length, mart.cash, clock, dateLabel);
   let { tierMovementsThisMonth, lastMonthTaxCollected, lastTotalPayroll, lastBusinessTaxCollected } = prev;
   let nextVacancies = vacancies;
 
@@ -127,19 +129,21 @@ export function advanceSimulationDayWithBoard(
     vijIndComp.cash = Math.round((vijIndComp.cash + wholesaleDelta) * 100) / 100;
     vijIndComp.monthlyRevenue = Math.round((vijIndComp.monthlyRevenue + wholesaleDelta) * 100) / 100;
   }
+  recordWholesaleLedgers({ vijMart: vijMartComp, vijInd: vijIndComp, wholesaleDelta, martCash: mart.cash, outsideSupplierActive, clock, dateLabel });
   if (vijMartComp) vijMartComp.cash = mart.cash;
+  stepSharityDay({
+    sharity, citizens, companies, mart, vacancies: nextVacancies, dayEvents: [...newEvents], prevEvents: prev.events,
+    events: newEvents, movements: day === DAYS_PER_MONTH ? tierMovementsThisMonth : [], clock, isMonthEnd: day === DAYS_PER_MONTH, speed,
+  });
 
   return {
     newMeeting,
     state: {
       ...prev, rngState: getSimRngState(), day, month, year, totalDays, treasury, citizens, companies,
-      vacancies: nextVacancies, jobEvents, mart, boardState,
+      vacancies: nextVacancies, jobEvents, mart, boardState, sharity,
       events: [...newEvents.reverse(), ...prev.events].slice(0, 600),
       tierMovementsThisMonth, lastMonthTaxCollected, lastTotalPayroll, lastBusinessTaxCollected,
     },
   };
 }
-
-export function advanceSimulationDay(prev: CityState): CityState {
-  return advanceSimulationDayWithBoard(prev).state;
-}
+export function advanceSimulationDay(prev: CityState): CityState { return advanceSimulationDayWithBoard(prev).state; }

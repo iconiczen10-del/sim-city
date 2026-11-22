@@ -1,4 +1,4 @@
-// boardVoteScoring.ts — Board option labels, candidate generation, and trait/memory option scoring
+// boardVoteScoring.ts — Danger-triggered options and anti-bankruptcy board scoring logic
 
 import type { BoardMetrics } from './boardSeats';
 import type { BoardOptionId, CompanyBoardState } from './boardTypes';
@@ -33,18 +33,24 @@ export function getCandidateOptions(
   board: CompanyBoardState,
   totalDays: number
 ): BoardOptionId[] {
+  const inDanger =
+    comp.cash < metrics.estMonthlyPayroll * 1.15 ||
+    metrics.runwayMonths < 1.15 ||
+    comp.negativeCashStreak >= 1 ||
+    comp.negativeProfitStreak >= 2;
   const opts: BoardOptionId[] = ['watch'];
-  if (!comp.payFreeze) opts.push('freeze');
-  if (metrics.shortfall > 0) opts.push('board_contribution', 'employee_ask');
-  if (metrics.runwayMonths < 2.4 || comp.negativeProfitStreak >= 1) {
-    if (board.executivePayCutPct < 15) opts.push('executive_pay_cut');
+  if (!comp.payFreeze && (inDanger || metrics.payrollRatio > 92 || comp.negativeProfitStreak >= 1)) opts.push('freeze');
+  if (inDanger) opts.push('board_contribution');
+  if (inDanger || (metrics.shortfall > 0 && metrics.runwayMonths < 1.6)) opts.push('employee_ask');
+  if (inDanger || metrics.payrollRatio > 95 || comp.negativeProfitStreak >= 1) {
+    if (board.executivePayCutPct < 20) opts.push('executive_pay_cut');
     if (board.companyPayCutPct < 15) opts.push('company_pay_cut');
     if (metrics.headcount > 8) opts.push('layoffs');
     if (board.restructuredLevel < 2 && metrics.headcount > 10) opts.push('restructuring');
   }
   if (comp.negativeProfitStreak >= 6) opts.push('replace_ceo');
-  if (comp.negativeCashStreak >= 2 || (comp.cash < -5000 && totalDays > 60)) opts.push('wind_down');
-  if (comp.positiveProfitStreak >= 2 && metrics.runwayMonths >= 1.6) {
+  if (comp.negativeCashStreak >= 2 && totalDays > 60) opts.push('wind_down');
+  if (comp.positiveProfitStreak >= 2 && metrics.runwayMonths >= 1.4 && !inDanger) {
     if (comp.payFreeze) opts.push('unfreeze');
     if (board.executivePayCutPct > 0 || board.companyPayCutPct > 0) opts.push('restore_pay');
     if (metrics.headcount < board.lastStaffTargetHeadcount) opts.push('rehire');
@@ -61,50 +67,54 @@ export function scoreMemberOption(
   cooldownActive: boolean
 ): { score: number; reason: string } {
   const { ambition, greed, kindness, loyalty, discipline } = member.traits;
-  const urgency = clamp((2.5 - metrics.runwayMonths) * 20 + comp.negativeCashStreak * 18 + Math.max(0, metrics.payrollRatio - 85) * 0.6, 0, 75);
+  const cashLow = comp.cash < metrics.estMonthlyPayroll * 1.15 || metrics.runwayMonths < 1.15;
+  const reallyBad = comp.cash < 0 || comp.negativeCashStreak >= 1 || metrics.runwayMonths < 0.7;
+  const burnHigh = Math.max(0, metrics.payrollRatio - 88);
+  const urgency = clamp((2.0 - metrics.runwayMonths) * 24 + comp.negativeCashStreak * 25 + burnHigh * 0.75 + (comp.cash < 0 ? 22 : 0), 0, 95);
   const memNeg = member.memories.filter((m) => m.currentWeight < 0 && m.kind === 'board_contribution').reduce((s, m) => s + Math.abs(m.currentWeight), 0);
-  const spareBonus = clamp((member.savings - 3000) / 400, -15, 22);
+  const cashBonus = clamp((member.savings - 2500) / 450, -10, 20);
   let score = 20;
   let reason = 'Measured baseline fit';
 
   if (opt === 'watch') {
-    score = 52 - urgency * 0.72 + (100 - discipline) * 0.12;
-    reason = urgency > 30 ? 'Urgency makes waiting risky' : 'Runway healthy enough to monitor';
+    score = 54 - urgency * 0.85 - (cashLow ? 16 : 0) - (reallyBad ? 28 : 0) + (100 - discipline) * 0.1;
+    reason = urgency > 28 ? 'Danger is too acute to wait passively' : 'Cash & profits allow steady monitoring';
   } else if (opt === 'freeze') {
-    score = 26 + urgency * 0.55 + discipline * 0.25 - greed * 0.08;
-    reason = 'Caps wage growth without cutting headcount';
+    score = 26 + urgency * 0.55 + discipline * 0.25 - greed * 0.06;
+    reason = 'Caps wage growth to defend solvency';
   } else if (opt === 'board_contribution') {
-    score = 18 + urgency * 0.52 + (loyalty + kindness) * 0.28 - greed * 0.34 - memNeg * 0.4 + spareBonus;
-    reason = greed > 65 ? 'Protects staff yet stings director cash' : 'Loyal injection stabilizes reserves directly';
+    score = (reallyBad ? 46 : 26) + urgency * 0.55 + (loyalty + discipline) * 0.25 - greed * 0.22 - memNeg * 0.3 + cashBonus;
+    reason = reallyBad ? 'Emergency compulsory cash call to prevent bankruptcy' : 'Low cash requires compulsory board injection';
   } else if (opt === 'employee_ask') {
     const repTerm = (comp.reputation - 50) * 0.25;
-    score = 16 + urgency * 0.42 + greed * 0.16 - kindness * 0.15 + repTerm - (board.employeeInvestments.length > 8 ? 14 : 0);
-    reason = 'Preserves director savings if staff still trust leadership';
+    score = 16 + urgency * 0.4 + greed * 0.14 - kindness * 0.14 + repTerm - (board.employeeInvestments.length > 8 ? 14 : 0);
+    reason = 'Raises worker liquidity if staff still trust leadership';
   } else if (opt === 'executive_pay_cut') {
-    score = 12 + urgency * 0.48 + kindness * 0.25 + discipline * 0.18 - greed * 0.38;
-    reason = 'Leadership sacrifices pay first before touching floor wages';
+    score = 18 + urgency * 0.52 + kindness * 0.22 + discipline * 0.22 - greed * 0.34;
+    reason = 'Leadership cuts own pay to fight losses';
   } else if (opt === 'company_pay_cut') {
-    score = 10 + urgency * 0.56 + discipline * 0.2 - kindness * 0.16 + greed * 0.12;
-    reason = 'Lowers payroll burn proportionally while sparing jobs';
+    score = 22 + urgency * 0.6 + discipline * 0.24 - kindness * 0.14 + greed * 0.1;
+    reason = 'Cuts monthly payroll burn below revenue to prevent bankruptcy';
   } else if (opt === 'layoffs') {
-    score = 6 + urgency * 0.65 + greed * 0.24 - kindness * 0.32 - loyalty * 0.14;
-    reason = kindness > 65 ? 'Reluctant cut despite payroll pressure' : 'Fastest immediate payroll reduction';
+    score = 16 + urgency * 0.62 + burnHigh * 0.4 + greed * 0.2 - kindness * 0.28 - loyalty * 0.12;
+    reason = kindness > 65 ? 'Reluctant layoff to keep the factory solvent' : 'Trims payroll burn immediately for survival';
   } else if (opt === 'restructuring') {
-    score = 8 + urgency * 0.5 + ambition * 0.2 + discipline * 0.18 - loyalty * 0.12;
-    reason = 'Merges overlapping roles to lower structural cost';
+    score = 14 + urgency * 0.52 + ambition * 0.2 + discipline * 0.2 - loyalty * 0.1;
+    reason = 'Streamlines teams to restore sustainable margins';
   } else if (opt === 'replace_ceo') {
     const isCeo = member.roleLevel === 'CEO';
-    score = isCeo ? -40 : 28 + comp.negativeProfitStreak * 6 + ambition * 0.25 - loyalty * 0.22;
-    reason = isCeo ? 'Defends own leadership seat' : 'Two failing quarters triggered leadership review';
+    score = isCeo ? -45 : 26 + comp.negativeProfitStreak * 6 + ambition * 0.25 - loyalty * 0.22;
+    reason = isCeo ? 'Defends own leadership seat' : 'Repeated losses require new leadership';
   } else if (opt === 'wind_down') {
-    score = -10 + comp.negativeCashStreak * 28 - loyalty * 0.25 + (member.stress > 75 ? 16 : 0);
-    reason = 'Stops compounding insolvency losses';
+    score = -40 + (comp.negativeCashStreak >= 2 ? 22 : -25) - loyalty * 0.35 + (member.stress > 80 ? 12 : 0);
+    reason = 'Last-resort closure only if rescue paths fail';
   } else {
-    score = 38 + comp.positiveProfitStreak * 12 + kindness * 0.22 + (100 - metrics.staffMood) * 0.2;
-    reason = 'Profits & runway support reversing crisis measures';
+    score = 40 + comp.positiveProfitStreak * 12 + kindness * 0.22 + (100 - metrics.staffMood) * 0.2;
+    reason = 'Sustained profits & healthy cash justify restoring benefits';
   }
 
-  if (cooldownActive && SEVERE_BOARD_OPTIONS.has(opt)) score -= 45;
-  score += (simRand() - 0.5) * 9;
+  const emergencyOverride = reallyBad && (opt === 'company_pay_cut' || opt === 'layoffs' || opt === 'executive_pay_cut');
+  if (cooldownActive && SEVERE_BOARD_OPTIONS.has(opt) && !emergencyOverride) score -= 45;
+  score += (simRand() - 0.5) * 8;
   return { score: Math.round(score * 10) / 10, reason };
 }

@@ -11,6 +11,7 @@ import {
   idbPutMeeting,
 } from './idbHelpers';
 import { createRandomSeed, normalizeSeed } from './rng';
+import { ensureValidSharityState } from './sharityEngine';
 import type { CityState } from './types';
 
 function validateAndMigrateCity(raw: unknown): CityState | null {
@@ -40,13 +41,26 @@ function validateAndMigrateCity(raw: unknown): CityState | null {
     jobHunting: typeof c.jobHunting === 'boolean' ? c.jobHunting : false,
   }));
 
+  const companies = parsed.companies.map((comp) => ({
+    ...comp,
+    ledger: Array.isArray(comp.ledger) ? comp.ledger : [],
+  }));
+
+  const sharity = ensureValidSharityState(parsed.sharity, citizens, companies);
+  for (const c of citizens) {
+    const prof = sharity.profiles[c.id];
+    if (prof) c.sharityHandle = prof.handle;
+  }
+
   return {
     ...(parsed as CityState),
     version: APP_VERSION,
     seed,
     rngState,
     citizens,
+    companies,
     boardState: parsed.boardState ?? createInitialBoardState(citizens),
+    sharity,
   };
 }
 
