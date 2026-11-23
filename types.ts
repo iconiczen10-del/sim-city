@@ -1,6 +1,7 @@
 // types.ts — Core data structures for Vij city, citizens, events, and simulation state
 
 import type { CompanyBoardState } from './boardTypes';
+import type { ChatGroupState } from './chatGroups';
 import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, LifeLogEntry, SignedFactor } from './citizenInspectorTypes';
 import type { CitizenSnapshot, CitizenTraits, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
@@ -115,4 +116,5 @@ export interface CityState {
   lastBusinessTaxCollected: number;
   boardState: CompanyBoardState;
   sharity: SharityState;
+  chatGroups: { vijindustries: ChatGroupState };
 }

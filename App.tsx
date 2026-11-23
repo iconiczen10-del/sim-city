@@ -84,7 +84,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 min-w-0">
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(t) => { if (t !== 'sharity') setSelectedSharityProfileId(null); setActiveTab(t); }}
@@ -100,11 +100,11 @@ export default function App() {
           onRequestNewCity={() => setShowNewCityConfirm(true)}
         />
 
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-[1200px] mx-auto">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 pb-28 sm:p-6">
+          <div className="mx-auto w-full max-w-[1200px] min-w-0">
             {activeTab === 'overview' && <OverviewView city={city} onOpenEvents={() => setActiveTab('events')} onOpenCompanies={() => setActiveTab('companies')} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'citizens' && <CitizensView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
-            {activeTab === 'companies' && <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} />}
+            {activeTab === 'companies' && <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} />}
             {activeTab === 'jobs' && <JobMarketView city={city} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'mart' && <MartView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'sharity' && (

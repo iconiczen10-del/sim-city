@@ -37,26 +37,26 @@ export function TopBar({
   population,
 }: TopBarProps) {
   return (
-    <header className="h-14 shrink-0 border-b border-slate-800/90 bg-[#0d1320] px-6 flex items-center justify-between gap-6">
-      <div className="flex items-center gap-4 min-w-0">
-        <span className="font-display text-lg font-semibold tracking-tight text-slate-50 whitespace-nowrap shrink-0">
+    <header className="min-h-14 shrink-0 border-b border-slate-800/90 bg-[#0d1320] px-3 py-2 sm:h-14 sm:px-6 sm:py-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-6">
+      <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:w-auto sm:justify-start sm:gap-4">
+        <span className="font-display shrink-0 whitespace-nowrap text-base font-semibold tracking-tight text-slate-50 sm:text-lg">
           {cityName}
         </span>
         <span className="h-4 w-px bg-slate-800 shrink-0" aria-hidden="true" />
         <div className="flex items-center gap-2 text-xs whitespace-nowrap shrink-0">
-          <span className="text-slate-400">Date</span>
+          <span className="hidden text-slate-400 sm:inline">Date</span>
           <span className="font-mono font-medium text-slate-100 tabular-nums">
             {formatSimDate(day, month, year)}
           </span>
         </div>
         <span className="h-4 w-px bg-slate-800 shrink-0" aria-hidden="true" />
-        <span className="font-mono text-xs text-slate-400 whitespace-nowrap shrink-0 tabular-nums">
+        <span className="hidden shrink-0 whitespace-nowrap font-mono text-xs tabular-nums text-slate-400 lg:inline">
           City seed: <span className="text-slate-200">{seed}</span>
         </span>
       </div>
 
       <div
-        className="flex items-center gap-1 p-1 bg-[#090d16] border border-slate-800 rounded-md shrink-0"
+        className="order-2 flex w-full shrink-0 items-center justify-between gap-0.5 rounded-md border border-slate-800 bg-[#090d16] p-0.5 sm:order-none sm:w-auto sm:justify-start sm:gap-1 sm:p-1"
         role="group"
         aria-label="Simulation speed"
       >
@@ -67,7 +67,7 @@ export function TopBar({
               key={opt.value}
               type="button"
               onClick={() => onSpeedChange(opt.value)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1.5 py-1 text-[10px] font-medium whitespace-nowrap transition-colors sm:gap-1.5 sm:px-3 sm:text-xs ${
                 active
                   ? 'bg-amber-500 text-slate-950 font-semibold'
                   : 'text-slate-300 hover:text-slate-50 hover:bg-slate-800/70'
@@ -84,16 +84,16 @@ export function TopBar({
         })}
       </div>
 
-      <div className="flex items-center gap-5 shrink-0">
+      <div className="order-3 flex w-full shrink-0 items-center justify-between gap-3 sm:order-none sm:w-auto sm:gap-5">
         <div className="flex items-center gap-2 text-xs whitespace-nowrap">
-          <span className="text-slate-400">Treasury</span>
+          <span className="text-slate-400 sm:inline">Treasury</span>
           <span className="font-mono font-semibold text-amber-300 tabular-nums">
             {formatDelta(treasury)}
           </span>
         </div>
         <span className="h-4 w-px bg-slate-800" aria-hidden="true" />
         <div className="flex items-center gap-2 text-xs whitespace-nowrap">
-          <span className="text-slate-400">Population</span>
+          <span className="text-slate-400 sm:inline">Population</span>
           <span className="font-mono font-semibold text-slate-100 tabular-nums">
             {population}
           </span>
