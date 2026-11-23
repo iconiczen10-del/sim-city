@@ -1,6 +1,8 @@
 // seeder.ts — Initializes deterministic seeded Vij city with 50 citizens, 4 companies, Mart, and board state
 
 import { createInitialBoardState } from './boardSeats';
+import { createEmptyChatGroupState } from './chatGroups';
+import { assignArchetypeProfile } from './chatArchetypes';
 import { buildSeedCitizen } from './citizenFactory';
 import { assignInitialCitizensToCompanies, createInitialCompanies } from './companySetup';
 import { APP_VERSION, INITIAL_TREASURY, MART_INITIAL_CASH } from './constants';
@@ -25,6 +27,13 @@ export function createInitialCityState(providedSeed?: number): CityState {
   assignInitialCitizensToCompanies(citizens, companies, mart);
   const boardState = createInitialBoardState(citizens);
   const sharity = createInitialSharityState(citizens, companies);
+  const chatGroup = createEmptyChatGroupState();
+  const vijEmployees = citizens.filter((citizen) => citizen.alive && citizen.employerId === 'vijindustries' && citizen.roleLevel !== 'Unemployed');
+  chatGroup.memberIds = vijEmployees.map((citizen) => citizen.id);
+  chatGroup.membersEverJoined = [...chatGroup.memberIds];
+  for (const citizen of vijEmployees) chatGroup.archetypeProfiles[citizen.id] = assignArchetypeProfile(citizen);
+  chatGroup.lastKnownCeoId = companies.find((company) => company.id === 'vijindustries')?.ceoId ?? null;
+  chatGroup.spamUncleId = vijEmployees.find((citizen) => citizen.age >= 45 && citizen.traits.discipline > 55 && citizen.traits.ambition < 60)?.id ?? null;
   const dateLabel = formatSimDate(1, 1, 1);
 
   const initialPayroll = citizens
@@ -52,6 +61,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     lastBusinessTaxCollected: 0,
     boardState,
     sharity,
+    chatGroups: { vijindustries: chatGroup },
     events: [
       {
         id: 'evt_init_1',

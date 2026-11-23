@@ -1,6 +1,6 @@
 // storage.ts — IndexedDB persistence, legacy localStorage migration, and JSON export/import
 
-import { createInitialBoardState } from './boardSeats';
+import { validateAndMigrateCity } from './cityMigration';
 import type { BoardMeeting } from './boardTypes';
 import { APP_VERSION, LEGACY_STORAGE_KEYS, STORAGE_KEY } from './constants';
 import {
@@ -10,59 +10,8 @@ import {
   idbPutCity,
   idbPutMeeting,
 } from './idbHelpers';
-import { createRandomSeed, normalizeSeed } from './rng';
-import { ensureValidSharityState } from './sharityEngine';
 import type { CityState } from './types';
 
-function validateAndMigrateCity(raw: unknown): CityState | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const parsed = raw as Partial<CityState>;
-  if (
-    !Array.isArray(parsed.citizens) ||
-    parsed.citizens.length !== 50 ||
-    !Array.isArray(parsed.companies) ||
-    parsed.companies.length !== 4 ||
-    !parsed.mart ||
-    !parsed.mart.categoryMoods ||
-    !parsed.mart.schedules
-  ) {
-    return null;
-  }
-  const seed = typeof parsed.seed === 'number' && Number.isFinite(parsed.seed)
-    ? normalizeSeed(parsed.seed)
-    : createRandomSeed();
-  const rngState = typeof parsed.rngState === 'number' && Number.isFinite(parsed.rngState)
-    ? normalizeSeed(parsed.rngState)
-    : seed;
-
-  const citizens = parsed.citizens.map((c) => ({
-    ...c,
-    rentArrears: typeof c.rentArrears === 'number' ? c.rentArrears : 0,
-    jobHunting: typeof c.jobHunting === 'boolean' ? c.jobHunting : false,
-  }));
-
-  const companies = parsed.companies.map((comp) => ({
-    ...comp,
-    ledger: Array.isArray(comp.ledger) ? comp.ledger : [],
-  }));
-
-  const sharity = ensureValidSharityState(parsed.sharity, citizens, companies);
-  for (const c of citizens) {
-    const prof = sharity.profiles[c.id];
-    if (prof) c.sharityHandle = prof.handle;
-  }
-
-  return {
-    ...(parsed as CityState),
-    version: APP_VERSION,
-    seed,
-    rngState,
-    citizens,
-    companies,
-    boardState: parsed.boardState ?? createInitialBoardState(citizens),
-    sharity,
-  };
-}
 
 function readLegacyLocalStorage(): { city: CityState; key: string } | null {
   const keys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];

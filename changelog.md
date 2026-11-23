@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.7 — 2026-11-23
+- Added the seeded **VI Employee** WhatsApp-style company chat with live payroll, board, hiring, layoff, leadership, and city-event conversations; archetype voices, one-time Day 1–4 history, topic maturity, and bounded anti-repeat selection.
+- Added dynamic message slots, tone variation, membership and CEO system notices, forwarded posts, vibe scoring, reactions, pins, deletion, member details, unread indicators, and a 90-day active archive backed by IndexedDB and JSON export/import.
+- Optimized the mobile Companies navigation and extracted navigation, migration, and day-advance responsibilities into focused root-level modules.
+
 ## v0.5.6 — 2026-11-22
 - Implemented **Sharity (S2: Posts, Templates, Topics, Trending, Company Pages)** driving live citizen and company posts from real simulation events and active states across all 16 topic categories.
 - Built the weighted citizen posting pipeline (`sociability × (event strength + social need + mood swing)`), 2-day per-citizen post cooldown (bypassed on major events), quiet suppression when mood/sociability are very low under high stress, and full deceased-citizen silence.

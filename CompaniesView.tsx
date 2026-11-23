@@ -6,6 +6,8 @@ import { BoardTabView } from './BoardTabView';
 import type { BoardMeeting } from './boardTypes';
 import { CompanyDetailModal } from './CompanyDetailModal';
 import { CompanyFullLedgerView } from './CompanyFullLedgerView';
+import { CompanySectionNav, type CompanySubTab } from './CompanySectionNav';
+import { EmployeeChatView } from './EmployeeChatView';
 import type { CompanyId } from './companyTypes';
 import { formatDelta, formatSignedDelta } from './formatters';
 import type { CityState } from './types';
@@ -15,59 +17,28 @@ interface CompaniesViewProps {
   meetings: BoardMeeting[];
   onMarkMeetingRead: (meetingId: string) => void;
   onSelectCitizen: (citizenId: string) => void;
+  onUpdateCity: (updater: (prev: CityState) => CityState) => void;
 }
 
-export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitizen }: CompaniesViewProps) {
-  const [subTab, setSubTab] = useState<'companies' | 'board' | 'ledger'>('companies');
+export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitizen, onUpdateCity }: CompaniesViewProps) {
+  const [subTab, setSubTab] = useState<CompanySubTab>('companies');
   const [selectedId, setSelectedId] = useState<CompanyId | null>(null);
   const selectedCompany = city.companies.find((c) => c.id === selectedId) ?? null;
   const unreadCount = meetings.filter((m) => !m.read).length;
+  const hasNegativeChat = city.chatGroups.vijindustries.messages.some((message) => city.totalDays - message.totalDay <= 1 && ['grievance', 'menace', 'rant'].includes(message.act));
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between border-b border-slate-800/90 pb-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSubTab('companies')}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-              subTab === 'companies' ? 'bg-amber-500 text-slate-950 font-semibold' : 'bg-[#111827] text-slate-300 hover:text-slate-100 border border-slate-800'
-            }`}
-          >
-            All Companies (4)
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('board')}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-              subTab === 'board' ? 'bg-amber-500 text-slate-950 font-semibold' : 'bg-[#111827] text-slate-300 hover:text-slate-100 border border-slate-800'
-            }`}
-          >
-            <span>Vij Industries Board</span>
-            {unreadCount > 0 && (
-              <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${subTab === 'board' ? 'bg-slate-950 text-amber-300' : 'bg-amber-500/20 text-amber-300'}`}>
-                {unreadCount} unread
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('ledger')}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-              subTab === 'ledger' ? 'bg-amber-500 text-slate-950 font-semibold' : 'bg-[#111827] text-slate-300 hover:text-slate-100 border border-slate-800'
-            }`}
-          >
-            Company Full Ledger
-          </button>
-        </div>
-      </div>
+      <CompanySectionNav selectedTab={subTab} onSelectTab={setSubTab} unreadCount={unreadCount} hasNegativeChat={hasNegativeChat} />
 
       {subTab === 'board' ? (
         <BoardTabView city={city} meetings={meetings} onMarkMeetingRead={onMarkMeetingRead} onSelectCitizen={onSelectCitizen} />
       ) : subTab === 'ledger' ? (
         <CompanyFullLedgerView city={city} />
+      ) : subTab === 'employee' ? (
+        <EmployeeChatView city={city} group={city.chatGroups.vijindustries} onUpdateCity={onUpdateCity} onSelectCitizen={onSelectCitizen} />
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {city.companies.map((comp) => {
             const employees = city.citizens.filter((c) => c.alive && c.employerId === comp.id);
             const ceo = employees.find((c) => c.id === comp.ceoId) ?? employees.find((c) => c.roleLevel === 'CEO');
@@ -95,7 +66,7 @@ export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitiz
                   </span>
                 </div>
 
-                <div className="grid grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-800/70">
+                <div className="grid grid-cols-2 gap-3 pt-2 text-xs sm:grid-cols-4 border-t border-slate-800/70">
                   <div>
                     <div className="text-slate-400">Cash</div>
                     <div className={`font-mono font-semibold mt-0.5 ${comp.cash < 0 ? 'text-rose-300' : 'text-amber-300'}`}>{formatDelta(comp.cash)}</div>
@@ -116,7 +87,7 @@ export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitiz
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/70 text-slate-400">
+                <div className="flex flex-col items-start justify-between gap-2 pt-2 text-xs text-slate-400 sm:flex-row sm:items-center border-t border-slate-800/70">
                   <span>CEO: <span className="text-slate-200 font-medium">{ceo ? ceo.name : 'Vacant'}</span></span>
                   <span className="font-mono">Headcount: <span className="text-slate-100 font-semibold">{employees.length}</span> · Payroll {formatDelta(monthlyEstPayroll)}/mo</span>
                 </div>

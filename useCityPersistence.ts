@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BoardMeeting } from './boardTypes';
 import { DAYS_PER_MONTH } from './constants';
 import { createInitialCityState } from './seeder';
-import { advanceSimulationDayWithBoard } from './simulation';
+import { advanceCityDay } from './advanceCityDay';
 import {
   clearAllDbData,
   exportCityBundleJson,
@@ -60,7 +60,7 @@ export function useCityPersistence() {
   const stepOneDay = useCallback((speed: SimSpeed = 1) => {
     const prev = cityRef.current;
     if (!prev) return;
-    const { state: next, newMeeting } = advanceSimulationDayWithBoard(prev, meetingsRef.current[0], speed);
+    const { state: next, newMeeting } = advanceCityDay(prev, meetingsRef.current[0], speed);
     setCity(next);
     if (newMeeting) {
       setMeetings((mPrev) => [newMeeting, ...mPrev]);
