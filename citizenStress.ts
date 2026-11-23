@@ -59,6 +59,10 @@ export function buildStressFactors(citizen: Citizen): {
     factors.push({ label: 'Discipline Composure', value: r1(discBuffer) });
   }
 
+  for (const sl of citizen.sharityStressLines ?? []) {
+    if (Math.abs(sl.value) >= 0.2) factors.push({ label: sl.label, value: r1(sl.value) });
+  }
+
   const rawTarget = factors.reduce((s, f) => s + f.value, 0);
   const targetStress = clamp(rawTarget, 2, 98);
   return { targetStress, factors };
@@ -68,6 +72,12 @@ export function stepDailyStress(
   citizen: Citizen,
   immediateShock = 0
 ): { stress: number; breakdown: SignedFactor[] } {
+  const goodDayBoost = citizen.mood >= 62 ? 0.85 : 1;
+  if (Array.isArray(citizen.sharityStressLines)) {
+    citizen.sharityStressLines = citizen.sharityStressLines
+      .map((l) => ({ ...l, value: r1(l.value * l.decayRate * (l.value > 0 ? goodDayBoost : 1)) }))
+      .filter((l) => Math.abs(l.value) >= 0.25);
+  }
   const { targetStress, factors } = buildStressFactors(citizen);
   const driftRate = targetStress > citizen.stress ? 0.22 : 0.12;
   const nextStress = r1(clamp(citizen.stress + (targetStress - citizen.stress) * driftRate + immediateShock, 0, 100));

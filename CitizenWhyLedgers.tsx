@@ -54,7 +54,7 @@ export function CitizenWhyLedgers({ citizen }: CitizenWhyLedgersProps) {
             { label: 'Savings (40% weight)', score: status.savingsScore, contrib: status.savingsScore * 0.4 },
             { label: 'Gross Pay (25% weight)', score: status.incomeScore, contrib: status.incomeScore * 0.25 },
             { label: `Role (${citizen.roleLevel}, 20%)`, score: status.roleScore, contrib: status.roleScore * 0.2 },
-            { label: 'Respect (15% weight)', score: status.respectScore, contrib: status.respectScore * 0.15 },
+            { label: `Respect (65% base ${citizen.respect.toFixed(0)} + 35% Social Rep ${status.socialReputation.toFixed(0)}, 15%)`, score: status.respectScore, contrib: status.respectScore * 0.15 },
           ].map((row) => (
             <div key={row.label} className="flex items-center justify-between">
               <span className="text-slate-400">{row.label}</span>

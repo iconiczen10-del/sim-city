@@ -2,7 +2,7 @@
 
 import type { CompanyBoardState } from './boardTypes';
 import type { ChatGroupState } from './chatGroups';
-import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, LifeLogEntry, SignedFactor } from './citizenInspectorTypes';
+import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, LifeLogEntry, SharityFactorLine, SignedFactor } from './citizenInspectorTypes';
 import type { CitizenSnapshot, CitizenTraits, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
 import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
@@ -70,6 +70,13 @@ export interface Citizen {
   workHistory: WorkHistoryEntry[];
   householdId: string | null;
   sharityHandle: string;
+  socialReputation: number;
+  sharityMoodLines: SharityFactorLine[];
+  sharityStressLines: SharityFactorLine[];
+  sharityBurnedUntilDay?: number;
+  cancelledUntilDay?: number;
+  promotionBlockedUntilDay?: number;
+  sharityWorkNotes: { id: string; dateLabel: string; summary: string; postId: string }[];
 }
 
 export interface CityEvent {

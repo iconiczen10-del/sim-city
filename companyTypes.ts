@@ -75,6 +75,16 @@ export interface CompanyLedgerEntry {
   balanceAfter: number;
 }
 
+export interface CompanyCriticismIncident {
+  id: string;
+  dateLabel: string;
+  citizenId: string;
+  citizenName: string;
+  deltaRep: number;
+  postId: string;
+  summary: string;
+}
+
 export interface Company {
   id: CompanyId;
   name: string;
@@ -98,6 +108,7 @@ export interface Company {
   bankrupt: boolean;
   history: CompanyHistoryPoint[];
   ledger: CompanyLedgerEntry[];
+  sharityCriticismLog?: CompanyCriticismIncident[];
 }
 
 export interface WorkHistoryEntry {

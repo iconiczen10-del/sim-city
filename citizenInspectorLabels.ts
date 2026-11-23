@@ -43,6 +43,10 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   employee_investment: 'Staff Investment',
   investment_repaid: 'Investment Repaid',
   investment_lost: 'Investment Lost',
+  sharity_praise: 'Sharity Viral Praise',
+  sharity_humiliation: 'Sharity Backlash',
+  sharity_shade: 'Friend Shade',
+  sharity_tribute: 'Memorial Tribute',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
@@ -63,4 +67,5 @@ export const LIFE_LOG_LABELS: Record<LifeLogCategory, string> = {
   health: 'Health',
   mood: 'Mood & Stress',
   money: 'Money',
+  sharity: 'Sharity',
 };

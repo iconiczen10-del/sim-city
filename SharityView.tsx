@@ -12,6 +12,8 @@ interface SharityViewProps {
   city: CityState;
   speed: SimSpeed;
   selectedProfileId: string | null;
+  highlightedPostId?: string | null;
+  onClearHighlightPost?: () => void;
   onSelectProfileId: (id: string | null) => void;
   onSelectCitizen: (id: string) => void;
   onMarkPostsRead: () => void;
@@ -21,6 +23,8 @@ export function SharityView({
   city,
   speed,
   selectedProfileId,
+  highlightedPostId,
+  onClearHighlightPost,
   onSelectProfileId,
   onSelectCitizen,
   onMarkPostsRead,
@@ -30,6 +34,10 @@ export function SharityView({
   useEffect(() => {
     if (city.sharity.unreadPostCount > 0) onMarkPostsRead();
   }, [city.sharity.unreadPostCount, onMarkPostsRead]);
+
+  useEffect(() => {
+    if (highlightedPostId) setSubTab('feed');
+  }, [highlightedPostId]);
 
   const activeProfile = selectedProfileId ? city.sharity.profiles[selectedProfileId] ?? null : null;
 
@@ -54,7 +62,7 @@ export function SharityView({
               <button
                 key={t.id}
                 type="button"
-                onClick={() => { onSelectProfileId(null); setSubTab(t.id); }}
+                onClick={() => { onSelectProfileId(null); onClearHighlightPost?.(); setSubTab(t.id); }}
                 className={`px-3.5 py-1.5 text-xs rounded transition-colors whitespace-nowrap cursor-pointer ${
                   active ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'
                 }`}
@@ -75,7 +83,7 @@ export function SharityView({
           onSelectCitizen={onSelectCitizen}
         />
       ) : subTab === 'feed' ? (
-        <SharityFeedView city={city} speed={speed} onOpenProfile={(id) => onSelectProfileId(id)} />
+        <SharityFeedView city={city} speed={speed} highlightedPostId={highlightedPostId} onClearHighlightPost={onClearHighlightPost} onOpenProfile={(id) => onSelectProfileId(id)} />
       ) : subTab === 'people' ? (
         <SharityPeopleView city={city} onOpenProfile={(id) => onSelectProfileId(id)} />
       ) : (

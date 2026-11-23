@@ -18,6 +18,7 @@ const CAT_COLORS: Record<LifeLogCategory, string> = {
   health: 'text-pink-300',
   mood: 'text-purple-300',
   money: 'text-teal-300',
+  sharity: 'text-cyan-300',
 };
 
 export function CitizenLifeLogTab({ citizen }: CitizenLifeLogTabProps) {

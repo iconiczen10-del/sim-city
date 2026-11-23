@@ -10,6 +10,7 @@ interface CitizenWhyTabProps {
   citizen: Citizen;
   highlightedDecisionId: string | null;
   onHighlightDecision: (id: string | null) => void;
+  onOpenSharityPost?: (postId: string) => void;
 }
 
 function BreakdownCard({ title, totalValue, factors }: { title: string; totalValue: number; factors: SignedFactor[] }) {
@@ -37,7 +38,7 @@ function BreakdownCard({ title, totalValue, factors }: { title: string; totalVal
   );
 }
 
-export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecision }: CitizenWhyTabProps) {
+export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecision, onOpenSharityPost }: CitizenWhyTabProps) {
   const memMap = new Map(citizen.memories.map((m) => [m.id, m]));
 
   return (
@@ -52,14 +53,14 @@ export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecis
                   <span className="font-mono text-slate-500 mr-2">{chg.dateLabel}</span>
                   <span>{chg.summary}</span>
                 </div>
-                {chg.decisionId && (
+                {(chg.decisionId || (chg.postId && onOpenSharityPost)) && (
                   <button
                     type="button"
-                    onClick={() => onHighlightDecision(chg.decisionId!)}
+                    onClick={() => (chg.decisionId ? onHighlightDecision(chg.decisionId) : onOpenSharityPost?.(chg.postId!))}
                     className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-300 hover:text-amber-200 shrink-0 cursor-pointer"
                   >
                     <HelpCircle className="w-3 h-3" aria-hidden="true" />
-                    <span>Explain this change</span>
+                    <span>{chg.postId && !chg.decisionId ? 'View causal post' : 'Explain this change'}</span>
                   </button>
                 )}
               </div>

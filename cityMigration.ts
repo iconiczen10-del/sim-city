@@ -29,10 +29,15 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     ...citizen,
     rentArrears: typeof citizen.rentArrears === 'number' ? citizen.rentArrears : 0,
     jobHunting: typeof citizen.jobHunting === 'boolean' ? citizen.jobHunting : false,
+    socialReputation: typeof citizen.socialReputation === 'number' ? citizen.socialReputation : Math.round(citizen.respect ?? 50),
+    sharityMoodLines: Array.isArray(citizen.sharityMoodLines) ? citizen.sharityMoodLines : [],
+    sharityStressLines: Array.isArray(citizen.sharityStressLines) ? citizen.sharityStressLines : [],
+    sharityWorkNotes: Array.isArray(citizen.sharityWorkNotes) ? citizen.sharityWorkNotes : [],
   }));
   const companies = companyList.map((company) => ({
     ...company,
     ledger: Array.isArray(company.ledger) ? company.ledger : [],
+    sharityCriticismLog: Array.isArray(company.sharityCriticismLog) ? company.sharityCriticismLog : [],
   }));
   const sharity = ensureValidSharityState(parsed.sharity, citizens, companies);
 

@@ -1,6 +1,8 @@
-// sharityTypes.ts — Data models for Sharity profiles, badges, 16-topic posts, voices, and trending
+// sharityTypes.ts — Data models for Sharity profiles, badges, 16-topic posts, reactions, and trending
 
 import type { TierId } from './cityBaseTypes';
+import type { CompanyId } from './companyTypes';
+import type { SharityArgumentState, SharityComment, SharityReaction } from './sharityReactionTypes';
 
 export type SharitySubTab = 'feed' | 'people' | 'network';
 
@@ -74,6 +76,41 @@ export interface SharityPost {
   replies: number;
   reposts: number;
   score: number;
+  reach?: number;
+  viewerIds?: string[];
+  heat?: number;
+  controversy?: number;
+  hotLogged?: boolean;
+  argumentState?: SharityArgumentState;
+  argumentRounds?: number;
+  argumentLastDay?: number;
+  argumentLastCommentId?: string;
+  argumentLastSpeakerId?: string;
+  argumentTargetId?: string;
+  argumentEndedReason?: string;
+  posterRepliedIds?: string[];
+  isViral?: boolean;
+  viralDay?: number;
+  isCancelled?: boolean;
+  cancelledDay?: number;
+  isTribute?: boolean;
+  tributeForId?: string;
+  critiquesCompanyId?: CompanyId;
+  processedReactionIds?: string[];
+  processedCommentIds?: string[];
+  workConsequenceApplied?: boolean;
+}
+
+export interface SharityCityWave {
+  id: string;
+  kind: string;
+  title: string;
+  startDay: number;
+  dateLabel: string;
+  endDay: number;
+  hashtag: string;
+  sentimentDelta: number;
+  triggeredKey: string;
 }
 
 export interface SharityDailyStat {
@@ -90,6 +127,8 @@ export interface SharityState {
   affinities: Record<string, number>;
   follows: Record<string, string[]>;
   monthStartFollowers: Record<string, number>;
+  followerGainedMonth?: Record<string, number>;
+  followerLostMonth?: Record<string, number>;
   posts: SharityPost[];
   unreadPostCount: number;
   lastTickDay: number;
@@ -101,4 +140,8 @@ export interface SharityState {
   dailyStats?: SharityDailyStat[];
   handledEventIds?: string[];
   lastMartClosed?: boolean;
+  reactionsByPost?: Record<string, SharityReaction[]>;
+  commentsByPost?: Record<string, SharityComment[]>;
+  cityWaves?: SharityCityWave[];
+  queuedTributes?: { deadId: string; dueDay: number; authorIds: string[]; companyReplied?: boolean }[];
 }

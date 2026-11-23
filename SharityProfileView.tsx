@@ -3,6 +3,8 @@
 import { ArrowLeft, ExternalLink, MessageSquare } from 'lucide-react';
 import { SharityAvatar, SharityVerifiedBadge } from './SharityAvatar';
 import { SharityPostCard } from './SharityPostCard';
+import { SharityProfileConsequences } from './SharityProfileConsequences';
+import { SharityProfileEngagement } from './SharityProfileEngagement';
 import { SharityProfileLists } from './SharityProfileLists';
 import { getFollowersOf } from './sharityNetwork';
 import type { SharityProfile } from './sharityTypes';
@@ -31,6 +33,7 @@ export function SharityProfileView({
   const followersCount = getFollowersOf(city.sharity, profile.id).length;
   const followingCount = (city.sharity.follows[profile.id] ?? []).length;
   const posts = city.sharity.posts.filter((p) => p.authorId === profile.id);
+  const citizensById = new Map(city.citizens.map((c) => [c.id, c]));
 
   return (
     <div className="space-y-4">
@@ -95,6 +98,9 @@ export function SharityProfileView({
         </div>
       </div>
 
+      <SharityProfileEngagement posts={posts} />
+      <SharityProfileConsequences profile={profile} citizen={citizen} city={city} posts={posts} onOpenProfile={onOpenProfile} />
+
       <div className="bg-[#111827] border border-slate-800 rounded-lg p-4 space-y-2.5">
         <h3 className="font-display text-sm font-semibold text-slate-100">Badge History</h3>
         {profile.badgeHistory.length === 0 ? (
@@ -127,7 +133,7 @@ export function SharityProfileView({
           </div>
         ) : (
           posts.map((post) => (
-            <SharityPostCard key={post.id} post={post} profile={profile} citizen={citizen} onOpenProfile={onOpenProfile} />
+            <SharityPostCard key={post.id} post={post} profile={profile} citizen={citizen} sharity={city.sharity} citizensById={citizensById} onOpenProfile={onOpenProfile} />
           ))
         )}
       </div>

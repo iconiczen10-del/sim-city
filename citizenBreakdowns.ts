@@ -6,7 +6,7 @@ import { getStressMoodPenalty } from './citizenStress';
 import { ROLE_STATUS_SCORES } from './constants';
 import { calculateFixedMonthlyCosts, clamp } from './economy';
 import { estimateMonthlyShoppingCost } from './standards';
-import { computeIncomeScore, computeSavingsScore } from './status';
+import { computeEffectiveRespect, computeIncomeScore, computeSavingsScore } from './status';
 import { simRand } from './rng';
 import type { Citizen } from './types';
 
@@ -70,6 +70,10 @@ export function buildMoodFactors(
   );
   if (Math.abs(traitVal) >= 0.3) factors.push({ label: 'Personality & Temperament', value: traitVal });
 
+  for (const sl of citizen.sharityMoodLines ?? []) {
+    if (Math.abs(sl.value) >= 0.2) factors.push({ label: sl.label, value: r1(sl.value) });
+  }
+
   const targetMood = clamp(factors.reduce((s, f) => s + f.value, 0), 2, 98);
   return { targetMood, factors };
 }
@@ -81,6 +85,12 @@ export function stepMoodWithBreakdown(
   martReputation: number,
   griefPenalty: number
 ): { mood: number; breakdown: SignedFactor[] } {
+  const goodRecovery = citizen.mood >= 62 && citizen.stress < 45 ? 0.84 : 1;
+  if (Array.isArray(citizen.sharityMoodLines)) {
+    citizen.sharityMoodLines = citizen.sharityMoodLines
+      .map((l) => ({ ...l, value: r1(l.value * l.decayRate * (l.value < 0 ? goodRecovery : 1)) }))
+      .filter((l) => Math.abs(l.value) >= 0.25);
+  }
   const { targetMood, factors } = buildMoodFactors(citizen, netPay, hadShortageToday, martReputation);
   const drift = (targetMood - citizen.mood) * 0.14;
   const noise = (simRand() - 0.5) * 1.8;
@@ -103,14 +113,16 @@ export function computeStatusBreakdown(citizen: Citizen): {
   incomeScore: number;
   roleScore: number;
   respectScore: number;
+  socialReputation: number;
   weightedTarget: number;
 } {
   const savingsScore = r1(computeSavingsScore(citizen.savings));
   const incomeScore = r1(computeIncomeScore(citizen.lastGrossPay));
   const roleScore = ROLE_STATUS_SCORES[citizen.roleLevel];
-  const respectScore = r1(clamp(citizen.respect, 0, 100));
+  const socialReputation = r1(clamp(citizen.socialReputation ?? 50, 0, 100));
+  const respectScore = r1(computeEffectiveRespect(citizen.respect, socialReputation));
   const weightedTarget = r1(
     savingsScore * 0.4 + incomeScore * 0.25 + roleScore * 0.2 + respectScore * 0.15
   );
-  return { savingsScore, incomeScore, roleScore, respectScore, weightedTarget };
+  return { savingsScore, incomeScore, roleScore, respectScore, socialReputation, weightedTarget };
 }

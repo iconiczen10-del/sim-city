@@ -115,6 +115,10 @@ export function buildSeedCitizen(
     workHistory: [],
     householdId: null,
     sharityHandle: `@${nameEntry.name.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12)}`,
+    socialReputation: Math.round(clamp(50 + (respect - 50) * 0.4, 20, 85)),
+    sharityMoodLines: [],
+    sharityStressLines: [],
+    sharityWorkNotes: [],
   };
 
   const stressInfo = buildStressFactors(citizen);

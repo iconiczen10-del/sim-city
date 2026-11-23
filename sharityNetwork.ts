@@ -59,16 +59,31 @@ export function seedInitialFollows(
   return follows;
 }
 
-function addFollow(sharity: SharityState, followerId: string, targetId: string): void {
+export function trackFollowGain(sharity: SharityState, followerId: string, targetId: string): boolean {
   const list = sharity.follows[followerId] ?? [];
-  if (!list.includes(targetId)) sharity.follows[followerId] = [...list, targetId];
+  if (list.includes(targetId)) return false;
+  sharity.follows[followerId] = [...list, targetId];
+  const gained = sharity.followerGainedMonth ?? {};
+  gained[targetId] = (gained[targetId] ?? 0) + 1;
+  sharity.followerGainedMonth = gained;
+  return true;
 }
 
-function removeFollow(sharity: SharityState, followerId: string, targetId: string, byId: Map<string, Citizen>): void {
+export function trackFollowLoss(
+  sharity: SharityState,
+  followerId: string,
+  targetId: string,
+  byId: Map<string, Citizen>,
+  minFloor = 2
+): boolean {
   const list = sharity.follows[followerId];
-  if (!list || !list.includes(targetId)) return;
-  if (byId.has(targetId) && list.filter((id) => id !== targetId && byId.has(id)).length < 2) return;
+  if (!list || !list.includes(targetId)) return false;
+  if (byId.has(targetId) && list.filter((id) => id !== targetId && byId.has(id)).length < minFloor) return false;
   sharity.follows[followerId] = list.filter((id) => id !== targetId);
+  const lost = sharity.followerLostMonth ?? {};
+  lost[targetId] = (lost[targetId] ?? 0) + 1;
+  sharity.followerLostMonth = lost;
+  return true;
 }
 
 export function updateSharityNetworkStep(params: {
@@ -82,7 +97,11 @@ export function updateSharityNetworkStep(params: {
   const { citizens, sharity, dayEvents, clock, events, isMonthEnd } = params;
   const byId = new Map(citizens.map((c) => [c.id, c]));
   const aliveCitizens = citizens.filter((c) => c.alive);
-  if (isMonthEnd) sharity.monthStartFollowers = countFollowersMap(sharity.follows);
+  if (isMonthEnd) {
+    sharity.monthStartFollowers = countFollowersMap(sharity.follows);
+    sharity.followerGainedMonth = {};
+    sharity.followerLostMonth = {};
+  }
 
   for (const ev of dayEvents) {
     const target = ev.citizenId ? byId.get(ev.citizenId) : null;
@@ -91,20 +110,20 @@ export function updateSharityNetworkStep(params: {
         if (viewer.id === target.id) continue;
         const aff = sharity.affinities[affinityKey(viewer.id, target.id)] ?? 0;
         const sameComp = viewer.employerId && viewer.employerId === target.employerId;
-        if (simRand() < (sameComp ? 0.35 : 0.12) + Math.max(0, aff) * 0.004) addFollow(sharity, viewer.id, target.id);
+        if (simRand() < (sameComp ? 0.35 : 0.12) + Math.max(0, aff) * 0.004) trackFollowGain(sharity, viewer.id, target.id);
       }
     }
     if (target && (ev.type === 'fired' || ev.type === 'layoff')) {
       for (const fId of getFollowersOf(sharity, target.id)) {
         const aff = sharity.affinities[affinityKey(fId, target.id)] ?? 0;
-        if (aff < 15 && simRand() < 0.25) removeFollow(sharity, fId, target.id, byId);
+        if (aff < 15 && simRand() < 0.25) trackFollowLoss(sharity, fId, target.id, byId);
       }
     }
     if (ev.companyId && (ev.type === 'bankruptcy' || ev.type === 'layoff')) {
       for (const fId of getFollowersOf(sharity, ev.companyId)) {
         const viewer = byId.get(fId);
         if (viewer && viewer.employerId !== ev.companyId && simRand() < (ev.type === 'bankruptcy' ? 0.35 : 0.1)) {
-          removeFollow(sharity, fId, ev.companyId, byId);
+          trackFollowLoss(sharity, fId, ev.companyId, byId);
         }
       }
     }
@@ -112,15 +131,15 @@ export function updateSharityNetworkStep(params: {
 
   if (isMonthEnd) {
     for (const viewer of aliveCitizens) {
-      if (viewer.employerId) addFollow(sharity, viewer.id, viewer.employerId);
+      if (viewer.employerId) trackFollowGain(sharity, viewer.id, viewer.employerId);
       if (simRand() < 0.12 && aliveCitizens.length > 2) {
         const cand = aliveCitizens[Math.floor(simRand() * aliveCitizens.length)];
-        if (cand.id !== viewer.id && cand.statusScore >= 50) addFollow(sharity, viewer.id, cand.id);
+        if (cand.id !== viewer.id && cand.statusScore >= 50) trackFollowGain(sharity, viewer.id, cand.id);
       }
       const list = sharity.follows[viewer.id] ?? [];
       if (list.filter((id) => byId.has(id)).length < 2) {
         for (const cand of aliveCitizens) {
-          if (cand.id !== viewer.id) addFollow(sharity, viewer.id, cand.id);
+          if (cand.id !== viewer.id) trackFollowGain(sharity, viewer.id, cand.id);
           if ((sharity.follows[viewer.id] ?? []).filter((id) => byId.has(id)).length >= 2) break;
         }
       }

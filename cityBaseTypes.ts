@@ -56,7 +56,13 @@ export type EventCategory =
   | 'board'
   | 'contribution'
   | 'investment'
-  | 'sharity';
+  | 'sharity'
+  | 'viral'
+  | 'cancelled'
+  | 'argument'
+  | 'tribute'
+  | 'city-wave'
+  | 'work-consequence';
 
 export interface CitizenTraits {
   ambition: number;

@@ -41,7 +41,14 @@ export function applyMonthlyStatusAndTier(
   const respectDelta = (unableToPay ? -0.4 : netPay > fixedCosts ? 0.2 : 0) + visiblePrestige;
   const respect = Math.round(Math.max(5, Math.min(99, citizen.respect + respectDelta)) * 10) / 10;
 
-  const targetScore = computeTargetStatusScore({ savings: citizen.savings, roleLevel: citizen.roleLevel, respect }, grossPay);
+  if ((citizen.cancelledUntilDay ?? 0) < clock.totalDays) {
+    const rep = citizen.socialReputation ?? 50;
+    citizen.socialReputation = Math.round(Math.max(0, Math.min(100, rep + (50 - rep) * 0.08)) * 10) / 10;
+  }
+  const targetScore = computeTargetStatusScore(
+    { savings: citizen.savings, roleLevel: citizen.roleLevel, respect, socialReputation: citizen.socialReputation },
+    grossPay
+  );
   const statusScore = stepMonthlyStatusScore(citizen.statusScore, targetScore);
   const nextTier = evaluateTierWithHysteresis(citizen.tier, statusScore);
 

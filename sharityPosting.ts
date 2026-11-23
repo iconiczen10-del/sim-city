@@ -13,9 +13,16 @@ import { collectCitizenTriggers, type TriggerCandidate } from './sharityTriggers
 import type { SharityPost, SharityState } from './sharityTypes';
 import type { Citizen, CityEvent } from './types';
 
-function recordPost(sharity: SharityState, post: SharityPost, clock: SimClock, dateLabel: string): void {
+export function recordPost(sharity: SharityState, post: SharityPost, clock: SimClock, dateLabel: string): void {
   sharity.posts.unshift(post);
-  if (sharity.posts.length > 450) sharity.posts = sharity.posts.slice(0, 450);
+  if (sharity.posts.length > 450) {
+    const dropped = sharity.posts.slice(450);
+    sharity.posts = sharity.posts.slice(0, 450);
+    for (const d of dropped) {
+      if (sharity.reactionsByPost) delete sharity.reactionsByPost[d.id];
+      if (sharity.commentsByPost) delete sharity.commentsByPost[d.id];
+    }
+  }
   sharity.unreadPostCount += 1;
   sharity.recentTexts = [{ day: clock.totalDays, text: post.text }, ...(sharity.recentTexts ?? []).filter((r) => clock.totalDays - r.day <= 14)].slice(0, 200);
   sharity.authorLastPostDay = { ...(sharity.authorLastPostDay ?? {}), [post.authorId]: clock.totalDays };
@@ -71,10 +78,11 @@ export function runDailySharityPosts(params: {
     const lastDay = sharity.authorLastPostDay?.[c.id] ?? -99;
     if (!cand.isBigEvent && clock.totalDays - lastDay < 2) continue;
     const quietMode = c.mood < 28 && c.stress > 70 && c.traits.sociability < 40;
+    const burnedMult = c.sharityBurnedUntilDay && clock.totalDays <= c.sharityBurnedUntilDay ? 0.25 : 1;
     const soc = c.traits.sociability;
     const socialNeed = Math.round((100 - c.mood) * 0.25 + c.traits.sociability * 0.35);
     const moodSwing = Math.round(Math.abs(c.mood - 55) * 0.45);
-    const weight = (quietMode ? 0.08 : 0.35 + (soc / 100) * 1.15) * (cand.urgency + socialNeed + moodSwing);
+    const weight = (quietMode ? 0.08 : 0.35 + (soc / 100) * 1.15) * burnedMult * (cand.urgency + socialNeed + moodSwing);
     scored.push({ cand, weight: Math.max(1, weight), soc, socialNeed, moodSwing });
   }
 
@@ -96,12 +104,15 @@ export function runDailySharityPosts(params: {
     const rendered = renderCitizenTemplate({ citizen: c, topic: chosen.cand.topic, triggerKey: chosen.cand.triggerKey, voice: v.voice, vars: chosen.cand.vars, sharity, totalDays: clock.totalDays });
     const mentions = chosen.cand.mentionHandle ? [chosen.cand.mentionHandle] : [];
     const followers = getFollowersOf(sharity, c.id).length;
+    const empCritTrigger = ['bad_boss', 'pay_cut', 'late_pay', 'take_low_pay', 'take_ceo_gap', 'company_reaction'].includes(chosen.cand.triggerKey);
+    const critiquesCompanyId = c.employerId && v.sentiment === 'negative' && (empCritTrigger || chosen.cand.topic === 'work_career' || chosen.cand.topic === 'companies') ? c.employerId : undefined;
 
     const post: SharityPost = {
       id: `post_${clock.totalDays}_${c.id}_${i}`,
       authorId: c.id, handle: prof.handle, createdDay: clock.totalDays, dateLabel,
       topic: chosen.cand.topic, triggerKey: chosen.cand.triggerKey, voice: v.voice, sentiment: v.sentiment,
       text: rendered.text, hashtags: rendered.hashtags, mentions, urgencyWeight: chosen.cand.urgency,
+      critiquesCompanyId,
       why: {
         trigger: chosen.cand.triggerLabel,
         gateScores: { sociability: chosen.soc, eventStrength: chosen.cand.urgency, socialNeed: chosen.socialNeed, moodSwing: chosen.moodSwing, postWeight: Math.round(chosen.weight) },

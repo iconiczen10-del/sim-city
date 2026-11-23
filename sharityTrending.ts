@@ -18,8 +18,9 @@ export function computeTrendingHashtags(posts: SharityPost[], currentDay: number
     const age = currentDay - p.createdDay;
     if (age < 0 || age >= 14) continue;
     const target = age < 7 ? curCounts : prevCounts;
+    const boost = p.isViral ? 3 : 1;
     for (const tag of p.hashtags) {
-      target.set(tag, (target.get(tag) ?? 0) + 1);
+      target.set(tag, (target.get(tag) ?? 0) + boost);
     }
   }
 

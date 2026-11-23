@@ -63,7 +63,8 @@ export function scoreCandidate(
 export function collectApplicantsForVacancy(
   citizens: Citizen[],
   vacancy: CompanyVacancy,
-  comp: Company
+  comp: Company,
+  totalDays = 0
 ): VacancyApplicant[] {
   const apps: VacancyApplicant[] = [];
   for (const c of citizens) {
@@ -74,6 +75,7 @@ export function collectApplicantsForVacancy(
       if (c.unemployedDays < 60 && ROLE_RANK[vacancy.role] === 1 && c.skill > 65) continue;
     } else if (isInternal) {
       if (roleDiff !== 1) continue;
+      if (c.promotionBlockedUntilDay && totalDays > 0 && totalDays <= c.promotionBlockedUntilDay) continue;
     } else {
       if (c.traits.ambition < 58 || roleDiff < 1) continue;
     }

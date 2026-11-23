@@ -23,14 +23,19 @@ export function computeIncomeScore(grossPay: number): number {
   return clamp((Math.sqrt(grossPay) / Math.sqrt(7000)) * 100, 0, 100);
 }
 
+export function computeEffectiveRespect(respect: number, socialReputation?: number): number {
+  if (typeof socialReputation !== 'number') return clamp(respect, 0, 100);
+  return clamp(respect * 0.65 + socialReputation * 0.35, 0, 100);
+}
+
 export function computeTargetStatusScore(
-  citizen: Pick<Citizen, 'savings' | 'roleLevel' | 'respect'>,
+  citizen: Pick<Citizen, 'savings' | 'roleLevel' | 'respect'> & { socialReputation?: number },
   grossPay: number
 ): number {
   const savingsScore = computeSavingsScore(citizen.savings);
   const incomeScore = computeIncomeScore(grossPay);
   const roleScore = ROLE_STATUS_SCORES[citizen.roleLevel];
-  const respectScore = clamp(citizen.respect, 0, 100);
+  const respectScore = computeEffectiveRespect(citizen.respect, citizen.socialReputation);
 
   const weighted =
     savingsScore * 0.4 +

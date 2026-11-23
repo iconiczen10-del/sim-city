@@ -18,6 +18,7 @@ interface CitizenProfileModalProps {
   city: CityState;
   onUpdateCity: (next: CityState) => void;
   onOpenSharityProfile: (profileId: string) => void;
+  onOpenSharityPost?: (postId: string) => void;
   onClose: () => void;
 }
 
@@ -31,7 +32,7 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: 'lifelog', label: 'Life Log' },
 ];
 
-export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharityProfile, onClose }: CitizenProfileModalProps) {
+export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharityProfile, onOpenSharityPost, onClose }: CitizenProfileModalProps) {
   const [tab, setTab] = useState<ProfileTab>('overview');
   const [highlightedDecisionId, setHighlightedDecisionId] = useState<string | null>(null);
 
@@ -107,8 +108,8 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
             {citizen.changeExplanations[0] && (
               <div className="bg-[#0c1220] border border-slate-800/80 rounded-md px-4 py-2.5 flex items-center justify-between text-xs">
                 <span className="text-slate-300">Latest shift: {citizen.changeExplanations[0].summary}</span>
-                {citizen.changeExplanations[0].decisionId && (
-                  <button type="button" onClick={() => jumpToDecision(citizen.changeExplanations[0].decisionId!)} className="text-amber-300 hover:text-amber-200 font-medium cursor-pointer shrink-0 ml-3">
+                {(citizen.changeExplanations[0].decisionId || (citizen.changeExplanations[0].postId && onOpenSharityPost)) && (
+                  <button type="button" onClick={() => citizen.changeExplanations[0].decisionId ? jumpToDecision(citizen.changeExplanations[0].decisionId!) : onOpenSharityPost?.(citizen.changeExplanations[0].postId!)} className="text-amber-300 hover:text-amber-200 font-medium cursor-pointer shrink-0 ml-3">
                     Explain this change →
                   </button>
                 )}
@@ -127,7 +128,7 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
         )}
 
         {tab === 'inventory' && <CitizenInventoryPanel citizen={citizen} city={city} onUpdateCity={onUpdateCity} showFullDetails />}
-        {tab === 'why' && <CitizenWhyTab citizen={citizen} highlightedDecisionId={highlightedDecisionId} onHighlightDecision={setHighlightedDecisionId} />}
+        {tab === 'why' && <CitizenWhyTab citizen={citizen} highlightedDecisionId={highlightedDecisionId} onHighlightDecision={setHighlightedDecisionId} onOpenSharityPost={onOpenSharityPost} />}
         {tab === 'memory' && <CitizenMemoryTab citizen={citizen} currentTotalDay={city.totalDays} onJumpToDecision={jumpToDecision} />}
         {tab === 'lifelog' && <CitizenLifeLogTab citizen={citizen} />}
       </div>

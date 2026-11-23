@@ -9,6 +9,12 @@ import { applyTierRisingBadges } from './sharityBadges';
 import { buildCitizenBio, buildUniqueHandle, COMPANY_OFFICIAL_BIOS, maybeRefreshCitizenBio } from './sharityBios';
 import { countFollowersMap, seedInitialFollows, updateSharityNetworkStep } from './sharityNetwork';
 import { runDailySharityPosts } from './sharityPosting';
+import { stepSharityConsequences } from './sharityConsequences';
+import { stepSharityMemorialsAndWaves } from './sharityMemorialWaves';
+import { stepSharityReactions } from './sharityReactionsEngine';
+import { stepSharityRelationshipEffects } from './sharityRelationshipEffects';
+import { stepSharityThreads } from './sharityThreadEngine';
+import { stepSharityWorkConsequences } from './sharityWorkConsequences';
 import type { SharityProfile, SharityState } from './sharityTypes';
 import type { Citizen, CityEvent, SimSpeed, TierMovement } from './types';
 
@@ -34,8 +40,10 @@ export function createInitialSharityState(citizens: Citizen[], companies: Compan
   const follows = seedInitialFollows(citizens, companies, affinities);
   return {
     profiles, affinities, follows, monthStartFollowers: countFollowersMap(follows),
+    followerGainedMonth: {}, followerLostMonth: {},
     posts: [], unreadPostCount: 0, lastTickDay: 1, lastTickBudget: 0,
-    lastTickReason: 'City opened on Day 1', recentTexts: [], authorLastTemplateDay: {}, authorLastPostDay: {}, dailyStats: [], handledEventIds: [],
+    lastTickReason: 'City opened on Day 1', recentTexts: [], authorLastTemplateDay: {}, authorLastPostDay: {},
+    dailyStats: [], handledEventIds: [], reactionsByPost: {}, commentsByPost: {}, cityWaves: [], queuedTributes: [],
   };
 }
 
@@ -89,8 +97,19 @@ export function stepSharityDay(params: {
   }
 
   updateSharityNetworkStep({ citizens, sharity, dayEvents, clock, events, isMonthEnd });
-  const pacing = computeDailyPostBudget(speed, [...dayEvents, ...recentUnprocessedSimgod]);
+  const allTriggerEvents = [...dayEvents, ...recentUnprocessedSimgod];
+  if (speed > 0) {
+    stepSharityMemorialsAndWaves({ sharity, citizens, companies, mart, dayEvents: allTriggerEvents, clock, events });
+  }
+  const pacing = computeDailyPostBudget(speed, allTriggerEvents);
   runDailySharityPosts({ sharity, citizens, companies, mart, vacancies, dayEvents, recentUnprocessedSimgod, clock, isMonthEnd, budget: pacing.budget, events });
+  if (speed > 0) {
+    stepSharityReactions({ sharity, citizens, companies, clock, events });
+    stepSharityThreads({ sharity, citizens, clock, events });
+    stepSharityConsequences({ sharity, citizens, clock, events });
+    stepSharityRelationshipEffects({ sharity, citizens, clock, events });
+    stepSharityWorkConsequences({ sharity, citizens, companies, mart, clock, events });
+  }
   sharity.handledEventIds = [...recentUnprocessedSimgod.map((e) => e.id), ...(sharity.handledEventIds ?? [])].slice(0, 80);
   sharity.lastTickDay = clock.totalDays;
   sharity.lastTickBudget = pacing.budget;
@@ -102,6 +121,8 @@ export function ensureValidSharityState(raw: SharityState | undefined, citizens:
     return {
       ...raw,
       monthStartFollowers: raw.monthStartFollowers ?? countFollowersMap(raw.follows),
+      followerGainedMonth: raw.followerGainedMonth ?? {},
+      followerLostMonth: raw.followerLostMonth ?? {},
       posts: Array.isArray(raw.posts) ? raw.posts : [],
       unreadPostCount: typeof raw.unreadPostCount === 'number' ? raw.unreadPostCount : 0,
       lastTickDay: typeof raw.lastTickDay === 'number' ? raw.lastTickDay : 1,
@@ -113,6 +134,10 @@ export function ensureValidSharityState(raw: SharityState | undefined, citizens:
       dailyStats: Array.isArray(raw.dailyStats) ? raw.dailyStats : [],
       handledEventIds: Array.isArray(raw.handledEventIds) ? raw.handledEventIds : [],
       lastMartClosed: Boolean(raw.lastMartClosed),
+      reactionsByPost: raw.reactionsByPost ?? {},
+      commentsByPost: raw.commentsByPost ?? {},
+      cityWaves: Array.isArray(raw.cityWaves) ? raw.cityWaves : [],
+      queuedTributes: Array.isArray(raw.queuedTributes) ? raw.queuedTributes : [],
     };
   }
   return createInitialSharityState(citizens, companies);

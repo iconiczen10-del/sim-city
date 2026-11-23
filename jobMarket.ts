@@ -28,7 +28,7 @@ export function processJobMarketMonthEnd(params: {
     const comp = companies.find((co) => co.id === vac.companyId);
     if (!comp || comp.bankrupt) continue;
 
-    const applicants = collectApplicantsForVacancy(citizens, vac, comp);
+    const applicants = collectApplicantsForVacancy(citizens, vac, comp, clock.totalDays);
     vac.applicants = applicants;
     if (applicants.length === 0) {
       remaining.push(vac);
@@ -82,7 +82,7 @@ export function processJobMarketMonthEnd(params: {
   for (const comp of companies) rebuildCompanyBossTree(comp.id, citizens);
   for (const v of remaining) {
     const comp = companies.find((co) => co.id === v.companyId);
-    if (comp) v.applicants = collectApplicantsForVacancy(citizens, v, comp);
+    if (comp) v.applicants = collectApplicantsForVacancy(citizens, v, comp, clock.totalDays);
   }
   return { vacancies: remaining.slice(0, 40), jobEvents: jobEvents.slice(0, 120) };
 }

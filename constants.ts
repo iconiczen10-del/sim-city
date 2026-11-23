@@ -3,9 +3,9 @@
 import type { LivingStandard, MarginMood, ShoppingCategory } from './martTypes';
 import type { EducationLevel, HomeType, RoleLevel, TierId } from './types';
 
-export const APP_VERSION = '0.5.7';
-export const STORAGE_KEY = 'vij_city_state_v5_7';
-export const LEGACY_STORAGE_KEYS = ['vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
+export const APP_VERSION = '0.5.8';
+export const STORAGE_KEY = 'vij_city_state_v5_8';
+export const LEGACY_STORAGE_KEYS = ['vij_city_state_v5_7', 'vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
 export const INITIAL_TREASURY = 20000;
 export const DAYS_PER_MONTH = 30;
 export const MONTHS_PER_YEAR = 12;

@@ -58,7 +58,8 @@ export function appendChangeExplanation(
   dateLabel: string,
   kind: ChangeExplanation['kind'],
   summary: string,
-  decisionId?: string
+  decisionId?: string,
+  postId?: string
 ): void {
   const item: ChangeExplanation = {
     id: `chg_${totalDay}_${citizen.id}_${kind}_${simIdSuffix()}`,
@@ -67,6 +68,7 @@ export function appendChangeExplanation(
     kind,
     summary,
     decisionId,
+    postId,
   };
   citizen.changeExplanations = [item, ...citizen.changeExplanations].slice(0, 30);
 }

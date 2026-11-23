@@ -90,6 +90,20 @@ export function CompanyDetailModal({
             )}
           </div>
         </div>
+
+        {(company.sharityCriticismLog?.length ?? 0) > 0 && (
+          <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2 text-xs">
+            <div className="font-semibold text-amber-300 border-b border-slate-800 pb-2">Sharity Criticism &amp; Reputation Incidents ({company.sharityCriticismLog!.length})</div>
+            <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+              {company.sharityCriticismLog!.slice(0, 8).map((inc) => (
+                <div key={inc.id} className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-slate-300 truncate">{inc.summary}</span>
+                  <span className="font-mono text-rose-300 shrink-0">{inc.deltaRep.toFixed(1)} rep · {inc.dateLabel}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

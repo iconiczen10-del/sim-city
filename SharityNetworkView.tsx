@@ -2,7 +2,9 @@
 
 import { useMemo } from 'react';
 import { SharityAvatar, SharityVerifiedBadge } from './SharityAvatar';
+import { SharityCityPulsePanel } from './SharityCityPulsePanel';
 import { SharityNetworkCharts } from './SharityNetworkCharts';
+import { SharityNetworkEngagement } from './SharityNetworkEngagement';
 import { countFollowersMap } from './sharityNetwork';
 import type { SharityProfile } from './sharityTypes';
 import type { Citizen, CityState } from './types';
@@ -93,6 +95,10 @@ export function SharityNetworkView({ city, onOpenProfile }: SharityNetworkViewPr
       </div>
 
       <SharityNetworkCharts city={city} />
+
+      <SharityCityPulsePanel city={city} />
+
+      <SharityNetworkEngagement city={city} onOpenProfile={onOpenProfile} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-[#111827] border border-slate-800 rounded-lg p-4 space-y-2">

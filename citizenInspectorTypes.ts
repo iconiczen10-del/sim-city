@@ -27,7 +27,11 @@ export type MemoryKind =
   | 'board_contribution'
   | 'employee_investment'
   | 'investment_repaid'
-  | 'investment_lost';
+  | 'investment_lost'
+  | 'sharity_praise'
+  | 'sharity_humiliation'
+  | 'sharity_shade'
+  | 'sharity_tribute';
 
 export interface CitizenMemory {
   id: string;
@@ -45,6 +49,14 @@ export interface SignedFactor {
   label: string;
   value: number;
   detail?: string;
+}
+
+export interface SharityFactorLine {
+  id: string;
+  label: string;
+  value: number;
+  decayRate: number;
+  postId?: string;
 }
 
 export interface DecisionOption {
@@ -80,9 +92,10 @@ export interface ChangeExplanation {
   id: string;
   totalDay: number;
   dateLabel: string;
-  kind: 'standard_downgrade' | 'mood_drop' | 'tier_change';
+  kind: 'standard_downgrade' | 'mood_drop' | 'tier_change' | 'social_shift';
   summary: string;
   decisionId?: string;
+  postId?: string;
 }
 
 export interface LedgerEntry {
@@ -95,7 +108,7 @@ export interface LedgerEntry {
   amount: number;
 }
 
-export type LifeLogCategory = 'meal' | 'shop' | 'loss' | 'gift' | 'health' | 'mood' | 'money';
+export type LifeLogCategory = 'meal' | 'shop' | 'loss' | 'gift' | 'health' | 'mood' | 'money' | 'sharity';
 
 export interface LifeLogEntry {
   id: string;

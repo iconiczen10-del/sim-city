@@ -24,6 +24,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(null);
   const [selectedSharityProfileId, setSelectedSharityProfileId] = useState<string | null>(null);
+  const [highlightedSharityPostId, setHighlightedSharityPostId] = useState<string | null>(null);
   const [showNewCityConfirm, setShowNewCityConfirm] = useState(false);
   const [seedInput, setSeedInput] = useState('');
 
@@ -109,8 +110,8 @@ export default function App() {
             {activeTab === 'mart' && <MartView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'sharity' && (
               <SharityView
-                city={city} speed={speed} selectedProfileId={selectedSharityProfileId} onSelectProfileId={setSelectedSharityProfileId}
-                onSelectCitizen={setSelectedCitizenId}
+                city={city} speed={speed} selectedProfileId={selectedSharityProfileId} highlightedPostId={highlightedSharityPostId}
+                onClearHighlightPost={() => setHighlightedSharityPostId(null)} onSelectProfileId={setSelectedSharityProfileId} onSelectCitizen={setSelectedCitizenId}
                 onMarkPostsRead={() => updateCity((c) => ({ ...c, sharity: { ...c.sharity, unreadPostCount: 0 } }))}
               />
             )}
@@ -123,7 +124,8 @@ export default function App() {
         <CitizenProfileModal
           citizen={selectedCitizen} city={city}
           onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)}
-          onOpenSharityProfile={(pid) => { setSelectedCitizenId(null); setSelectedSharityProfileId(pid); setActiveTab('sharity'); }}
+          onOpenSharityProfile={(pid) => { setSelectedCitizenId(null); setHighlightedSharityPostId(null); setSelectedSharityProfileId(pid); setActiveTab('sharity'); }}
+          onOpenSharityPost={(postId) => { setSelectedCitizenId(null); setSelectedSharityProfileId(null); setHighlightedSharityPostId(postId); setActiveTab('sharity'); }}
           onClose={() => setSelectedCitizenId(null)}
         />
       )}

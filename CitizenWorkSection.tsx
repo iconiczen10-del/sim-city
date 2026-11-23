@@ -46,6 +46,24 @@ export function CitizenWorkSection({ citizen, city }: CitizenWorkSectionProps) {
         </div>
       </div>
 
+      {citizen.promotionBlockedUntilDay && city.totalDays <= citizen.promotionBlockedUntilDay && (
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded px-3 py-1.5 text-[11px] text-rose-200 font-medium">
+          Promotion blocked for {citizen.promotionBlockedUntilDay - city.totalDays + 1} more day(s) following public Sharity fallout.
+        </div>
+      )}
+
+      {(citizen.sharityWorkNotes?.length ?? 0) > 0 && (
+        <div className="pt-2 border-t border-slate-800/70 space-y-1">
+          <div className="text-[11px] font-medium text-amber-300">Sharity Workplace Impacts</div>
+          {citizen.sharityWorkNotes!.slice(0, 4).map((n) => (
+            <div key={n.id} className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-300 truncate">{n.summary}</span>
+              <span className="font-mono text-slate-500 shrink-0 ml-2">{n.dateLabel}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {citizen.workHistory.length > 0 && (
         <div className="pt-2 border-t border-slate-800/70 space-y-1 max-h-28 overflow-y-auto">
           {citizen.workHistory.slice(0, 6).map((w, idx) => (
