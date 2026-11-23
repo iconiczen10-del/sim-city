@@ -2,7 +2,16 @@
 import { assignArchetypeProfile } from './chatArchetypes';
 import { createInitialBoardState } from './boardSeats';
 import { createEmptyChatGroupState } from './chatGroups';
+import { createSeedEmotions } from './citizenEmotions';
+import { createSeedHealthProfile } from './citizenHealthSystem';
+import { createSeedNeeds } from './citizenNeeds';
+import { evaluateSurvivalLadder } from './citizenSurvivalEngine';
+import { backfillTraits18 } from './citizenTraits';
 import { APP_VERSION } from './constants';
+import { formatMonthYear } from './formatters';
+import { computeHousingSatisfaction, seedHousingPreferences } from './housingPreferences';
+import { syncCitizenHousingLinks } from './housingScores';
+import { createInitialHousingState, ensureHousingMarketSnapshots } from './housingSeed';
 import { createRandomSeed, normalizeSeed } from './rng';
 import { ensureValidSharityState } from './sharityEngine';
 import type { CityState } from './types';
@@ -25,15 +34,30 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   const rngState = typeof parsed.rngState === 'number' && Number.isFinite(parsed.rngState)
     ? normalizeSeed(parsed.rngState)
     : seed;
-  const citizens = citizenList.map((citizen) => ({
-    ...citizen,
-    rentArrears: typeof citizen.rentArrears === 'number' ? citizen.rentArrears : 0,
-    jobHunting: typeof citizen.jobHunting === 'boolean' ? citizen.jobHunting : false,
-    socialReputation: typeof citizen.socialReputation === 'number' ? citizen.socialReputation : Math.round(citizen.respect ?? 50),
-    sharityMoodLines: Array.isArray(citizen.sharityMoodLines) ? citizen.sharityMoodLines : [],
-    sharityStressLines: Array.isArray(citizen.sharityStressLines) ? citizen.sharityStressLines : [],
-    sharityWorkNotes: Array.isArray(citizen.sharityWorkNotes) ? citizen.sharityWorkNotes : [],
-  }));
+  const citizens = citizenList.map((citizen) => {
+    const traits = backfillTraits18(citizen.traits ?? {});
+    const needs = citizen.needs?.energy ? citizen.needs : createSeedNeeds(citizen.homeType, traits, citizen.hunger ?? 80, citizen.thirst ?? 80);
+    const healthProfile = citizen.healthProfile?.mental !== undefined ? citizen.healthProfile : createSeedHealthProfile(citizen.age ?? 30, traits, citizen.health ?? 80);
+    const emotions = citizen.emotions?.joy ? citizen.emotions : createSeedEmotions(traits);
+    const out = {
+      ...citizen,
+      traits,
+      needs,
+      healthProfile,
+      emotions,
+      emotionHistory: Array.isArray(citizen.emotionHistory) ? citizen.emotionHistory : [],
+      survivalPriority: Array.isArray(citizen.survivalPriority) ? citizen.survivalPriority : [],
+      survivalState: citizen.survivalState ?? 'Stable',
+      rentArrears: typeof citizen.rentArrears === 'number' ? citizen.rentArrears : 0,
+      jobHunting: typeof citizen.jobHunting === 'boolean' ? citizen.jobHunting : false,
+      socialReputation: typeof citizen.socialReputation === 'number' ? citizen.socialReputation : Math.round(citizen.respect ?? 50),
+      sharityMoodLines: Array.isArray(citizen.sharityMoodLines) ? citizen.sharityMoodLines : [],
+      sharityStressLines: Array.isArray(citizen.sharityStressLines) ? citizen.sharityStressLines : [],
+      sharityWorkNotes: Array.isArray(citizen.sharityWorkNotes) ? citizen.sharityWorkNotes : [],
+    };
+    evaluateSurvivalLadder(out);
+    return out;
+  });
   const companies = companyList.map((company) => ({
     ...company,
     ledger: Array.isArray(company.ledger) ? company.ledger : [],
@@ -51,6 +75,19 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     : { vijindustries: createEmptyChatGroupState() };
   if (!parsed.chatGroups?.vijindustries) backfillEmployeeGroup(chatGroups.vijindustries, citizens, companies, parsed.totalDays ?? 1);
 
+  const housing = parsed.housing?.houses?.length === 60
+    ? parsed.housing
+    : createInitialHousingState(citizens);
+  ensureHousingMarketSnapshots(housing, formatMonthYear(parsed.month ?? 1, parsed.year ?? 1));
+  const byHouse = new Map(housing.houses.map((h) => [h.id, h]));
+  for (const c of citizens) {
+    if (!Array.isArray(c.housingHistory)) c.housingHistory = [];
+    if (!Array.isArray(c.evictionRecords)) c.evictionRecords = [];
+    if (!c.housingPrefs) c.housingPrefs = seedHousingPreferences(c);
+    c.housingSatisfaction = computeHousingSatisfaction(c, c.homeId ? byHouse.get(c.homeId) : undefined, sharity);
+  }
+  syncCitizenHousingLinks(citizens, housing.houses, sharity);
+
   return {
     ...(parsed as CityState),
     version: APP_VERSION,
@@ -61,6 +98,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     boardState: parsed.boardState ?? createInitialBoardState(citizens),
     sharity,
     chatGroups,
+    housing,
   };
 }
 

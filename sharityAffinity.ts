@@ -16,6 +16,12 @@ export function getAffinity(sharity: SharityState, aId: string, bId: string): nu
   return sharity.affinities[affinityKey(aId, bId)] ?? 0;
 }
 
+export function adjustAffinity(sharity: SharityState, aId: string, bId: string, delta: number): void {
+  if (aId === bId) return;
+  const key = affinityKey(aId, bId);
+  sharity.affinities[key] = Math.round(clamp((sharity.affinities[key] ?? 0) + delta, -100, 100));
+}
+
 function computeTraitCloseness(a: Citizen, b: Citizen): number {
   const keys = ['ambition', 'greed', 'kindness', 'loyalty', 'sociability', 'discipline'] as const;
   const avgDiff = keys.reduce((s, k) => s + Math.abs(a.traits[k] - b.traits[k]), 0) / keys.length;

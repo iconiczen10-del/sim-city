@@ -1,5 +1,6 @@
 // companyAI.ts — Monthly boss relationships, performance, quits, firings, layoffs, and CEO AI
 
+import { recordConsequentialDecision } from './citizenDecisionOutcomes';
 import { addCitizenMemory } from './citizenMemory';
 import { computeCitizenPerformance, ROLE_RANK, syncMartPersonalityFromCeo } from './companyRules';
 import { rebuildCompanyBossTree } from './companySetup';
@@ -77,27 +78,32 @@ export function runCompanyMonthlyAI(params: {
     for (const emp of employees) {
       emp.tenureMonths += 1;
       emp.monthsSincePromotion += 1;
+      emp.skill = Math.round(clamp(emp.skill + (0.08 + ((emp.traits.curiosity ?? 50) / 100) * 0.42) * (emp.housingSkillMult ?? 1), 0, 100) * 10) / 10;
       const boss = emp.bossId ? byId.get(emp.bossId) : null;
       if (boss && boss.alive) {
         const bossPush = (boss.traits.kindness - boss.traits.greed) * 0.12;
         const slow = 1 - emp.traits.loyalty * 0.005;
         emp.bossRelationship = Math.round(clamp(emp.bossRelationship + bossPush * slow + (simRand() - 0.5) * 3, -100, 100));
       }
-      emp.performanceScore = computeCitizenPerformance(emp);
+      emp.performanceScore = computeCitizenPerformance(emp, clock.totalDays);
     }
 
     // Voluntary quitting
     for (const emp of employees) {
       if (emp.roleLevel === 'CEO') continue;
-      if (!emp.jobHunting && (emp.traits.ambition < 55 || emp.traits.loyalty > 72)) continue;
+      const lowMental = (emp.healthProfile?.mental ?? 70) < 22;
+      if (!emp.jobHunting && !lowMental && (emp.traits.ambition < 55 || emp.traits.loyalty > 72)) continue;
       let quitProb = emp.jobHunting ? 0.14 : 0.01;
       if (emp.mood < 42) quitProb += 0.05;
+      if (lowMental) quitProb += 0.09;
       if (emp.bossRelationship < -20) quitProb += 0.07;
       if (emp.monthsSincePromotion >= 6) quitProb += 0.04;
       if (comp.payFreeze) quitProb += 0.04;
       if (simRand() < quitProb * ((100 - emp.traits.loyalty) / 100)) {
         emp.jobHunting = false;
-        releaseEmployee({ emp, comp, kind: 'quit', reason: `${emp.name} quit ${comp.name} (${emp.roleLevel}) seeking better prospects.`, vacancies, jobEvents, clock, dateLabel, events });
+        const reason = `${emp.name} quit ${comp.name} (${emp.roleLevel}) ${lowMental ? 'due to burnout' : 'seeking better prospects'}.`;
+        releaseEmployee({ emp, comp, kind: 'quit', reason, vacancies, jobEvents, clock, dateLabel, events });
+        recordConsequentialDecision({ citizen: emp, clock, dateLabel, kind: 'job_choice', category: 'work', title: `Quit ${comp.name}`, chosenOption: 'Resign Role', altOption: 'Keep Enduring', chosenReason: reason, chosenFactors: [{ label: 'Burnout / Strain', value: lowMental ? 30 : 16 }, { label: 'Boss Friction', value: emp.bossRelationship < 0 ? 15 : 0 }], altFactors: [{ label: 'Loyalty', value: Math.round(emp.traits.loyalty * 0.3) }], diarySentence: `Resigned from ${comp.name}.` });
       }
     }
 

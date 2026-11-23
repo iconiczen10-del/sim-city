@@ -1,5 +1,6 @@
 // citizenSeedHelpers.ts — Random trait, inventory, and score calibration helpers for seeding
 
+import { createSeedTraits18 } from './citizenTraits';
 import { simPick, simRandInt } from './rng';
 import type { CitizenInventory, CitizenStandards, OutfitItem } from './martTypes';
 import type { SeedSlot } from './seedProfiles';
@@ -13,15 +14,8 @@ export function pick<T>(arr: readonly T[]): T {
   return simPick(arr);
 }
 
-export function createSeedTraits(): CitizenTraits {
-  return {
-    ambition: randInt(15, 95),
-    greed: randInt(10, 92),
-    kindness: randInt(15, 95),
-    loyalty: randInt(20, 95),
-    sociability: randInt(15, 95),
-    discipline: randInt(15, 95),
-  };
+export function createSeedTraits(existingSigs?: Set<string>): CitizenTraits {
+  return createSeedTraits18(existingSigs);
 }
 
 export function createSeedInventory(

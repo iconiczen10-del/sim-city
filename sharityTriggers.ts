@@ -62,6 +62,13 @@ function mapEventToKey(ev: CityEvent): { topic: SharityTopicId; key: string; urg
   if (ev.type === 'late-delivery') return { topic: 'vij_mart', key: 'late_delivery', urgency: 52, big: false };
   if (ev.type === 'death') return { topic: 'city_mood', key: 'city_death', urgency: 85, big: true };
   if (ev.type === 'bankruptcy') return { topic: 'city_mood', key: 'city_bankrupt', urgency: 84, big: true };
+  if (ev.type === 'eviction') return { topic: 'loss_hardship', key: 'evicted_vent', urgency: 80, big: true };
+  if (ev.type === 'bought-house') return { topic: ev.title.includes('Investment') ? 'status_flex' : 'celebrations', key: ev.title.includes('Investment') ? 'second_property_flex' : 'bought_home_flex', urgency: 72, big: false };
+  if (ev.type === 'homeless') return { topic: ev.citizenId ? 'loss_hardship' : 'city_mood', key: ev.citizenId ? 'homeless_post' : 'city_homeless_wave', urgency: 78, big: true };
+  if (ev.type === 'moved') return { topic: 'housing', key: 'moved_in', urgency: 54, big: false };
+  if (ev.type === 'roommate-conflict') return { topic: 'housing', key: 'roommate_friction', urgency: 50, big: false };
+  if (ev.type === 'rent-raise') return { topic: 'housing', key: 'rent_rise_complaint', urgency: 62, big: false };
+  if (ev.type === 'sold-house') return { topic: 'loss_hardship', key: 'sold_home_crisis', urgency: 72, big: false };
   if (ev.type === 'simgod') {
     const t = `${ev.title} ${ev.detail}`.toLowerCase();
     if (t.includes('stole') || t.includes('theft')) return { topic: 'crime_conflict', key: simRand() < 0.5 ? 'nat_theft' : 'crime_theft', urgency: 78, big: true };

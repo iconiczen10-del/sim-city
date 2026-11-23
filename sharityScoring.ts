@@ -55,9 +55,11 @@ export function evaluateViewerReaction(params: {
   factors.push({ label: 'Traits', value: traitVal, detail: `Kindness ${t.kindness}, sociability ${t.sociability}, loyalty ${t.loyalty}` });
 
   const hungryOrBroke = viewer.hunger < 45 || viewer.savings < 60;
-  let stateVal = Math.round((viewer.mood - 50) * 0.3 - (viewer.stress - 50) * 0.15);
+  const hygPenalty = author && (author.needs?.hygiene?.value ?? 100) < 30 ? -12 : 0;
+  const emShift = Math.round(((viewer.emotions?.gratitude?.value ?? 0) - (viewer.emotions?.anger?.value ?? 0)) * 0.15);
+  let stateVal = Math.round((viewer.mood - 50) * 0.3 - (viewer.stress - 50) * 0.15) + hygPenalty + emShift;
   if (hungryOrBroke && FLEX_TRIGGERS.has(post.triggerKey)) stateVal -= 26;
-  factors.push({ label: 'Viewer State', value: stateVal, detail: `Mood ${Math.round(viewer.mood)}, stress ${Math.round(viewer.stress)}, savings ∆${Math.round(viewer.savings)}` });
+  factors.push({ label: 'Viewer State', value: stateVal, detail: `${hygPenalty < 0 ? 'Low hygiene notice · ' : ''}Mood ${Math.round(viewer.mood)}, stress ${Math.round(viewer.stress)}, savings ∆${Math.round(viewer.savings)}` });
 
   const vIdx = TIER_ORDER.indexOf(viewer.tier);
   const aIdx = author ? TIER_ORDER.indexOf(author.tier) : 1;

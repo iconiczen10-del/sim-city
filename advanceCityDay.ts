@@ -19,7 +19,7 @@ export function advanceCityDay(previous: CityState, latestMeeting: BoardMeeting 
 
   const company = state.companies.find((item) => item.id === 'vijindustries');
   if (company) {
-    generateVijIndustriesChatDay({
+    const { newMessages } = generateVijIndustriesChatDay({
       city: state,
       company,
       clock: {
@@ -30,6 +30,13 @@ export function advanceCityDay(previous: CityState, latestMeeting: BoardMeeting 
       },
       events: state.events,
     });
+    const spoken = new Set(newMessages.filter((m) => m.totalDay === state.totalDays && m.speakerId).map((m) => m.speakerId!));
+    for (const c of state.citizens) {
+      if (c.alive && c.needs?.social && spoken.has(c.id)) {
+        c.needs.social.value = Math.min(100, Math.round((c.needs.social.value + 4) * 10) / 10);
+        c.needs.social.lastRestoredDay = state.totalDays;
+      }
+    }
   }
 
   state.rngState = getSimRngState();

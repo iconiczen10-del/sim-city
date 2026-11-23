@@ -1,14 +1,17 @@
 // citizenBreakdowns.ts — Signed mood breakdown matching mood total and status score breakdown
 
+import { stepCitizenEmotionsDaily } from './citizenEmotionEngine';
+import { EMOTION_META } from './citizenEmotions';
 import type { SignedFactor } from './citizenInspectorTypes';
 import { getMemorySignals } from './citizenMemory';
 import { getStressMoodPenalty } from './citizenStress';
 import { ROLE_STATUS_SCORES } from './constants';
 import { calculateFixedMonthlyCosts, clamp } from './economy';
+import type { SimClock } from './eventFactory';
 import { estimateMonthlyShoppingCost } from './standards';
 import { computeEffectiveRespect, computeIncomeScore, computeSavingsScore } from './status';
 import { simRand } from './rng';
-import type { Citizen } from './types';
+import type { Citizen, CityEvent } from './types';
 
 function r1(n: number): number {
   return Math.round(n * 10) / 10;
@@ -83,7 +86,10 @@ export function stepMoodWithBreakdown(
   netPay: number,
   hadShortageToday: boolean,
   martReputation: number,
-  griefPenalty: number
+  griefPenalty: number,
+  clock?: SimClock,
+  dateLabel?: string,
+  events?: CityEvent[]
 ): { mood: number; breakdown: SignedFactor[] } {
   const goodRecovery = citizen.mood >= 62 && citizen.stress < 45 ? 0.84 : 1;
   if (Array.isArray(citizen.sharityMoodLines)) {
@@ -91,20 +97,35 @@ export function stepMoodWithBreakdown(
       .map((l) => ({ ...l, value: r1(l.value * l.decayRate * (l.value < 0 ? goodRecovery : 1)) }))
       .filter((l) => Math.abs(l.value) >= 0.25);
   }
-  const { targetMood, factors } = buildMoodFactors(citizen, netPay, hadShortageToday, martReputation);
-  const drift = (targetMood - citizen.mood) * 0.14;
-  const noise = (simRand() - 0.5) * 1.8;
-  const nextMood = r1(clamp(citizen.mood + drift + noise - griefPenalty, 0, 100));
+  const emotionTarget = clock && dateLabel && events
+    ? stepCitizenEmotionsDaily(citizen, netPay, hadShortageToday, martReputation, griefPenalty, clock, dateLabel, events)
+    : buildMoodFactors(citizen, netPay, hadShortageToday, martReputation).targetMood;
 
-  const outFactors = [...factors];
-  if (griefPenalty > 0) {
-    outFactors.push({ label: 'City Grief', value: r1(-griefPenalty) });
+  const sharitySum = (citizen.sharityMoodLines ?? []).reduce((s, l) => s + l.value, 0);
+  const housingMood = r1(citizen.housingMoodOffset ?? 0);
+  const resRate = clamp(0.18 + (citizen.traits.resilience - 50) * 0.0012, 0.1, 0.28);
+  const targetWithSharity = clamp(emotionTarget + sharitySum + housingMood - griefPenalty * 0.5, 1, 99);
+  const drift = (targetWithSharity - citizen.mood) * resRate;
+  const noise = (simRand() - 0.5) * 1.4;
+  const nextMood = r1(clamp(citizen.mood + drift + noise, 0, 100));
+
+  const outFactors: SignedFactor[] = [{ label: 'Baseline & Optimism', value: r1(54 + (citizen.traits.optimism - 50) * 0.12) }];
+  const topEm = EMOTION_META
+    .map((m) => ({ m, v: citizen.emotions?.[m.id]?.value ?? 0 }))
+    .filter((x) => Math.abs(x.v) >= 4)
+    .sort((a, b) => Math.abs(b.v) - Math.abs(a.v))
+    .slice(0, 5);
+  for (const { m, v } of topEm) {
+    outFactors.push({ label: `Emotion: ${m.label}`, value: r1(m.polarity === 'positive' ? v * 0.18 : -v * 0.18) });
   }
+  for (const sl of citizen.sharityMoodLines ?? []) {
+    if (Math.abs(sl.value) >= 0.2) outFactors.push({ label: sl.label, value: r1(sl.value) });
+  }
+  if (Math.abs(housingMood) >= 0.4) outFactors.push({ label: citizen.homeId === null ? 'Homelessness' : 'Housing Comfort', value: housingMood });
+  if (griefPenalty > 0) outFactors.push({ label: 'City Grief / Strain', value: r1(-griefPenalty) });
   const sum = outFactors.reduce((s, f) => s + f.value, 0);
   const driftGap = r1(nextMood - sum);
-  if (Math.abs(driftGap) >= 0.1) {
-    outFactors.push({ label: 'Daily Drift & Inertia', value: driftGap });
-  }
+  if (Math.abs(driftGap) >= 0.1) outFactors.push({ label: 'Daily Drift & Inertia', value: driftGap });
   return { mood: nextMood, breakdown: outFactors };
 }
 
@@ -120,7 +141,7 @@ export function computeStatusBreakdown(citizen: Citizen): {
   const incomeScore = r1(computeIncomeScore(citizen.lastGrossPay));
   const roleScore = ROLE_STATUS_SCORES[citizen.roleLevel];
   const socialReputation = r1(clamp(citizen.socialReputation ?? 50, 0, 100));
-  const respectScore = r1(computeEffectiveRespect(citizen.respect, socialReputation));
+  const respectScore = r1(computeEffectiveRespect(citizen.respect, socialReputation, citizen.healthProfile?.mental));
   const weightedTarget = r1(
     savingsScore * 0.4 + incomeScore * 0.25 + roleScore * 0.2 + respectScore * 0.15
   );

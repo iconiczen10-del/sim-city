@@ -1,5 +1,6 @@
 // monthlyCitizenStep.ts — Per-citizen month-end salary settlement, taxes, fixed bills, standards, and tier updates
 
+import { recordConsequentialDecision } from './citizenDecisionOutcomes';
 import { recordStandardOrTierDecision } from './citizenDecisions';
 import { appendChangeExplanation, appendLedgerEntry, appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
@@ -30,20 +31,21 @@ export function processLivingCitizenMonthEnd(
   const availableForBills = Math.max(0, afterTaxCash - survivalReserve);
   const nonRentPaid = Math.min(availableForBills, fixed.nonRent);
   const remAfterNonRent = Math.max(0, availableForBills - nonRentPaid);
-  const rentDue = fixed.rent + citizen.rentArrears;
+  const hasRealHousing = citizen.homeId !== undefined;
+  const rentDue = hasRealHousing ? 0 : fixed.rent + citizen.rentArrears;
   const rentPaid = Math.min(remAfterNonRent, rentDue);
-  const rentArrears = Math.round(Math.max(0, rentDue - rentPaid));
+  const rentArrears = hasRealHousing ? citizen.rentArrears : Math.round(Math.max(0, rentDue - rentPaid));
   const totalPaidBills = Math.round(nonRentPaid + rentPaid);
 
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'income', 'Salary', `${citizen.roleLevel} Monthly Pay`, grossPay);
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Tax', 'Marginal Income Tax', tax);
-  appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Housing', `Rent (${HOME_LABELS[homeType]})`, rentPaid);
+  if (!hasRealHousing) appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Housing', `Rent (${HOME_LABELS[homeType]})`, rentPaid);
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Fixed Living', 'Transport, Utilities, Health, Net', nonRentPaid);
-  appendLifeLog(citizen, clock.totalDays, dateLabel, 'money', `Payday +${formatDelta(netPay)} net; paid ${formatDelta(totalPaidBills)} bills${rentArrears > 0 ? ` (${formatDelta(rentArrears)} rent arrears)` : ''}.`);
+  appendLifeLog(citizen, clock.totalDays, dateLabel, 'money', `Payday +${formatDelta(netPay)} net; paid ${formatDelta(totalPaidBills)} fixed bills.`);
 
   const savings = Math.max(0, Math.round(afterTaxCash - totalPaidBills));
   const hitZero = savings <= 0 && citizen.savings > 0;
-  const unableToPay = rentArrears > 0 || nonRentPaid < fixed.nonRent;
+  const unableToPay = (!hasRealHousing && rentArrears > 0) || nonRentPaid < fixed.nonRent;
   const mood = unableToPay ? Math.max(0, Math.round((citizen.mood - 10) * 10) / 10) : citizen.mood;
 
   if (hitZero || unableToPay) {
@@ -80,6 +82,16 @@ export function processLivingCitizenMonthEnd(
       oldStd: citizen.standards.food as LivingStandard, newStd: nextStandards.food as LivingStandard,
     });
     if (down) appendChangeExplanation(draft, clock.totalDays, dateLabel, 'standard_downgrade', `Month-end ${CATEGORY_LABELS.food} cut L${citizen.standards.food} → L${nextStandards.food}.`, dec.id);
+  }
+  if (!hasRealHousing && homeType !== citizen.homeType) {
+    recordConsequentialDecision({
+      citizen: draft, clock, dateLabel, kind: 'downgrade_upgrade', category: 'housing',
+      title: 'Housing Adjustment', chosenOption: `Move to ${HOME_LABELS[homeType]}`, altOption: `Stay in ${HOME_LABELS[citizen.homeType]}`,
+      chosenReason: `Adjusted housing based on net pay ${formatDelta(netPay)} and savings ${formatDelta(savings)}.`,
+      chosenFactors: [{ label: 'Housing Budget', value: 20 }, { label: 'Pride', value: Math.round((citizen.traits.pride ?? 50) * 0.2) }],
+      altFactors: [{ label: 'Status Continuity', value: 12 }],
+      diarySentence: `Moved from ${HOME_LABELS[citizen.homeType]} to ${HOME_LABELS[homeType]}.`,
+    });
   }
 
   const tierRes = applyMonthlyStatusAndTier(draft, grossPay, netPay, totalPaidBills, unableToPay, clock, events, movements);

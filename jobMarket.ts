@@ -1,5 +1,6 @@
 // jobMarket.ts — Month-end hiring, internal promotion cascades, and vacancy queue resolution
 
+import { recordConsequentialDecision } from './citizenDecisionOutcomes';
 import { computeCitizenPerformance } from './companyRules';
 import { rebuildCompanyBossTree } from './companySetup';
 import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
@@ -65,7 +66,7 @@ export function processJobMarketMonthEnd(params: {
     }
     hiree.lastGrossPay = calculateMonthlyPay(hiree, 1.0, comp.industryMultiplier);
     hiree.lastTax = calculateMarginalTax(hiree.lastGrossPay);
-    hiree.performanceScore = computeCitizenPerformance(hiree);
+    hiree.performanceScore = computeCitizenPerformance(hiree, clock.totalDays);
     if (vac.role === 'CEO') comp.ceoId = hiree.id;
 
     const kind: JobMarketEvent['kind'] = wasInternal ? 'promoted' : 'hired';
@@ -77,6 +78,15 @@ export function processJobMarketMonthEnd(params: {
     jobEvents.unshift({ id: `je_${clock.totalDays}_${hiree.id}_${safety}`, dateLabel, kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, companyName: comp.name, role: vac.role, detail });
     events.push(makeCityEvent(clock, `${kind}_${hiree.id}_${safety}`, { type: kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, title: wasInternal ? 'Citizen Promoted' : 'Citizen Hired', detail }));
     comp.reputation = Math.round(clamp(comp.reputation + (wasInternal ? 1.2 : 0.4), 0, 100) * 10) / 10;
+    recordConsequentialDecision({
+      citizen: hiree, clock, dateLabel, kind: 'job_choice', category: 'work',
+      title: wasInternal ? `Accept Promotion (${vac.role})` : `Accept Offer (${vac.role} @ ${comp.name})`,
+      chosenOption: `Accept ${vac.role} @ ${comp.name}`, altOption: 'Decline & Wait',
+      chosenReason: `Role fit score ${picked.score} and pay multiplier ${comp.industryMultiplier.toFixed(2)}x.`,
+      chosenFactors: [{ label: 'Candidate Fit', value: Math.round(picked.score) }, { label: 'Ambition', value: Math.round(hiree.traits.ambition * 0.3) }],
+      altFactors: [{ label: 'Stay Current', value: Math.round(hiree.traits.patience * 0.25) }],
+      diarySentence: wasInternal ? `Accepted promotion to ${vac.role} at ${comp.name}.` : `Took a new role as ${vac.role} at ${comp.name}.`,
+    });
   }
 
   for (const comp of companies) rebuildCompanyBossTree(comp.id, citizens);

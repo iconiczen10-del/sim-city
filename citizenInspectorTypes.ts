@@ -2,14 +2,7 @@
 
 import type { LivingStandard, ShoppingCategory } from './inventoryTypes';
 
-export type LossCause =
-  | 'fire'
-  | 'flood'
-  | 'theft'
-  | 'rats'
-  | 'power_cut'
-  | 'spoilage'
-  | 'random';
+export type LossCause = 'fire' | 'flood' | 'theft' | 'rats' | 'power_cut' | 'spoilage' | 'random';
 
 export type MemoryKind =
   | 'loss'
@@ -31,7 +24,11 @@ export type MemoryKind =
   | 'sharity_praise'
   | 'sharity_humiliation'
   | 'sharity_shade'
-  | 'sharity_tribute';
+  | 'sharity_tribute'
+  | 'theft_guilt'
+  | 'theft_victim'
+  | 'breakdown'
+  | 'helped';
 
 export interface CitizenMemory {
   id: string;
@@ -73,19 +70,36 @@ export type DecisionKind =
   | 'downgrade_upgrade'
   | 'tier_change'
   | 'employee_investment'
-  | 'board_vote';
+  | 'board_vote'
+  | 'job_choice'
+  | 'help_choice'
+  | 'theft_choice'
+  | 'budget_skip'
+  | 'risk_choice'
+  | 'housing_buy'
+  | 'housing_move';
+
+export interface DecisionOutcome {
+  day: number;
+  summary: string;
+  worked: boolean;
+}
 
 export interface DecisionRecord {
   id: string;
   totalDay: number;
   dateLabel: string;
   kind: DecisionKind;
-  category?: ShoppingCategory | 'survival' | 'status';
+  category?: ShoppingCategory | 'survival' | 'status' | 'work' | 'social' | 'security' | 'fun' | 'housing';
   title: string;
   chosenOption: string;
   chosenReason: string;
   linkedMemoryIds: string[];
   options: DecisionOption[];
+  outcome7d?: DecisionOutcome;
+  outcome30d?: DecisionOutcome;
+  baselineMood?: number;
+  baselineSavings?: number;
 }
 
 export interface ChangeExplanation {

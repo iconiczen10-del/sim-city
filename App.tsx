@@ -6,6 +6,7 @@ import { CitizensView } from './CitizensView';
 import { CompaniesView } from './CompaniesView';
 import { ConfirmModal } from './ConfirmModal';
 import { EventLogView } from './EventLogView';
+import { HousingView } from './HousingView';
 import { JobMarketView } from './JobMarketView';
 import { MartView } from './MartView';
 import { OverviewView } from './OverviewView';
@@ -23,6 +24,7 @@ export default function App() {
   const [speed, setSpeed] = useState<SimSpeed>(1);
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
   const [selectedCitizenId, setSelectedCitizenId] = useState<string | null>(null);
+  const [selectedCitizenTab, setSelectedCitizenTab] = useState<'overview' | 'housing'>('overview');
   const [selectedSharityProfileId, setSelectedSharityProfileId] = useState<string | null>(null);
   const [highlightedSharityPostId, setHighlightedSharityPostId] = useState<string | null>(null);
   const [showNewCityConfirm, setShowNewCityConfirm] = useState(false);
@@ -35,14 +37,9 @@ export default function App() {
   }, [loading, speed, stepOneDay]);
 
   const livingPopulation = useMemo(() => (city ? city.citizens.filter((c) => c.alive).length : 0), [city]);
-  const martLowStockCount = useMemo(
-    () => (city ? city.mart.stock.filter((s) => s.quantity / Math.max(0.2, s.dailyForecast) < 4).length : 0),
-    [city]
-  );
-  const selectedCitizen = useMemo(
-    () => (city ? city.citizens.find((c) => c.id === selectedCitizenId) ?? null : null),
-    [city, selectedCitizenId]
-  );
+  const homelessCount = useMemo(() => (city ? city.citizens.filter((c) => c.alive && !c.homeId).length : 0), [city]);
+  const martLowStockCount = useMemo(() => (city ? city.mart.stock.filter((s) => s.quantity / Math.max(0.2, s.dailyForecast) < 4).length : 0), [city]);
+  const selectedCitizen = useMemo(() => (city ? city.citizens.find((c) => c.id === selectedCitizenId) ?? null : null), [city, selectedCitizenId]);
   const boardUnreadCount = useMemo(() => meetings.filter((m) => !m.read).length, [meetings]);
 
   if (loading || !city) {
@@ -93,6 +90,7 @@ export default function App() {
           vacancyCount={city.vacancies.length}
           eventCount={city.events.length}
           martLowStockCount={martLowStockCount}
+          homelessCount={homelessCount}
           boardUnreadCount={boardUnreadCount}
           sharityPostCount={city.sharity.posts.length}
           sharityUnreadCount={city.sharity.unreadPostCount}
@@ -105,6 +103,7 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1200px] min-w-0">
             {activeTab === 'overview' && <OverviewView city={city} onOpenEvents={() => setActiveTab('events')} onOpenCompanies={() => setActiveTab('companies')} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'citizens' && <CitizensView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
+            {activeTab === 'housing' && <HousingView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={(id, t = 'overview') => { setSelectedCitizenTab(t); setSelectedCitizenId(id); }} />}
             {activeTab === 'companies' && <CompaniesView city={city} meetings={meetings} onMarkMeetingRead={markMeetingRead} onSelectCitizen={setSelectedCitizenId} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} />}
             {activeTab === 'jobs' && <JobMarketView city={city} onSelectCitizen={setSelectedCitizenId} />}
             {activeTab === 'mart' && <MartView city={city} onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)} onSelectCitizen={setSelectedCitizenId} />}
@@ -122,11 +121,13 @@ export default function App() {
 
       {selectedCitizen && (
         <CitizenProfileModal
-          citizen={selectedCitizen} city={city}
+          key={`${selectedCitizen.id}_${selectedCitizenTab}`}
+          citizen={selectedCitizen} city={city} initialTab={selectedCitizenTab}
           onUpdateCity={(u) => updateCity(typeof u === 'function' ? u : () => u)}
+          onSelectCitizen={(id) => { setSelectedCitizenTab('overview'); setSelectedCitizenId(id); }}
           onOpenSharityProfile={(pid) => { setSelectedCitizenId(null); setHighlightedSharityPostId(null); setSelectedSharityProfileId(pid); setActiveTab('sharity'); }}
           onOpenSharityPost={(postId) => { setSelectedCitizenId(null); setSelectedSharityProfileId(null); setHighlightedSharityPostId(postId); setActiveTab('sharity'); }}
-          onClose={() => setSelectedCitizenId(null)}
+          onClose={() => { setSelectedCitizenId(null); setSelectedCitizenTab('overview'); }}
         />
       )}
 

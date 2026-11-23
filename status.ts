@@ -23,19 +23,39 @@ export function computeIncomeScore(grossPay: number): number {
   return clamp((Math.sqrt(grossPay) / Math.sqrt(7000)) * 100, 0, 100);
 }
 
-export function computeEffectiveRespect(respect: number, socialReputation?: number): number {
-  if (typeof socialReputation !== 'number') return clamp(respect, 0, 100);
-  return clamp(respect * 0.65 + socialReputation * 0.35, 0, 100);
+export function computeEffectiveRespect(
+  respect: number,
+  socialReputation?: number,
+  mentalHealth?: number,
+  homeType?: Citizen['homeType'],
+  ownershipType?: Citizen['ownershipType']
+): number {
+  const base = typeof socialReputation === 'number' ? respect * 0.65 + socialReputation * 0.35 : respect;
+  const mentalMod = typeof mentalHealth === 'number' ? (mentalHealth - 50) * 0.08 : 0;
+  const houseMod = ownershipType === 'homeless' ? -6 : ownershipType === 'owned' && homeType === 'mansion' ? 5 : homeType === 'mansion' ? 3 : homeType === 'villa' ? 2 : homeType === 'apartment' ? 0.5 : 0;
+  return clamp(base + mentalMod + houseMod, 0, 100);
 }
 
 export function computeTargetStatusScore(
-  citizen: Pick<Citizen, 'savings' | 'roleLevel' | 'respect'> & { socialReputation?: number },
+  citizen: Pick<Citizen, 'savings' | 'roleLevel' | 'respect'> & {
+    socialReputation?: number;
+    healthProfile?: { mental: number };
+    homeType?: Citizen['homeType'];
+    ownershipType?: Citizen['ownershipType'];
+    lastRentalIncome?: number;
+  },
   grossPay: number
 ): number {
   const savingsScore = computeSavingsScore(citizen.savings);
-  const incomeScore = computeIncomeScore(grossPay);
+  const incomeScore = computeIncomeScore(grossPay + (citizen.lastRentalIncome ?? 0));
   const roleScore = ROLE_STATUS_SCORES[citizen.roleLevel];
-  const respectScore = computeEffectiveRespect(citizen.respect, citizen.socialReputation);
+  const respectScore = computeEffectiveRespect(
+    citizen.respect,
+    citizen.socialReputation,
+    citizen.healthProfile?.mental,
+    citizen.homeType,
+    citizen.ownershipType
+  );
 
   const weighted =
     savingsScore * 0.4 +

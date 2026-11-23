@@ -7,9 +7,12 @@ import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta, formatMonthYear, formatSimDate } from './formatters';
 import { processJobMarketMonthEnd } from './jobMarket';
+import { processHousingMonthEnd } from './housingMonthly';
+import type { HousingState } from './housingTypes';
 import { getMartFloorManager } from './martManager';
 import type { MartState } from './martTypes';
 import { processLivingCitizenMonthEnd } from './monthlyCitizenStep';
+import type { SharityState } from './sharityTypes';
 import type { Citizen, CityEvent, TierMovement } from './types';
 
 export function runCityMonthEnd(params: {
@@ -22,6 +25,8 @@ export function runCityMonthEnd(params: {
   clock: SimClock;
   events: CityEvent[];
   boardState: CompanyBoardState;
+  housing: HousingState;
+  sharity: SharityState;
 }): {
   citizens: Citizen[];
   vacancies: CompanyVacancy[];
@@ -32,7 +37,8 @@ export function runCityMonthEnd(params: {
   businessTaxCollected: number;
   movements: TierMovement[];
 } {
-  const { citizens, companies, treasury, mart, clock, events, boardState } = params;
+  const { citizens, companies, mart, clock, events, boardState, housing, sharity } = params;
+  let treasury = params.treasury;
   const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
   let vacancies = [...params.vacancies];
   let jobEvents = [...params.jobEvents];
@@ -41,12 +47,15 @@ export function runCityMonthEnd(params: {
   let taxCollected = 0;
   const movements: TierMovement[] = [];
 
-  const nextCitizens = citizens.map((c) => {
+  const paidCitizens = citizens.map((c) => {
     if (!c.alive) return c;
     const res = processLivingCitizenMonthEnd(c, payrollRes.citizenPayMap.get(c.id), clock, events, movements);
     taxCollected += res.taxPaid;
     return res.updated;
   });
+
+  treasury = processHousingMonthEnd({ citizens: paidCitizens, housing, sharity, treasury, clock, dateLabel, events });
+  const nextCitizens = paidCitizens;
 
   mart.monthlyRevenue = 0;
   mart.monthlyWholesaleSpend = 0;

@@ -47,6 +47,10 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   sharity_humiliation: 'Sharity Backlash',
   sharity_shade: 'Friend Shade',
   sharity_tribute: 'Memorial Tribute',
+  theft_guilt: 'Theft Guilt',
+  theft_victim: 'Stolen From',
+  breakdown: 'Mental Breakdown',
+  helped: 'Helped by Neighbor',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
@@ -57,6 +61,13 @@ export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
   tier_change: 'Status Tier',
   employee_investment: 'Staff Investment',
   board_vote: 'Board Vote',
+  job_choice: 'Career / Job',
+  help_choice: 'Seeking Help',
+  theft_choice: 'Desperate Theft',
+  budget_skip: 'Budget / Standard Skip',
+  risk_choice: 'Risk Choice',
+  housing_buy: 'Buy Property',
+  housing_move: 'Housing Move',
 };
 
 export const LIFE_LOG_LABELS: Record<LifeLogCategory, string> = {

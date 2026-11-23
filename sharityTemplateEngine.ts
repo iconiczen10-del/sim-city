@@ -31,14 +31,16 @@ export function chooseCitizenVoice(
   triggerKey: string
 ): { voice: SharityVoice; sentiment: SharitySentiment; reason: string } {
   const neg = NEG_TRIGGERS.has(triggerKey);
+  const em = c.emotions;
   if (neg) {
-    if (c.stress >= 72 && c.mood < 38) return { voice: 'angry', sentiment: 'negative', reason: 'High stress and low mood sharpened tone' };
+    if ((em?.anger?.value ?? 0) >= 35 || (c.stress >= 72 && c.mood < 38)) return { voice: 'angry', sentiment: 'negative', reason: (em?.anger?.value ?? 0) >= 35 ? 'Elevated anger sharpened tone' : 'High stress and low mood sharpened tone' };
     if (c.traits.greed >= 65 && c.traits.kindness < 45) return { voice: 'bitter', sentiment: 'negative', reason: 'High greed and low kindness leaned bitter' };
-    if (c.mood < 50 || c.stress >= 52) return { voice: 'anxious', sentiment: 'negative', reason: 'Elevated stress drove anxious framing' };
+    if ((em?.loneliness?.value ?? 0) >= 38 || c.mood < 50 || c.stress >= 52) return { voice: 'anxious', sentiment: 'negative', reason: (em?.loneliness?.value ?? 0) >= 38 ? 'Loneliness drove connection-seeking tone' : 'Elevated stress drove anxious framing' };
     if (c.traits.kindness >= 68) return { voice: 'kind', sentiment: 'negative', reason: 'High kindness softened reaction toward community' };
     if (c.traits.sociability >= 65 && simRand() < 0.35) return { voice: 'funny', sentiment: 'neutral', reason: 'Sociable personality used dry humor' };
     return { voice: 'bitter', sentiment: 'negative', reason: 'Negative trigger shaped skeptical tone' };
   }
+  if ((em?.gratitude?.value ?? 0) >= 32) return { voice: 'kind', sentiment: 'positive', reason: 'Strong gratitude colored supportive post' };
   if ((triggerKey === 'tier_up' || triggerKey === 'savings_flex' || triggerKey === 'luxury_std' || triggerKey === 'big_purchase' || triggerKey === 'promoted') && (c.traits.ambition >= 64 || c.traits.greed >= 60)) {
     return { voice: 'show_off', sentiment: 'positive', reason: 'High ambition/greed highlighted status win' };
   }

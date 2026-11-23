@@ -21,48 +21,19 @@ export type TierId = 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
 export type HomeType = 'shared_room' | 'small_flat' | 'apartment' | 'villa' | 'mansion';
 export type Gender = 'Female' | 'Male' | 'Non-Binary';
 export type SimSpeed = 0 | 1 | 2 | 5 | 10 | 20;
-export type NavTab = 'overview' | 'citizens' | 'companies' | 'jobs' | 'mart' | 'sharity' | 'events';
+export type NavTab = 'overview' | 'citizens' | 'companies' | 'jobs' | 'mart' | 'housing' | 'sharity' | 'events';
 export type CitizenSort = 'richest' | 'happiest' | 'status';
 export type DeathCause = 'starvation' | 'dehydration' | 'illness';
 
 export type EventCategory =
-  | 'money'
-  | 'mood'
-  | 'tier'
-  | 'system'
-  | 'stock-out'
-  | 'shortage'
-  | 'spoilage'
-  | 'delivery'
-  | 'hunger'
-  | 'thirst'
-  | 'illness'
-  | 'death'
-  | 'simgod'
-  | 'mood-change'
-  | 'late-delivery'
-  | 'rationing'
-  | 'contamination'
-  | 'price-shock'
-  | 'hired'
-  | 'fired'
-  | 'quit'
-  | 'promoted'
-  | 'layoff'
-  | 'pay-cut'
-  | 'late-pay'
-  | 'company-milestone'
-  | 'bankruptcy'
-  | 'board'
-  | 'contribution'
-  | 'investment'
-  | 'sharity'
-  | 'viral'
-  | 'cancelled'
-  | 'argument'
-  | 'tribute'
-  | 'city-wave'
-  | 'work-consequence';
+  | 'money' | 'mood' | 'tier' | 'system' | 'stock-out' | 'shortage' | 'spoilage' | 'delivery'
+  | 'hunger' | 'thirst' | 'illness' | 'death' | 'simgod' | 'mood-change' | 'late-delivery'
+  | 'rationing' | 'contamination' | 'price-shock' | 'hired' | 'fired' | 'quit' | 'promoted'
+  | 'layoff' | 'pay-cut' | 'late-pay' | 'company-milestone' | 'bankruptcy' | 'board'
+  | 'contribution' | 'investment' | 'sharity' | 'viral' | 'cancelled' | 'argument' | 'tribute'
+  | 'city-wave' | 'work-consequence' | 'breakdown' | 'theft-attempt' | 'theft-caught'
+  | 'need-critical' | 'emotion-spike' | 'eviction' | 'bought-house' | 'moved'
+  | 'homeless' | 'housing-search' | 'roommate-conflict' | 'sold-house' | 'rent-raise';
 
 export interface CitizenTraits {
   ambition: number;
@@ -71,6 +42,18 @@ export interface CitizenTraits {
   loyalty: number;
   sociability: number;
   discipline: number;
+  honesty: number;
+  courage: number;
+  patience: number;
+  curiosity: number;
+  pride: number;
+  thriftiness: number;
+  optimism: number;
+  resilience: number;
+  impulsiveness: number;
+  riskTolerance: number;
+  neatness: number;
+  survivalInstinct: number;
 }
 
 export interface CitizenSnapshot {
@@ -80,3 +63,26 @@ export interface CitizenSnapshot {
   mood: number;
   statusScore: number;
 }
+
+export interface CityEvent {
+  id: string;
+  totalDay: number;
+  dateLabel: string;
+  type: EventCategory;
+  citizenId?: string;
+  citizenName?: string;
+  companyId?: 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart';
+  title: string;
+  detail: string;
+}
+
+export interface TierMovement {
+  citizenId: string;
+  citizenName: string;
+  fromTier: TierId;
+  toTier: TierId;
+  direction: 'up' | 'down';
+  statusScore: number;
+  monthLabel: string;
+}
+

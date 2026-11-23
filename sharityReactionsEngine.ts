@@ -80,6 +80,10 @@ export function stepSharityReactions(params: {
         reason: dec.reason, factors: dec.factors,
       };
       reactList.push(reaction);
+      if (viewer.needs?.social) {
+        viewer.needs.social.value = Math.min(100, Math.round((viewer.needs.social.value + 4) * 10) / 10);
+        viewer.needs.social.lastRestoredDay = clock.totalDays;
+      }
       if (dec.stance === 'like') post.likes += 1;
       else post.dislikes += 1;
       post.heat = (post.heat ?? 0) + 1;

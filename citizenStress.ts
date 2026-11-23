@@ -59,6 +59,10 @@ export function buildStressFactors(citizen: Citizen): {
     factors.push({ label: 'Discipline Composure', value: r1(discBuffer) });
   }
 
+  if (citizen.needs?.energy?.value < 40) factors.push({ label: 'Fatigue / Low Energy', value: r1((40 - citizen.needs.energy.value) * 0.35) });
+  if (citizen.needs?.safety?.value < 45) factors.push({ label: 'Low Safety Worry', value: r1((45 - citizen.needs.safety.value) * 0.3) });
+  if (citizen.needs?.fun?.value < 32) factors.push({ label: 'Lack of Recreation', value: 4 });
+
   for (const sl of citizen.sharityStressLines ?? []) {
     if (Math.abs(sl.value) >= 0.2) factors.push({ label: sl.label, value: r1(sl.value) });
   }
@@ -79,7 +83,8 @@ export function stepDailyStress(
       .filter((l) => Math.abs(l.value) >= 0.25);
   }
   const { targetStress, factors } = buildStressFactors(citizen);
-  const driftRate = targetStress > citizen.stress ? 0.22 : 0.12;
+  const resRecover = 1 + (citizen.traits.resilience - 50) * 0.004;
+  const driftRate = targetStress > citizen.stress ? 0.22 / resRecover : 0.12 * resRecover;
   const nextStress = r1(clamp(citizen.stress + (targetStress - citizen.stress) * driftRate + immediateShock, 0, 100));
 
   const factorSum = factors.reduce((s, f) => s + f.value, 0);

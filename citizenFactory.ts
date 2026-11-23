@@ -1,7 +1,11 @@
 // citizenFactory.ts — Constructs individual calibrated citizens with starting inventory, memory, and stress
 
 import { buildMoodFactors } from './citizenBreakdowns';
+import { createSeedEmotions } from './citizenEmotions';
+import { createSeedHealthProfile } from './citizenHealthSystem';
+import { createSeedNeeds } from './citizenNeeds';
 import { buildStressFactors } from './citizenStress';
+import { evaluateSurvivalLadder } from './citizenSurvivalEngine';
 import { MART_BASE_PRICES, SAVINGS_MILESTONES } from './constants';
 import {
   calibrateInitialScore,
@@ -26,11 +30,12 @@ import type { Citizen } from './types';
 export function buildSeedCitizen(
   index: number,
   slot: SeedSlot,
-  nameEntry: { name: string; gender: Citizen['gender'] }
+  nameEntry: { name: string; gender: Citizen['gender'] },
+  existingTraitSigs?: Set<string>
 ): Citizen {
   const id = `cit_${index + 1}`;
   const cfg = ROLE_CONFIGS[slot.role];
-  const traits = createSeedTraits();
+  const traits = createSeedTraits(existingTraitSigs);
   const age = randInt(cfg.ageRange[0], cfg.ageRange[1]);
   const experience = Math.min(Math.max(0, age - 18), randInt(cfg.expRange[0], cfg.expRange[1]));
   const skill = randInt(cfg.skillRange[0], cfg.skillRange[1]);
@@ -63,9 +68,9 @@ export function buildSeedCitizen(
     rentArrears: 0,
     mood: 60,
     stress: 18,
-    hunger: randInt(82, 98),
-    thirst: randInt(85, 98),
-    health: randInt(88, 100),
+    hunger: randInt(86, 98),
+    thirst: randInt(88, 98),
+    health: randInt(68, 95),
     alive: true,
     roleLevel: slot.role,
     respect,
@@ -119,7 +124,17 @@ export function buildSeedCitizen(
     sharityMoodLines: [],
     sharityStressLines: [],
     sharityWorkNotes: [],
+    needs: createSeedNeeds(homeType, traits, 92, 94),
+    healthProfile: createSeedHealthProfile(age, traits, 82),
+    emotions: createSeedEmotions(traits),
+    emotionHistory: [],
+    survivalPriority: [],
+    survivalState: 'Stable',
   };
+  citizen.needs.hunger.value = citizen.hunger;
+  citizen.needs.thirst.value = citizen.thirst;
+  citizen.healthProfile.physical = citizen.health;
+  evaluateSurvivalLadder(citizen);
 
   const stressInfo = buildStressFactors(citizen);
   citizen.stress = Math.round(stressInfo.targetStress * 10) / 10;

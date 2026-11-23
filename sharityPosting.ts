@@ -121,6 +121,10 @@ export function runDailySharityPosts(params: {
       likes: 0, dislikes: 0, replies: 0, reposts: 0, score: followers * 3 + chosen.cand.urgency * 2,
     };
     recordPost(sharity, post, clock, dateLabel);
+    if (c.needs?.social) {
+      c.needs.social.value = Math.min(100, Math.round((c.needs.social.value + 7) * 10) / 10);
+      c.needs.social.lastRestoredDay = clock.totalDays;
+    }
     if (chosen.cand.urgency >= 78) {
       events.push(makeCityEvent(clock, `sharity_post_${c.id}`, { type: 'sharity', citizenId: c.id, citizenName: c.name, title: `Notable Post by ${c.name}`, detail: `${prof.handle}: "${rendered.text}"` }));
     }

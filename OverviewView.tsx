@@ -25,6 +25,7 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
   const hungryCount = alive.filter((c) => c.hunger < 35).length;
   const thirstyCount = alive.filter((c) => c.thirst < 35).length;
   const sickCount = alive.filter((c) => c.health < 65).length;
+  const homeless = alive.filter((c) => !c.homeId);
   const activePayroll = alive.reduce((s, c) => s + c.lastGrossPay, 0);
 
   const kpis = [
@@ -33,18 +34,19 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
     { label: 'Avg Mood / Stress', value: `${avgMood} / ${avgStress}`, sub: `${hungryCount}H · ${thirstyCount}T · ${sickCount}S states` },
     { label: 'City Treasury', value: formatDelta(city.treasury), sub: `Inc +${formatDelta(city.lastMonthTaxCollected)} · Biz +${formatDelta(city.lastBusinessTaxCollected)}` },
     { label: 'Open Job Seats', value: String(city.vacancies.length), sub: `${city.jobEvents.length} recent career shifts` },
+    { label: 'Homelessness Index', value: `${homeless.length} / ${pop}`, sub: homeless.length > 0 ? `Mood -${(homeless.length * 0.5).toFixed(1)} · ${city.housing.evictionsThisMonth} evictions` : 'All citizens housed' },
   ];
 
   const latestEvents = city.events.slice(0, 8);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
             <div className="text-xs text-slate-400 mb-2">{kpi.label}</div>
-            <div className="font-mono text-2xl font-semibold text-slate-50 tracking-tight">{kpi.value}</div>
-            <div className="text-xs text-slate-500 mt-1.5 font-mono">{kpi.sub}</div>
+            <div className={`font-mono tabular-nums text-2xl font-semibold tracking-tight ${kpi.label === 'Homelessness Index' && homeless.length > 0 ? 'text-rose-300' : 'text-slate-50'}`}>{kpi.value}</div>
+            <div className="text-xs text-slate-500 mt-1.5 font-mono tabular-nums">{kpi.sub}</div>
           </div>
         ))}
       </div>

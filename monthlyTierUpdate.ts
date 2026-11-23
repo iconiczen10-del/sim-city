@@ -46,7 +46,11 @@ export function applyMonthlyStatusAndTier(
     citizen.socialReputation = Math.round(Math.max(0, Math.min(100, rep + (50 - rep) * 0.08)) * 10) / 10;
   }
   const targetScore = computeTargetStatusScore(
-    { savings: citizen.savings, roleLevel: citizen.roleLevel, respect, socialReputation: citizen.socialReputation },
+    {
+      savings: citizen.savings, roleLevel: citizen.roleLevel, respect,
+      socialReputation: citizen.socialReputation, healthProfile: citizen.healthProfile,
+      homeType: citizen.homeType, ownershipType: citizen.ownershipType, lastRentalIncome: citizen.lastRentalIncome,
+    },
     grossPay
   );
   const statusScore = stepMonthlyStatusScore(citizen.statusScore, targetScore);

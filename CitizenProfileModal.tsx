@@ -1,12 +1,20 @@
-// CitizenProfileModal.tsx — Citizen profile with career details, Inventory, Why?, Memory, and Life Log tabs
+// CitizenProfileModal.tsx — Citizen profile with Traits, Needs, Health, Emotions, Decisions, Inventory, Why?, Memory, and Life Log
 
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { CitizenDecisionsTab } from './CitizenDecisionsTab';
+import { CitizenEmotionsTab } from './CitizenEmotionsTab';
 import { CitizenFinancials } from './CitizenFinancials';
+import { CitizenHealthTab } from './CitizenHealthTab';
+import { CitizenHousingTab } from './CitizenHousingTab';
 import { CitizenInventoryPanel } from './CitizenInventoryPanel';
 import { CitizenLifeLogTab } from './CitizenLifeLogTab';
 import { CitizenMemoryTab } from './CitizenMemoryTab';
+import { CitizenNeedsTab } from './CitizenNeedsTab';
+import { CitizenOverviewHousing } from './CitizenOverviewHousing';
+import { CitizenOverviewStats } from './CitizenOverviewStats';
 import { CitizenSharityCard } from './CitizenSharityCard';
+import { CitizenTraitsTab } from './CitizenTraitsTab';
 import { CitizenWhyTab } from './CitizenWhyTab';
 import { CitizenWorkSection } from './CitizenWorkSection';
 import { DEATH_CAUSE_LABELS, EDUCATION_LABELS, formatDelta, TIER_STYLES } from './formatters';
@@ -17,23 +25,24 @@ interface CitizenProfileModalProps {
   citizen: Citizen;
   city: CityState;
   onUpdateCity: (next: CityState) => void;
+  onSelectCitizen?: (id: string) => void;
   onOpenSharityProfile: (profileId: string) => void;
   onOpenSharityPost?: (postId: string) => void;
+  initialTab?: ProfileTab;
   onClose: () => void;
 }
 
-type ProfileTab = 'overview' | 'inventory' | 'why' | 'memory' | 'lifelog';
+type ProfileTab = 'overview' | 'housing' | 'traits' | 'needs' | 'health' | 'emotions' | 'decisions' | 'inventory' | 'why' | 'memory' | 'lifelog';
 
 const TABS: { id: ProfileTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'why', label: 'Why?' },
-  { id: 'memory', label: 'Memory' },
-  { id: 'lifelog', label: 'Life Log' },
+  { id: 'overview', label: 'Overview' }, { id: 'housing', label: 'Housing' }, { id: 'traits', label: 'Traits' },
+  { id: 'needs', label: 'Needs' }, { id: 'health', label: 'Health' }, { id: 'emotions', label: 'Emotions' },
+  { id: 'decisions', label: 'Decisions' }, { id: 'inventory', label: 'Inventory' }, { id: 'why', label: 'Why?' },
+  { id: 'memory', label: 'Memory' }, { id: 'lifelog', label: 'Life Log' },
 ];
 
-export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharityProfile, onOpenSharityPost, onClose }: CitizenProfileModalProps) {
-  const [tab, setTab] = useState<ProfileTab>('overview');
+export function CitizenProfileModal({ citizen, city, onUpdateCity, onSelectCitizen, onOpenSharityProfile, onOpenSharityPost, initialTab, onClose }: CitizenProfileModalProps) {
+  const [tab, setTab] = useState<ProfileTab>(initialTab ?? 'overview');
   const [highlightedDecisionId, setHighlightedDecisionId] = useState<string | null>(null);
 
   const tierStyle = TIER_STYLES[citizen.tier];
@@ -47,11 +56,11 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
 
   function jumpToDecision(decId: string) {
     setHighlightedDecisionId(decId);
-    setTab('why');
+    setTab('decisions');
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-6" role="dialog" aria-modal="true" aria-label={`${citizen.name} profile`} onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-4 md:p-6" role="dialog" aria-modal="true" aria-label={`${citizen.name} profile`} onClick={onClose}>
       <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-[#111827] border border-slate-700/80 rounded-lg p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-800">
           <div>
@@ -75,30 +84,19 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
           </button>
         </div>
 
-        <div className="grid grid-cols-5 gap-3">
-          {[
-            { label: 'Savings', value: formatDelta(citizen.savings) },
-            { label: 'Mood', value: `${Math.round(citizen.mood)} / 100` },
-            { label: 'Stress', value: `${Math.round(citizen.stress)} / 100` },
-            { label: 'Status Score', value: citizen.statusScore.toFixed(1) },
-            { label: 'Respect', value: `${citizen.respect.toFixed(1)} / 100` },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-[#0c1220] border border-slate-800/80 rounded-md px-3 py-2.5">
-              <div className="text-[11px] text-slate-400">{stat.label}</div>
-              <div className="font-mono text-base font-semibold text-slate-100 mt-0.5">{stat.value}</div>
-            </div>
-          ))}
-        </div>
+        <CitizenOverviewStats citizen={citizen} />
 
-        <div className="flex items-center gap-1 p-1 bg-[#090d16] border border-slate-800 rounded-md w-fit">
+        <div className="flex flex-wrap items-center gap-1 p-1 bg-[#090d16] border border-slate-800 rounded-md w-fit">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`px-3 py-1.5 text-xs rounded transition-colors cursor-pointer ${tab === t.id ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'}`}
+              className={`px-2.5 py-1.5 text-xs rounded transition-colors cursor-pointer ${tab === t.id ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'}`}
             >
-              {t.label}{t.id === 'memory' && citizen.memories.length > 0 ? ` (${citizen.memories.length})` : ''}
+              {t.label}
+              {t.id === 'decisions' && citizen.decisions.length > 0 ? ` (${citizen.decisions.length})` : ''}
+              {t.id === 'memory' && citizen.memories.length > 0 ? ` (${citizen.memories.length})` : ''}
             </button>
           ))}
         </div>
@@ -115,6 +113,7 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
                 )}
               </div>
             )}
+            <CitizenOverviewHousing citizen={citizen} city={city} onSelectCitizen={onSelectCitizen} />
             <CitizenSharityCard citizen={citizen} city={city} onOpenSharityProfile={onOpenSharityProfile} />
             <CitizenWorkSection citizen={citizen} city={city} />
             <CitizenInventoryPanel citizen={citizen} />
@@ -127,8 +126,14 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onOpenSharity
           </div>
         )}
 
+        {tab === 'housing' && <CitizenHousingTab citizen={citizen} city={city} onSelectCitizen={onSelectCitizen} />}
+        {tab === 'traits' && <CitizenTraitsTab citizen={citizen} />}
+        {tab === 'needs' && <CitizenNeedsTab citizen={citizen} currentDay={city.totalDays} />}
+        {tab === 'health' && <CitizenHealthTab citizen={citizen} currentDay={city.totalDays} />}
+        {tab === 'emotions' && <CitizenEmotionsTab citizen={citizen} />}
+        {tab === 'decisions' && <CitizenDecisionsTab citizen={citizen} highlightedDecisionId={highlightedDecisionId} onHighlightDecision={setHighlightedDecisionId} />}
         {tab === 'inventory' && <CitizenInventoryPanel citizen={citizen} city={city} onUpdateCity={onUpdateCity} showFullDetails />}
-        {tab === 'why' && <CitizenWhyTab citizen={citizen} highlightedDecisionId={highlightedDecisionId} onHighlightDecision={setHighlightedDecisionId} onOpenSharityPost={onOpenSharityPost} />}
+        {tab === 'why' && <CitizenWhyTab citizen={citizen} highlightedDecisionId={highlightedDecisionId} onHighlightDecision={(id) => (id ? jumpToDecision(id) : setHighlightedDecisionId(null))} onOpenSharityPost={onOpenSharityPost} />}
         {tab === 'memory' && <CitizenMemoryTab citizen={citizen} currentTotalDay={city.totalDays} onJumpToDecision={jumpToDecision} />}
         {tab === 'lifelog' && <CitizenLifeLogTab citizen={citizen} />}
       </div>

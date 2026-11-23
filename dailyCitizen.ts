@@ -1,17 +1,23 @@
 // dailyCitizen.ts — Daily survival, memory/stress updates, shopping decisions, health, and death
 
 import { consumeFoodAndWater, wearClothesAndHousehold } from './citizenConsumption';
+import { stepCitizenDecisionOutcomes } from './citizenDecisionOutcomes';
 import { recordStandardOrTierDecision } from './citizenDecisions';
-import { applyDailyHealthAndAlerts, finalizeCitizenDeath } from './citizenHealthEvents';
+import { finalizeCitizenDeath } from './citizenHealthEvents';
+import { stepCitizenHealthDaily } from './citizenHealthSystem';
 import { appendChangeExplanation } from './citizenLedger';
 import { decayCitizenMemories, getMemorySignals } from './citizenMemory';
+import { stepCitizenNeedsDaily } from './citizenNeeds';
 import { stepDailyStress } from './citizenStress';
+import { applySurvivalInstinctBehavior } from './citizenSurvivalEngine';
 import { recordShoppingDecision } from './citizenSurvivalDecisions';
+import { maybeAttemptDesperateTheft } from './citizenTheft';
 import type { SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta } from './formatters';
 import { findStockItem } from './martSetup';
 import { purchaseFromMart } from './martShopping';
 import type { MartState } from './martTypes';
+import type { SharityState } from './sharityTypes';
 import { chooseLivingStandards } from './standards';
 import type { Citizen, CityEvent } from './types';
 
@@ -20,7 +26,9 @@ export function processCitizenDailySurvival(
   mart: MartState,
   clock: SimClock,
   dateLabel: string,
-  events: CityEvent[]
+  events: CityEvent[],
+  allCitizens: Citizen[] = [],
+  sharity?: SharityState
 ): { died: boolean; estateToTreasury: number; shortageToday: boolean } {
   citizen.stockoutMemoryDays = Math.max(0, citizen.stockoutMemoryDays - 1);
   decayCitizenMemories(citizen);
@@ -75,7 +83,13 @@ export function processCitizenDailySurvival(
   const stressStep = stepDailyStress(citizen);
   citizen.stress = stressStep.stress;
   citizen.stressBreakdown = stressStep.breakdown;
-  applyDailyHealthAndAlerts(citizen, foodStd, waterStd, clock, dateLabel, events);
+  stepCitizenNeedsDaily(citizen, mart, clock, dateLabel, events);
+  stepCitizenHealthDaily(citizen, foodStd, waterStd, clock, dateLabel, events);
+  applySurvivalInstinctBehavior(citizen, allCitizens, clock, dateLabel);
+  if (sharity && allCitizens.length > 0) {
+    maybeAttemptDesperateTheft({ thief: citizen, allCitizens, sharity, clock, dateLabel, events });
+  }
+  stepCitizenDecisionOutcomes(citizen, clock);
 
   if (citizen.savings <= 50 && citizen.standards.food > 1 && citizen.giftShieldDays === 0) {
     const prevFood = citizen.standards.food;

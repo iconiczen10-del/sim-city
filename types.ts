@@ -3,14 +3,16 @@
 import type { CompanyBoardState } from './boardTypes';
 import type { ChatGroupState } from './chatGroups';
 import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, LifeLogEntry, SharityFactorLine, SignedFactor } from './citizenInspectorTypes';
-import type { CitizenSnapshot, CitizenTraits, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId } from './cityBaseTypes';
+import type { CitizenEmotion, CitizenNeed, EmotionId, EmotionSnapshot, HealthProfile, NeedId, SurvivalPriorityEntry, SurvivalState } from './citizenRealTypes';
+import type { CitizenSnapshot, CitizenTraits, CityEvent, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId, TierMovement } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
+import type { CitizenHousingEntry, CitizenHousingPreferences, EvictionRecord, HousingSatisfactionBreakdown, HousingState, OwnershipType } from './housingTypes';
 import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
 import type { SharityState } from './sharityTypes';
 
 export type {
-  CitizenSnapshot, CitizenSort, CitizenTraits, DeathCause, EducationLevel,
-  EventCategory, Gender, HomeType, NavTab, RoleLevel, SimSpeed, TierId,
+  CitizenSnapshot, CitizenSort, CitizenTraits, CityEvent, DeathCause, EducationLevel,
+  EventCategory, Gender, HomeType, NavTab, RoleLevel, SimSpeed, TierId, TierMovement,
 } from './cityBaseTypes';
 
 export interface Citizen {
@@ -77,28 +79,35 @@ export interface Citizen {
   cancelledUntilDay?: number;
   promotionBlockedUntilDay?: number;
   sharityWorkNotes: { id: string; dateLabel: string; summary: string; postId: string }[];
-}
-
-export interface CityEvent {
-  id: string;
-  totalDay: number;
-  dateLabel: string;
-  type: EventCategory;
-  citizenId?: string;
-  citizenName?: string;
-  companyId?: CompanyId;
-  title: string;
-  detail: string;
-}
-
-export interface TierMovement {
-  citizenId: string;
-  citizenName: string;
-  fromTier: TierId;
-  toTier: TierId;
-  direction: 'up' | 'down';
-  statusScore: number;
-  monthLabel: string;
+  needs: Record<NeedId, CitizenNeed>;
+  healthProfile: HealthProfile;
+  emotions: Record<EmotionId, CitizenEmotion>;
+  emotionHistory: EmotionSnapshot[];
+  survivalPriority: SurvivalPriorityEntry[];
+  survivalState: SurvivalState;
+  bathWaterDebt?: number;
+  homeId?: string | null;
+  landlordId?: string | null;
+  ownershipType?: OwnershipType;
+  roommateIds?: string[];
+  ownedHouseIds?: string[];
+  housingHistory?: CitizenHousingEntry[];
+  evictionRecords?: EvictionRecord[];
+  rentArrearsMonths?: number;
+  homelessDays?: number;
+  seekingHousing?: boolean;
+  sleepEnergyMult?: number;
+  hygieneDrainMult?: number;
+  housingMoodOffset?: number;
+  lastRentalIncome?: number;
+  housingPrefs?: CitizenHousingPreferences;
+  housingSatisfaction?: HousingSatisfactionBreakdown;
+  lastHousingEvalDay?: number;
+  housingSkillMult?: number;
+  friendRentDiscount?: number;
+  housingEvalUrgent?: boolean;
+  lastEvalGrossPay?: number;
+  lastEvalTier?: TierId;
 }
 
 export interface CityState {
@@ -124,4 +133,5 @@ export interface CityState {
   boardState: CompanyBoardState;
   sharity: SharityState;
   chatGroups: { vijindustries: ChatGroupState };
+  housing: HousingState;
 }

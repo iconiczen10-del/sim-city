@@ -61,9 +61,20 @@ export function collectCitizenExtraTriggers(params: {
   if (c.decisions.some((d) => totalDays - d.totalDay <= 1 && d.kind === 'downgrade_upgrade' && /upgraded/i.test(d.chosenOption))) {
     push('housing', 'std_upgrade', 'Living standard upgraded', 48);
   }
+  if (c.housingHistory?.some((h) => totalDays - h.startDay <= 1 && /upgrad/i.test(h.reason ?? ''))) {
+    push('status_flex', 'upgrade_flex', 'Moved to upgraded home', 56);
+  }
+  if (c.housingHistory?.some((h) => totalDays - h.startDay <= 1 && /downsiz|cheaper|downgrad/i.test(h.reason ?? ''))) {
+    push('loss_hardship', 'downgrade_shame', 'Downgraded housing', 54);
+  }
+  if (c.housingHistory?.some((h) => totalDays - h.startDay <= 1 && /Invited in by friend/i.test(h.reason ?? ''))) {
+    push('celebrations', 'friend_shelter_help', 'Taken in by friend', 60);
+  }
 
   if (c.homeType === 'shared_room' && c.mood < 52 && simRand() < 0.1) push('housing', 'cramped_living', 'Cramped shared room', 34);
   else if ((c.homeType === 'villa' || c.homeType === 'mansion') && c.mood >= 65 && simRand() < 0.08) push('housing', 'comfy_living', 'Comfortable living setup', 32);
+  if (c.landlordId && c.mood < 56 && simRand() < 0.14) push('housing', 'landlord_shade', 'Frustrated with landlord rent', 46);
+  if (c.homeId === null && simRand() < 0.3) push('loss_hardship', 'homeless_post', 'Sleeping without shelter', 68, true);
   if (c.standards.food >= 4 && simRand() < 0.08) push('status_flex', 'luxury_std', 'Luxury living standards', 38);
   if (c.recentPurchases.length > 0 && simRand() < 0.08) push('status_flex', 'big_purchase', 'Fresh retail purchase', 34);
   if (c.savings >= 5000 && c.mood >= 60 && simRand() < 0.06) push('celebrations', 'goal_celebrate', 'Savings target hit', 40);

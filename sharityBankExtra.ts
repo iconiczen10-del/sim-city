@@ -134,4 +134,10 @@ export const TRIGGER_HASHTAGS: Record<string, string[]> = {
   crime_theft: ['#NeighborhoodWatch', '#Vij'],
   promo_celebrate: ['#Promoted', '#Celebrate'],
   survive_month: ['#MonthCleared', '#VijLife'],
+  evicted_vent: ['#Evicted', '#HousingCrisis'],
+  bought_home_flex: ['#Homeowner', '#CashBuy'],
+  second_property_flex: ['#Landlord', '#Property'],
+  homeless_post: ['#NoShelter', '#Housing'],
+  city_homeless_wave: ['#Homelessness', '#VijHousing'],
+  landlord_shade: ['#RentTooHigh', '#VijHousing'],
 };

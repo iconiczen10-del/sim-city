@@ -7,6 +7,7 @@ import { buildSeedCitizen } from './citizenFactory';
 import { assignInitialCitizensToCompanies, createInitialCompanies } from './companySetup';
 import { APP_VERSION, INITIAL_TREASURY, MART_INITIAL_CASH } from './constants';
 import { formatSimDate } from './formatters';
+import { createInitialHousingState } from './housingSeed';
 import { createInitialMart } from './martSetup';
 import { CITIZEN_NAME_POOL, shuffleNames } from './names';
 import { createRandomSeed, getSimRngState, normalizeSeed, syncSimRng } from './rng';
@@ -21,10 +22,12 @@ export function createInitialCityState(providedSeed?: number): CityState {
   syncSimRng(seed);
 
   const names = shuffleNames(CITIZEN_NAME_POOL);
-  const citizens = SEED_ROSTER.map((slot, idx) => buildSeedCitizen(idx, slot, names[idx]));
+  const traitSigs = new Set<string>();
+  const citizens = SEED_ROSTER.map((slot, idx) => buildSeedCitizen(idx, slot, names[idx], traitSigs));
   const mart = createInitialMart(citizens);
   const companies = createInitialCompanies();
   assignInitialCitizensToCompanies(citizens, companies, mart);
+  const housing = createInitialHousingState(citizens);
   const boardState = createInitialBoardState(citizens);
   const sharity = createInitialSharityState(citizens, companies);
   const chatGroup = createEmptyChatGroupState();
@@ -62,6 +65,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     boardState,
     sharity,
     chatGroups: { vijindustries: chatGroup },
+    housing,
     events: [
       {
         id: 'evt_init_1',

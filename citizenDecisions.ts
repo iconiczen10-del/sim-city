@@ -17,9 +17,11 @@ export function pushDecision(
 ): DecisionRecord {
   const full: DecisionRecord = {
     ...record,
+    baselineMood: record.baselineMood ?? citizen.mood,
+    baselineSavings: record.baselineSavings ?? citizen.savings,
     id: `dec_${record.totalDay}_${citizen.id}_${record.kind}_${simIdSuffix()}`,
   };
-  citizen.decisions = [full, ...citizen.decisions].slice(0, 70);
+  citizen.decisions = [full, ...citizen.decisions].slice(0, 60);
   linkMemoriesToDecision(citizen, full.linkedMemoryIds, full.id);
   return full;
 }
@@ -54,7 +56,7 @@ export function recordStandardOrTierDecision(params: {
   const factors: SignedFactor[] = [
     { label: 'Budget & Savings', value: Math.round(budgetVal) },
     { label: 'Active Memories & Shield', value: Math.round(memVal) },
-    { label: 'Traits & Stress', value: Math.round(traitVal) },
+    { label: 'Traits & Stress', value: Math.round(traitVal - ((citizen.housingSatisfaction?.total ?? 50) < 30 ? 6 : 0)) },
     { label: category === 'status' ? 'Score Trajectory' : 'Need & Price Impact', value: Math.round(urgencyOrStatusVal) },
   ];
   const score = sumDecisionFactors(factors);

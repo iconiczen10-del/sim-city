@@ -1,5 +1,5 @@
 // Sidebar.tsx — Responsive navigation and simulation utilities
-import { AtSign, Briefcase, Building2, Download, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
+import { AtSign, Briefcase, Building2, Download, Home, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
 import { useRef } from 'react';
 import type { NavTab } from './types';
 
@@ -10,6 +10,7 @@ interface SidebarProps {
   vacancyCount: number;
   eventCount: number;
   martLowStockCount: number;
+  homelessCount: number;
   boardUnreadCount: number;
   sharityPostCount: number;
   sharityUnreadCount: number;
@@ -18,11 +19,12 @@ interface SidebarProps {
   onRequestNewCity: () => void;
 }
 
-export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, eventCount, martLowStockCount, boardUnreadCount, sharityPostCount, sharityUnreadCount, onExportJson, onImportJson, onRequestNewCity }: SidebarProps) {
+export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, eventCount, martLowStockCount, homelessCount, boardUnreadCount, sharityPostCount, sharityUnreadCount, onExportJson, onImportJson, onRequestNewCity }: SidebarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const navItems: { id: NavTab; label: string; count?: number; icon: typeof LayoutDashboard }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'citizens', label: 'Citizens', count: citizenCount, icon: Users },
+    { id: 'housing', label: 'Housing', count: homelessCount || undefined, icon: Home },
     { id: 'companies', label: 'Companies', count: 4, icon: Building2 },
     { id: 'jobs', label: 'Job Market', count: vacancyCount || undefined, icon: Briefcase },
     { id: 'mart', label: 'Vij Mart', count: martLowStockCount || undefined, icon: Store },
@@ -47,7 +49,7 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
             const active = activeTab === item.id;
             return <button key={item.id} type="button" onClick={() => onSelectTab(item.id)} aria-current={active ? 'page' : undefined} className={`flex w-full items-center justify-between rounded-md border px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'border-slate-700/80 bg-slate-800/90 text-slate-50' : 'border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}>
               <span className="flex items-center gap-2.5"><Icon className="size-4 shrink-0" aria-hidden="true" /><span>{item.label}</span></span>
-              <span className="flex items-center gap-2 font-mono text-xs tabular-nums">{showUnread(item.id) && <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-slate-950">{unreadCount(item.id)} new</span>}{typeof item.count === 'number' && <span className={item.id === 'mart' || item.id === 'jobs' ? 'text-amber-300' : 'text-slate-400'}>{item.count}</span>}</span>
+              <span className="flex items-center gap-2 font-mono text-xs tabular-nums">{showUnread(item.id) && <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-slate-950">{unreadCount(item.id)} new</span>}{typeof item.count === 'number' && <span className={item.id === 'mart' || item.id === 'jobs' || item.id === 'housing' ? 'text-amber-300' : 'text-slate-400'}>{item.count}</span>}</span>
             </button>;
           })}
         </nav>
@@ -57,7 +59,7 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
       </aside>
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImportJson(file); event.target.value = ''; }} />
       <nav className="fixed inset-x-0 bottom-0 z-40 flex flex-col border-t border-slate-800/90 bg-[#0c111d]/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(0,0,0,0.25)] backdrop-blur sm:hidden" aria-label="Mobile navigation">
-        <div className="grid grid-cols-7 px-1 pt-1.5">
+        <div className="grid grid-cols-8 px-1 pt-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;

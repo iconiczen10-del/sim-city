@@ -57,14 +57,21 @@ export function getCompanyHealthMultiplier(company: Company): number {
   return clamp(0.92 + (company.reputation / 100) * 0.08, 0.9, 1.0);
 }
 
-export function computeCitizenPerformance(citizen: Citizen): number {
+export function computeCitizenPerformance(citizen: Citizen, totalDays = 0): number {
   if (!citizen.alive || citizen.roleLevel === 'Unemployed') return 0;
+  if (citizen.healthProfile?.breakdownUntilDay && totalDays > 0 && citizen.healthProfile.breakdownUntilDay >= totalDays) {
+    return 5;
+  }
   const skillPart = citizen.skill * 0.42;
   const discPart = citizen.traits.discipline * 0.34;
   const stressPenalty = citizen.stress * 0.2;
+  const energyVal = citizen.needs?.energy?.value ?? 80;
+  const energyPenalty = energyVal < 40 ? (40 - energyVal) * 0.35 : 0;
   const bossBonus = (citizen.bossRelationship / 100) * 14;
   const moodBonus = ((citizen.mood - 50) / 50) * 8;
-  return Math.round(clamp(28 + skillPart + discPart - stressPenalty + bossBonus + moodBonus, 5, 99));
+  const hSat = citizen.housingSatisfaction?.total ?? 50;
+  const housingPerf = hSat > 75 ? 4 : hSat < 30 ? -6 : 0;
+  return Math.round(clamp(28 + skillPart + discPart - stressPenalty - energyPenalty + bossBonus + moodBonus + housingPerf, 5, 99));
 }
 
 export function syncMartPersonalityFromCeo(mart: MartState, citizens: Citizen[]): void {

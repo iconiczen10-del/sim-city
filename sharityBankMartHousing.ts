@@ -66,4 +66,63 @@ export const MART_HOUSING_BANK: Record<string, VoiceTemplates> = {
     hopeful: ['Finally feeling strength come back after being sick all week.', 'On the mend today. Never taking basic health for granted again.', 'Rough patch behind me — recovering steadily now.'],
     default: ['Under the weather today and resting up at home.', 'Taking it easy while health recovers.', 'Rough week physically, focused on getting back on my feet.'],
   },
+  evicted_vent: {
+    angry: ['Put out on the street with half my things gone. Unforgiving system in this city.', 'Evicted today after trying everything to catch up on arrears.'],
+    anxious: ['Lost the lease and packing whatever survived the eviction. Starting the housing search tonight.', 'Locked out of my own home today. Need a safe room urgently.'],
+    default: ['Evicted after falling behind on rent. Looking for any open room in Vij.', 'Lost my place today — searching for affordable housing.'],
+  },
+  bought_home_flex: {
+    show_off: ['Paid full cash for my own place today. Zero rent from here on out.', 'Keys in hand, deed signed, zero loans. Feels good owning property in Vij.'],
+    hopeful: ['Bought my first home outright today after months of saving!', 'Finally own my roof in Vij. Worth every sacrifice.'],
+    default: ['Purchased a home outright today — no more monthly rent.', 'Signed the deed on a place of my own in Vij today.'],
+  },
+  second_property_flex: {
+    show_off: ['Picked up a second property today as a rental investment. Building real wealth.', 'Expanding the portfolio — another house under ownership and ready for tenants.'],
+    default: ['Bought an investment property today and listed it for rent.', 'Added a second house to manage for monthly rental income.'],
+  },
+  homeless_post: {
+    anxious: ['Another night without a roof. Exhausted and just looking for an open bed.', 'No home, dropping energy, and trying to stay safe tonight.'],
+    default: ['Still homeless in Vij while searching for an affordable vacancy.', 'Without shelter right now — hoping a room opens soon.'],
+  },
+  landlord_shade: {
+    bitter: ['Private landlords keep pushing rent higher while roofs leak. Tired of paying premiums.', 'Paying steep rent to a citizen landlord who watches every coin.'],
+    default: ['Wishing private rental rates across Vij were fairer.', 'Rent charged by private owners is squeezing monthly paychecks.'],
+  },
+  city_homeless_wave: {
+    angry: ['Too many neighbors sleeping without shelter across Vij right now. Something has to change.', 'Homelessness is rising fast across the districts and everyone feels the tension.'],
+    default: ['Seeing more homeless residents on the streets this week. Tough stretch for Vij.', 'City homelessness is climbing — hoping open rooms get filled fast.'],
+  },
+  moved_in: {
+    hopeful: ['Unpacking in a new place today. Fresh start across town.', 'Settled into a new home today — grateful for the roof.'],
+    default: ['Moved into a new place today.', 'Finished moving across Vij today.'],
+  },
+  roommate_friction: {
+    bitter: ['Living with a difficult roommate makes zero space feel even smaller.', 'Noise and tension at home all week. Ready for my own flat.'],
+    default: ['Rough patch sharing space with roommates lately.', 'Trying to keep the peace in shared housing this week.'],
+  },
+  rent_rise_complaint: {
+    angry: ['Lease renewal came with another steep rent hike. Already scanning listings across town.', 'Rent jumped overnight with zero upgrades to the roof or plumbing.'],
+    bitter: ['Every pay raise in Vij disappears straight into a higher lease rate.', 'Landlord hiked the rent again — time to look at cheaper districts.'],
+    default: ['My lease renewed at a higher monthly rent today.', 'Looking at other apartments after a sharp rent increase this week.'],
+  },
+  sold_home_crisis: {
+    anxious: ['Had to sell my house back to the city today to keep cash reserves alive.', 'Painful day signing away the deed, but keeping liquidity came first.'],
+    bitter: ['Months of saving into property, sold back at 85% when bills piled up.', 'Tough call selling my place back to the city to survive a cash crunch.'],
+    default: ['Sold my property back to the government today to rebuild savings.', 'Let go of home ownership today to cover expenses.'],
+  },
+  upgrade_flex: {
+    show_off: ['Upgraded to a bigger place in a better district today. Hard work pays off.', 'Moving up in Vij — more space, quieter block, much better view.'],
+    hopeful: ['Moved into a much nicer place today after saving patiently for months.', 'Finally upgraded our living space — feels great settling in.'],
+    default: ['Upgraded to a larger residence in Vij today.', 'Moved into a better home after steady savings growth.'],
+  },
+  downgrade_shame: {
+    bitter: ['Swallowed my pride and downsized to a cheaper place before rent broke me.', 'Had to trade down on housing to protect food and reserves.'],
+    humble: ['Downsized to a smaller place today to keep monthly bills manageable.', 'Stepping down to cheaper rent for a while — survival comes first.'],
+    default: ['Moved into a smaller, more affordable residence today.', 'Downgraded housing this month to trim fixed costs.'],
+  },
+  friend_shelter_help: {
+    kind: ['A real friend opened their door when I had nowhere left to sleep. Forever grateful.', 'Kindness still lives in Vij — a close friend invited me in out of the cold.'],
+    hopeful: ['Got a roof again thanks to a good friend who made room for me.', 'Moving in with a trusted friend until I get back on my feet.'],
+    default: ['A friend offered me a room today when I needed shelter.', 'Grateful to have a friend share their home while I rebuild.'],
+  },
 };
