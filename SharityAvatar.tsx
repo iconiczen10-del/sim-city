@@ -18,6 +18,7 @@ const COMPANY_AVATAR_BG: Record<CompanyId, string> = {
   vijcapital: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/50',
   vijindustries: 'bg-amber-500/20 text-amber-200 border-amber-400/50',
   vijmart: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/50',
+  gjelectricity: 'bg-yellow-500/20 text-yellow-200 border-yellow-400/50',
 };
 
 function getInitials(name: string): string {

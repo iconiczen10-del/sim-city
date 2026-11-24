@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ConfirmModal } from './ConfirmModal';
 import { formatDelta, formatPrice, formatSignedDelta } from './formatters';
 import { MartDeliveryPanel } from './MartDeliveryPanel';
+import { MartElectronicsPanel } from './MartElectronicsPanel';
 import { MartLogsPanel } from './MartLogsPanel';
 import { fireMartManagerSimGod, getMartFloorManager } from './martManager';
 import { MartManagerPanel } from './MartManagerPanel';
@@ -112,6 +113,7 @@ export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps)
       {subTab === 'stock' && (
         <div className="space-y-4">
           <MartStockTable stock={mart.stock} deliveries={mart.deliveries} martCash={mart.cash} />
+          <MartElectronicsPanel stock={mart.electronicsStock} mood={mart.electronicsMood} deliveries={mart.electronicsDeliveries} />
           <MartLogsPanel mart={mart} />
         </div>
       )}

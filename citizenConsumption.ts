@@ -6,6 +6,7 @@ import { applyContaminationPoisoning } from './citizenPoisoning';
 import { recordMealDecision } from './citizenSurvivalDecisions';
 import { FOOD_SPOIL_DAYS, OUTFIT_WEAR_DAYS } from './constants';
 import { clamp } from './economy';
+import { hasWorkingAppliance } from './electronicsCitizen';
 import type { SimClock } from './eventFactory';
 import { STANDARD_LABELS } from './formatters';
 import type { LivingStandard, MartState } from './martTypes';
@@ -21,8 +22,9 @@ export function consumeFoodAndWater(
   const keptFood = [];
   let spoiledTotal = 0;
 
+  const ageStep = hasWorkingAppliance(citizen, 'fridge') ? 1 : 2;
   for (const batch of citizen.inventory.food) {
-    const nextAge = batch.daysOld + 1;
+    const nextAge = batch.daysOld + ageStep;
     if (nextAge >= FOOD_SPOIL_DAYS) spoiledTotal += batch.meals;
     else if (batch.meals > 0) keptFood.push({ ...batch, daysOld: nextAge });
   }
@@ -51,12 +53,13 @@ export function consumeFoodAndWater(
   let ateContam = false;
   citizen.inventory.food.sort((a, b) => b.daysOld - a.daysOld);
 
+  const hasCooker = hasWorkingAppliance(citizen, 'cooker');
   for (const batch of citizen.inventory.food) {
     if (mealsToEat <= 0) break;
     const take = Math.min(batch.meals, mealsToEat);
     batch.meals -= take;
     mealsToEat -= take;
-    foodStd = batch.standard;
+    foodStd = (hasCooker ? batch.standard : Math.max(1, batch.standard - 1)) as LivingStandard;
     citizen.hunger = clamp(citizen.hunger + take * 13, 0, 100);
     if (batch.contaminated && batch.contaminated > 0) {
       batch.contaminated = Math.max(0, batch.contaminated - take);

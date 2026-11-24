@@ -8,6 +8,7 @@ import { CompanyDetailModal } from './CompanyDetailModal';
 import { CompanyFullLedgerView } from './CompanyFullLedgerView';
 import { CompanySectionNav, type CompanySubTab } from './CompanySectionNav';
 import { EmployeeChatView } from './EmployeeChatView';
+import { GJElectricityView } from './GJElectricityView';
 import type { CompanyId } from './companyTypes';
 import { formatDelta, formatSignedDelta } from './formatters';
 import type { CityState } from './types';
@@ -31,7 +32,9 @@ export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitiz
     <div className="space-y-5">
       <CompanySectionNav selectedTab={subTab} onSelectTab={setSubTab} unreadCount={unreadCount} hasNegativeChat={hasNegativeChat} />
 
-      {subTab === 'board' ? (
+      {subTab === 'gjelectricity' ? (
+        <GJElectricityView city={city} onUpdateCity={onUpdateCity} onSelectCitizen={onSelectCitizen} />
+      ) : subTab === 'board' ? (
         <BoardTabView city={city} meetings={meetings} onMarkMeetingRead={onMarkMeetingRead} onSelectCitizen={onSelectCitizen} />
       ) : subTab === 'ledger' ? (
         <CompanyFullLedgerView city={city} />

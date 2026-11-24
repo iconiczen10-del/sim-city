@@ -3,9 +3,9 @@
 import type { LivingStandard, MarginMood, ShoppingCategory } from './martTypes';
 import type { EducationLevel, HomeType, RoleLevel, TierId } from './types';
 
-export const APP_VERSION = '0.8.0';
-export const STORAGE_KEY = 'vij_city_state_v8_0';
-export const LEGACY_STORAGE_KEYS = ['vij_city_state_v7_0', 'vij_city_state_v6_0', 'vij_city_state_v5_8', 'vij_city_state_v5_7', 'vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
+export const APP_VERSION = '0.9.0';
+export const STORAGE_KEY = 'vij_city_state_v9_0';
+export const LEGACY_STORAGE_KEYS = ['vij_city_state_v8_0', 'vij_city_state_v7_0', 'vij_city_state_v6_0', 'vij_city_state_v5_8', 'vij_city_state_v5_7', 'vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
 export const INITIAL_TREASURY = 20000;
 export const DAYS_PER_MONTH = 30;
 export const MONTHS_PER_YEAR = 12;
@@ -43,7 +43,7 @@ export const MONTH_NAMES = [
 ] as const;
 
 export const ROLE_SEED_COUNTS: Record<RoleLevel, number> = {
-  CEO: 4, Executive: 4, Manager: 5, 'Team Lead': 6, Staff: 10, Entry: 12, Unemployed: 9,
+  CEO: 5, Executive: 4, Manager: 5, 'Team Lead': 6, Staff: 10, Entry: 12, Unemployed: 8,
 };
 
 export const ROLE_PAY_BANDS: Record<RoleLevel, { min: number; max: number; expectedMult: number }> = {

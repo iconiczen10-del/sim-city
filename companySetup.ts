@@ -35,11 +35,12 @@ export function createInitialCompanies(): Company[] {
     { ...base, id: 'vijcapital', name: 'Vij Capital', sector: 'Finance & Banking', industryMultiplier: 1.1, history: [...base.history], ledger: [] },
     { ...base, id: 'vijindustries', name: 'Vij Industries', sector: 'Manufacturing & Export', industryMultiplier: 1.0, history: [...base.history], ledger: [] },
     { ...base, id: 'vijmart', name: 'Vij Mart', sector: 'Retail & Essentials', industryMultiplier: 0.9, history: [...base.history], ledger: [] },
+    { ...base, id: 'gjelectricity', name: 'GJ Electricity', sector: 'Power & Gas Generation', industryMultiplier: 1.1, history: [...base.history], ledger: [] },
   ];
 }
 
 const SEAT_QUOTAS: Record<Exclude<RoleLevel, 'Unemployed'>, [CompanyId, number][]> = {
-  CEO: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 1], ['vijmart', 1]],
+  CEO: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 1], ['vijmart', 1], ['gjelectricity', 1]],
   Executive: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 2]],
   Manager: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 3]],
   'Team Lead': [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 3], ['vijmart', 1]],

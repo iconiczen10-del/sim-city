@@ -10,6 +10,7 @@ export const COMPANY_OFFICIAL_BIOS: Record<CompanyId, string> = {
   vijcapital: 'Commercial banking, treasury credit, and capital allocation across Vij.',
   vijindustries: 'Primary manufacturing, export fabrication, and wholesale supply for Vij.',
   vijmart: 'Daily food, water, clothing, and household essentials for every neighborhood in Vij.',
+  gjelectricity: 'City power generation, grid stability, and gas plant operations across Vij.',
 };
 
 export function buildUniqueHandle(name: string, taken: Set<string>): string {

@@ -1,5 +1,7 @@
 // inventoryTypes.ts — Citizen living standards, inventory batch items, and purchase records
 
+import type { OwnedAppliance } from './electronicsTypes';
+
 export type ShoppingCategory = 'food' | 'water' | 'clothes' | 'household';
 export type LivingStandard = 1 | 2 | 3 | 4 | 5;
 export type CitizenStandards = Record<ShoppingCategory, LivingStandard>;
@@ -33,6 +35,7 @@ export interface CitizenInventory {
   water: WaterBatch[];
   outfits: OutfitItem[];
   household: HouseholdPack[];
+  electronics?: OwnedAppliance[];
 }
 
 export interface PurchaseRecord {

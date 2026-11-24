@@ -1,6 +1,7 @@
 // OverviewView.tsx — City overview KPIs, employment, payroll, company health, tiers, and live feed
 
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { getSeasonFromMonth } from './electricityCatalog';
 import { formatDelta, formatSignedDelta } from './formatters';
 import { TierBreakdown } from './TierBreakdown';
 import type { CityState } from './types';
@@ -26,14 +27,16 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
   const thirstyCount = alive.filter((c) => c.thirst < 35).length;
   const sickCount = alive.filter((c) => c.health < 65).length;
   const homeless = alive.filter((c) => !c.homeId);
+  const homesWithoutPower = city.housing.houses.filter((h) => h.occupantIds.length > 0 && (h.electricLedger?.powerCut || h.electricLedger?.blackedOutToday)).length;
   const activePayroll = alive.reduce((s, c) => s + c.lastGrossPay, 0);
+  const el = city.electricity;
 
   const kpis = [
     { label: 'Employment', value: `${employedCount} / ${pop}`, sub: `${unempPct}% unemployed · ${deaths} deceased` },
     { label: 'Total Payroll / Savings', value: formatDelta(activePayroll), sub: `Citizen savings ${formatDelta(totalSavings)}` },
     { label: 'Avg Mood / Stress', value: `${avgMood} / ${avgStress}`, sub: `${hungryCount}H · ${thirstyCount}T · ${sickCount}S states` },
     { label: 'City Treasury', value: formatDelta(city.treasury), sub: `Inc +${formatDelta(city.lastMonthTaxCollected)} · Biz +${formatDelta(city.lastBusinessTaxCollected)}` },
-    { label: 'Open Job Seats', value: String(city.vacancies.length), sub: `${city.jobEvents.length} recent career shifts` },
+    { label: 'Grid & Homes Without Power', value: `${homesWithoutPower} off`, sub: el ? `${getSeasonFromMonth(city.month)} · Peak ${el.todayPeakDemandPerHour}/${el.todayCapacityPerHour} u/hr` : `${city.vacancies.length} open seats` },
     { label: 'Homelessness Index', value: `${homeless.length} / ${pop}`, sub: homeless.length > 0 ? `Mood -${(homeless.length * 0.5).toFixed(1)} · ${city.housing.evictionsThisMonth} evictions` : 'All citizens housed' },
   ];
 

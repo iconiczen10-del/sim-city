@@ -25,7 +25,7 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'citizens', label: 'Citizens', count: citizenCount, icon: Users },
     { id: 'housing', label: 'Housing', count: homelessCount || undefined, icon: Home },
-    { id: 'companies', label: 'Companies', count: 4, icon: Building2 },
+    { id: 'companies', label: 'Companies', count: 5, icon: Building2 },
     { id: 'jobs', label: 'Job Market', count: vacancyCount || undefined, icon: Briefcase },
     { id: 'mart', label: 'Vij Mart', count: martLowStockCount || undefined, icon: Store },
     { id: 'sharity', label: 'Sharity', count: sharityPostCount || undefined, icon: AtSign },

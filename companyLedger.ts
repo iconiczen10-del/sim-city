@@ -14,6 +14,10 @@ export const LEDGER_CATEGORY_LABELS: Record<CompanyLedgerCategory, string> = {
   capital_call: 'Board Capital',
   employee_investment: 'Staff Investment',
   investment_repayment: 'Debt Repayment',
+  utility_bill: 'Electricity Bills',
+  plant_fuel: 'Plant Fuel',
+  plant_upkeep: 'Plant Upkeep',
+  plant_capex: 'Plant Build / Repair',
   adjustment: 'Cash Adjustment',
 };
 

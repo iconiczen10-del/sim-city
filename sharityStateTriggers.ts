@@ -5,6 +5,7 @@ import { DAYS_PER_MONTH } from './constants';
 import type { MartState } from './martTypes';
 import { simRand } from './rng';
 import type { TriggerCandidate } from './sharityTriggers';
+import { collectUtilitySharityTriggers } from './sharityUtilityTriggers';
 import type { Citizen } from './types';
 
 export function collectCitizenExtraTriggers(params: {
@@ -82,5 +83,6 @@ export function collectCitizenExtraTriggers(params: {
   if (hasRecentTheft && simRand() < 0.25) {
     push('crime_conflict', simRand() < 0.5 ? 'crime_suspicion' : 'crime_neighbor', 'Neighborhood theft tension', 60);
   }
+  out.push(...collectUtilitySharityTriggers({ c, totalDays, officialCompanyIds, vars }));
   return out;
 }

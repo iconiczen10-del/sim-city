@@ -68,13 +68,14 @@ export interface SeedSlot {
   savingsRange: [number, number];
 }
 
-// Exact role counts: CEO 4, Exec 4, Mgr 5, TL 6, Staff 10, Entry 12, Unemployed 9
-// Exact tier spread: T1 3, T2 7, T3 17, T4 14, T5 9
+// Exact role counts: CEO 5, Exec 4, Mgr 5, TL 6, Staff 10, Entry 12, Unemployed 8
+// Exact tier spread: T1 3, T2 8, T3 17, T4 13, T5 9
 export const SEED_ROSTER: SeedSlot[] = [
   { role: 'CEO', targetTier: 'T1', savingsRange: [9000, 19500] },
   { role: 'CEO', targetTier: 'T1', savingsRange: [8500, 17000] },
   { role: 'CEO', targetTier: 'T1', savingsRange: [7500, 15000] },
   { role: 'CEO', targetTier: 'T2', savingsRange: [2200, 3600] },
+  { role: 'CEO', targetTier: 'T2', savingsRange: [2100, 3500] },
   { role: 'Executive', targetTier: 'T2', savingsRange: [2400, 4800] },
   { role: 'Executive', targetTier: 'T2', savingsRange: [2000, 4400] },
   { role: 'Executive', targetTier: 'T2', savingsRange: [1800, 4000] },
@@ -97,7 +98,6 @@ export const SEED_ROSTER: SeedSlot[] = [
     role: 'Entry', targetTier: 'T4', savingsRange: [650, 920],
   })),
   { role: 'Entry', targetTier: 'T5', savingsRange: [620, 740] },
-  { role: 'Unemployed', targetTier: 'T4', savingsRange: [760, 1080] },
   ...Array.from({ length: 8 }, (): SeedSlot => ({
     role: 'Unemployed', targetTier: 'T5', savingsRange: [660, 880],
   })),

@@ -1,5 +1,6 @@
 // CitizenInventoryPanel.tsx — Itemized citizen inventory table, survival meters, purchases, and SimGod actions
 
+import { CitizenElectronicsList } from './CitizenElectronicsList';
 import { CitizenInventoryActions } from './CitizenInventoryActions';
 import { FOOD_SPOIL_DAYS, HOUSEHOLD_PACK_DAYS, SHOPPING_CATEGORIES } from './constants';
 import { CATEGORY_LABELS, formatDelta, formatPrice, STANDARD_LABELS } from './formatters';
@@ -114,6 +115,7 @@ export function CitizenInventoryPanel({ citizen, city, onUpdateCity, showFullDet
           )}
         </div>
       </div>
+      <CitizenElectronicsList electronics={citizen.inventory.electronics} powerCutToday={citizen.housePowerCutToday} />
     </div>
   );
 }

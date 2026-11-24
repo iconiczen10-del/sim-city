@@ -1,6 +1,7 @@
 // HousingDetailView.tsx — Detailed inspector for an individual Vij house: 5 scores, occupants, histories, queue, and SimGod controls
 
 import { ArrowLeft } from 'lucide-react';
+import { ElectricityLedgerCard } from './ElectricityLedgerCard';
 import { formatDelta, formatSignedDelta } from './formatters';
 import { DISTRICTS, HOUSE_SPECS } from './housingCatalog';
 import { getHouseMonthlyMaintenance, getTenantMonthlyRent } from './housingScores';
@@ -140,6 +141,7 @@ export function HousingDetailView({ city, house, onBack, onUpdateCity, onSelectC
         </div>
       </div>
 
+      <ElectricityLedgerCard title={`Electricity Ledger — ${house.name}`} ledger={house.electricLedger} profile={house.usageProfile} tariff={city.electricity?.tariff} />
       <HousingSimGodPanel city={city} house={house} onUpdateCity={onUpdateCity} />
       <HousingSimGodExtraPanel city={city} house={house} onUpdateCity={onUpdateCity} />
     </div>

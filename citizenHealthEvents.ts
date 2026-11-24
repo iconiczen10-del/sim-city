@@ -77,7 +77,7 @@ export function finalizeCitizenDeath(
   citizen.previousRole = citizen.roleLevel;
   citizen.roleLevel = 'Unemployed';
   citizen.savings = 0;
-  citizen.inventory = { food: [], water: [], outfits: [], household: [] };
+  citizen.inventory = { food: [], water: [], outfits: [], household: [], electronics: [] };
   appendLifeLog(citizen, clock.totalDays, dateLabel, 'health', `Passed away from ${DEATH_CAUSE_LABELS[cause].toLowerCase()}.`);
 
   events.push(makeCityEvent(clock, `death_${citizen.id}`, {

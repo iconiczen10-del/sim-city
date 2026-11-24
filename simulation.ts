@@ -7,6 +7,9 @@ import { addCitizenMemory } from './citizenMemory';
 import { recordMartRetailLedger, recordWholesaleLedgers } from './companyLedger';
 import { DAYS_PER_MONTH, MONTHS_PER_YEAR } from './constants';
 import { processCitizenDailySurvival } from './dailyCitizen';
+import { stepElectricityDailyDemand } from './electricityDemand';
+import { stepElectricityGridDaily } from './electricityGrid';
+import { createInitialElectricityState } from './electricitySetup';
 import { makeCityEvent } from './eventFactory';
 import { formatMonthYear, formatSimDate } from './formatters';
 import { stepHousingDailyEffects } from './housingDaily';
@@ -32,6 +35,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   const vacancies = structuredClone(prev.vacancies);
   const boardState = structuredClone(prev.boardState);
   const housing = structuredClone(prev.housing);
+  const electricity = prev.electricity ? structuredClone(prev.electricity) : createInitialElectricityState(housing, prev.citizens);
   const sharity = {
     ...prev.sharity, profiles: structuredClone(prev.sharity.profiles), follows: structuredClone(prev.sharity.follows),
     affinities: day === DAYS_PER_MONTH ? { ...prev.sharity.affinities } : prev.sharity.affinities,
@@ -70,6 +74,8 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
     shortageMap.set(c.id, res.shortageToday);
   }
   treasury = stepHousingMarketDaily({ citizens, housing, sharity, treasury, clock, dateLabel, events: newEvents });
+  stepElectricityDailyDemand({ electricity, housing, citizens, companies, clock, dateLabel });
+  stepElectricityGridDaily({ electricity, housing, citizens, companies, clock, dateLabel, events: newEvents });
 
   citizens = citizens.map((c) => {
     if (!c.alive) return c;
@@ -98,7 +104,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   let nextVacancies = vacancies;
 
   if (day === DAYS_PER_MONTH) {
-    const mr = runCityMonthEnd({ citizens, companies, vacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity });
+    const mr = runCityMonthEnd({ citizens, companies, vacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity, electricity });
     citizens = mr.citizens; nextVacancies = mr.vacancies; jobEvents = mr.jobEvents; treasury = mr.treasury;
     tierMovementsThisMonth = mr.movements; lastMonthTaxCollected = mr.taxCollected; lastTotalPayroll = mr.totalPayroll; lastBusinessTaxCollected = mr.businessTaxCollected;
   }
@@ -123,7 +129,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
     newMeeting,
     state: {
       ...prev, rngState: getSimRngState(), day, month, year, totalDays, treasury, citizens, companies,
-      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing,
+      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing, electricity,
       events: [...newEvents.reverse(), ...prev.events].slice(0, 600),
       tierMovementsThisMonth, lastMonthTaxCollected, lastTotalPayroll, lastBusinessTaxCollected,
     },

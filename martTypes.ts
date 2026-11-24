@@ -1,5 +1,6 @@
 // martTypes.ts — Core Vij Mart store, stock item, and manager tracking structures
 
+import type { ElectronicsOrder, ElectronicsStockItem } from './electronicsTypes';
 import type { LivingStandard, ShoppingCategory } from './inventoryTypes';
 import type {
   CategoryMoodState,
@@ -88,4 +89,7 @@ export interface MartState {
   salesLog: MartSaleRecord[];
   wasteLog: MartWasteEntry[];
   history: MartHistoryPoint[];
+  electronicsStock?: ElectronicsStockItem[];
+  electronicsMood?: CategoryMoodState;
+  electronicsDeliveries?: ElectronicsOrder[];
 }

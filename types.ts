@@ -6,6 +6,7 @@ import type { ChangeExplanation, CitizenMemory, DecisionRecord, LedgerEntry, Lif
 import type { CitizenEmotion, CitizenNeed, EmotionId, EmotionSnapshot, HealthProfile, NeedId, SurvivalPriorityEntry, SurvivalState } from './citizenRealTypes';
 import type { CitizenSnapshot, CitizenTraits, CityEvent, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId, TierMovement } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
+import type { ElectricityState } from './electricityTypes';
 import type { CitizenHousingEntry, CitizenHousingPreferences, EvictionRecord, HousingSatisfactionBreakdown, HousingState, OwnershipType } from './housingTypes';
 import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
 import type { SharityState } from './sharityTypes';
@@ -108,6 +109,11 @@ export interface Citizen {
   housingEvalUrgent?: boolean;
   lastEvalGrossPay?: number;
   lastEvalTier?: TierId;
+  electricArrears?: number;
+  electricUnpaidMonths?: number;
+  electricPowerCut?: boolean;
+  lastElectricBill?: number;
+  housePowerCutToday?: boolean;
 }
 
 export interface CityState {
@@ -134,4 +140,5 @@ export interface CityState {
   sharity: SharityState;
   chatGroups: { vijindustries: ChatGroupState };
   housing: HousingState;
+  electricity?: ElectricityState;
 }

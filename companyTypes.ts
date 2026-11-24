@@ -2,7 +2,7 @@
 
 import type { EducationLevel, RoleLevel } from './cityBaseTypes';
 
-export type CompanyId = 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart';
+export type CompanyId = 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart' | 'gjelectricity';
 export type CompanyDirection = 'aggressive' | 'conservative';
 
 export interface VacancyApplicant {
@@ -58,6 +58,10 @@ export type CompanyLedgerCategory =
   | 'capital_call'
   | 'employee_investment'
   | 'investment_repayment'
+  | 'utility_bill'
+  | 'plant_fuel'
+  | 'plant_upkeep'
+  | 'plant_capex'
   | 'adjustment';
 
 export interface CompanyLedgerEntry {

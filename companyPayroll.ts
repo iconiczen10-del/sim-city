@@ -10,6 +10,7 @@ import { BUSINESS_TAX_RATE } from './constants';
 import { calculateMarginalTax, calculateMonthlyPay, clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta } from './formatters';
+import type { ElectricityState } from './electricityTypes';
 import type { MartState } from './martTypes';
 import type { Citizen, CityEvent } from './types';
 
@@ -28,8 +29,9 @@ export function runCompanyMonthEndFinances(params: {
   dateLabel: string;
   events: CityEvent[];
   boardState?: CompanyBoardState;
+  electricity?: ElectricityState;
 }): MonthlyPayrollSummary {
-  const { companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState } = params;
+  const { companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState, electricity } = params;
   const citizenPayMap = new Map<string, { grossPay: number; tax: number; payRatio: number }>();
   let totalPayroll = 0;
   let businessTaxCollected = 0;
@@ -48,7 +50,8 @@ export function runCompanyMonthEndFinances(params: {
       continue;
     }
 
-    const simRev = generateSimulatedRevenue(comp);
+    const compPowerCut = Boolean(electricity?.companyLedgers[comp.id]?.powerCut || electricity?.companyLedgers[comp.id]?.blackedOutToday);
+    const simRev = generateSimulatedRevenue(comp, compPowerCut);
     if (simRev > 0) {
       comp.monthlyRevenue = Math.round((comp.monthlyRevenue + simRev) * 100) / 100;
       comp.cash = Math.round((comp.cash + simRev) * 100) / 100;

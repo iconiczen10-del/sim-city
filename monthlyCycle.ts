@@ -4,6 +4,8 @@ import type { CompanyBoardState } from './boardTypes';
 import { runCompanyMonthlyAI } from './companyAI';
 import { runCompanyMonthEndFinances } from './companyPayroll';
 import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
+import { processElectricityMonthEnd } from './electricityBilling';
+import type { ElectricityState } from './electricityTypes';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta, formatMonthYear, formatSimDate } from './formatters';
 import { processJobMarketMonthEnd } from './jobMarket';
@@ -27,6 +29,7 @@ export function runCityMonthEnd(params: {
   boardState: CompanyBoardState;
   housing: HousingState;
   sharity: SharityState;
+  electricity?: ElectricityState;
 }): {
   citizens: Citizen[];
   vacancies: CompanyVacancy[];
@@ -37,13 +40,13 @@ export function runCityMonthEnd(params: {
   businessTaxCollected: number;
   movements: TierMovement[];
 } {
-  const { citizens, companies, mart, clock, events, boardState, housing, sharity } = params;
+  const { citizens, companies, mart, clock, events, boardState, housing, sharity, electricity } = params;
   let treasury = params.treasury;
   const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
   let vacancies = [...params.vacancies];
   let jobEvents = [...params.jobEvents];
 
-  const payrollRes = runCompanyMonthEndFinances({ companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState });
+  const payrollRes = runCompanyMonthEndFinances({ companies, citizens, mart, jobEvents, clock, dateLabel, events, boardState, electricity });
   let taxCollected = 0;
   const movements: TierMovement[] = [];
 
@@ -56,6 +59,7 @@ export function runCityMonthEnd(params: {
 
   treasury = processHousingMonthEnd({ citizens: paidCitizens, housing, sharity, treasury, clock, dateLabel, events });
   const nextCitizens = paidCitizens;
+  if (electricity) processElectricityMonthEnd({ electricity, housing, citizens: nextCitizens, companies, clock, dateLabel, events });
 
   mart.monthlyRevenue = 0;
   mart.monthlyWholesaleSpend = 0;

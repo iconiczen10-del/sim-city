@@ -1,6 +1,7 @@
 // housingTypes.ts — Core data types for Vij houses, applications, histories, transactions, and housing state
 
 import type { HomeType } from './cityBaseTypes';
+import type { ElectricLedger, HouseUsageProfile } from './electricityTypes';
 import type {
   CitizenHousingPreferences, DistrictId, DistrictMarketMetric, HouseStatus,
   HousingSatisfactionBreakdown, OwnershipType, RoommateTolerance, TypePricePoint,
@@ -74,6 +75,8 @@ export interface House {
   evictionHistory: HouseEvictionEntry[];
   conditionHistory: HouseConditionPoint[];
   lastMaintenancePaid: number;
+  usageProfile?: HouseUsageProfile;
+  electricLedger?: ElectricLedger;
 }
 
 export interface HousingTransaction {

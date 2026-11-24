@@ -75,6 +75,8 @@ export function runDailySharityPosts(params: {
   for (const cand of candidates) {
     const c = byId.get(cand.authorId);
     if (!c || !c.alive) continue;
+    const hasWorkingPhone = !c.housePowerCutToday && (c.inventory.electronics ?? []).some((e) => e.applianceId === 'phone' && !e.broken);
+    if (!hasWorkingPhone) continue;
     const lastDay = sharity.authorLastPostDay?.[c.id] ?? -99;
     if (!cand.isBigEvent && clock.totalDays - lastDay < 2) continue;
     const quietMode = c.mood < 28 && c.stress > 70 && c.traits.sociability < 40;

@@ -12,6 +12,7 @@ import { stepDailyStress } from './citizenStress';
 import { applySurvivalInstinctBehavior } from './citizenSurvivalEngine';
 import { recordShoppingDecision } from './citizenSurvivalDecisions';
 import { maybeAttemptDesperateTheft } from './citizenTheft';
+import { stepCitizenElectronicsDaily } from './electronicsCitizen';
 import type { SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta } from './formatters';
 import { findStockItem } from './martSetup';
@@ -84,6 +85,7 @@ export function processCitizenDailySurvival(
   citizen.stress = stressStep.stress;
   citizen.stressBreakdown = stressStep.breakdown;
   stepCitizenNeedsDaily(citizen, mart, clock, dateLabel, events);
+  stepCitizenElectronicsDaily(citizen, mart, clock, dateLabel, events);
   stepCitizenHealthDaily(citizen, foodStd, waterStd, clock, dateLabel, events);
   applySurvivalInstinctBehavior(citizen, allCitizens, clock, dateLabel);
   if (sharity && allCitizens.length > 0) {

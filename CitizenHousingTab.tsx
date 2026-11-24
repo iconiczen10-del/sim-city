@@ -1,6 +1,7 @@
 // CitizenHousingTab.tsx — Citizen Housing tab: current home scores, landlord portfolio, housing history, and evictions
 
 import { CitizenHousingSatisfaction } from './CitizenHousingSatisfaction';
+import { ElectricityLedgerCard } from './ElectricityLedgerCard';
 import { formatDelta } from './formatters';
 import { DISTRICTS, HOUSE_SPECS } from './housingCatalog';
 import { getHouseMonthlyMaintenance, getTenantMonthlyRent } from './housingScores';
@@ -60,6 +61,7 @@ export function CitizenHousingTab({ citizen, city, onSelectCitizen }: CitizenHou
       </section>
 
       <CitizenHousingSatisfaction citizen={citizen} city={city} house={house} />
+      {house && <ElectricityLedgerCard title="Home Electricity Ledger" ledger={house.electricLedger} profile={house.usageProfile} tariff={city.electricity?.tariff} />}
 
       {ownedHouses.length > 0 && (
         <section className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2">

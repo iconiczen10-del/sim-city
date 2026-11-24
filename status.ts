@@ -43,6 +43,8 @@ export function computeTargetStatusScore(
     homeType?: Citizen['homeType'];
     ownershipType?: Citizen['ownershipType'];
     lastRentalIncome?: number;
+    electricPowerCut?: boolean;
+    electricUnpaidMonths?: number;
   },
   grossPay: number
 ): number {
@@ -56,13 +58,8 @@ export function computeTargetStatusScore(
     citizen.homeType,
     citizen.ownershipType
   );
-
-  const weighted =
-    savingsScore * 0.4 +
-    incomeScore * 0.25 +
-    roleScore * 0.2 +
-    respectScore * 0.15;
-
+  const electricPenalty = citizen.electricPowerCut ? 6 : Math.min(4, (citizen.electricUnpaidMonths ?? 0) * 2);
+  const weighted = savingsScore * 0.4 + incomeScore * 0.25 + roleScore * 0.2 + respectScore * 0.15 - electricPenalty;
   return Math.round(clamp(weighted, 0, 100) * 10) / 10;
 }
 

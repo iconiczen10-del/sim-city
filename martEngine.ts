@@ -2,6 +2,7 @@
 
 import { FOOD_SPOIL_DAYS, SHOPPING_CATEGORIES } from './constants';
 import { clamp } from './economy';
+import { stepElectronicsMartDayEnd, stepElectronicsMartDayStart } from './electronicsMart';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { CATEGORY_LABELS, STANDARD_LABELS } from './formatters';
 import { updateMartMoodsAndPrices } from './martAI';
@@ -22,6 +23,7 @@ export function processMartDayStart(
   mart.customersTodayIds = [];
   if (mart.closedDaysLeft > 0) mart.closedDaysLeft -= 1;
   if (mart.recentSabotageDays > 0) mart.recentSabotageDays -= 1;
+  stepElectronicsMartDayStart(mart, clock, events);
 
   for (const item of mart.stock) {
     item.salesHistory = [...item.salesHistory.slice(-13), 0];
@@ -133,6 +135,7 @@ export function processMartDayEnd(
   updateSalesForecasts(mart, citizens, clock.day);
   updateMartMoodsAndPrices(mart, citizens, avgSavings, avgMood, clock, dateLabel, events, outsideSupplierActive);
   processMartOrdering(mart, citizens, clock, dateLabel, events, outsideSupplierActive);
+  stepElectronicsMartDayEnd(mart, clock, dateLabel, outsideSupplierActive);
 
   const avgIndex = mart.stock.reduce((sum, s) => sum + (s.sellPrice / s.basePrice) * 100, 0) / mart.stock.length;
   const dominantMood: MarginMood = mart.categoryMoods.food.mood;

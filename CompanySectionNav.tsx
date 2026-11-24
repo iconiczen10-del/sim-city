@@ -1,5 +1,5 @@
 // CompanySectionNav.tsx — Responsive navigation for company sub-tabs
-export type CompanySubTab = 'companies' | 'board' | 'ledger' | 'employee';
+export type CompanySubTab = 'companies' | 'gjelectricity' | 'board' | 'ledger' | 'employee';
 
 interface CompanySectionNavProps {
   selectedTab: CompanySubTab;
@@ -19,7 +19,10 @@ export function CompanySectionNav({ selectedTab, onSelectTab, unreadCount, hasNe
       <div className="hidden overflow-x-auto border-b border-slate-800/90 pb-3 sm:block">
         <div role="tablist" aria-label="Company sections" className="flex w-max min-w-full items-center gap-2">
           <button type="button" role="tab" aria-selected={selectedTab === 'companies'} onClick={() => onSelectTab('companies')} className={tabStyle(selectedTab === 'companies')}>
-            All Companies (4)
+            All Companies (5)
+          </button>
+          <button type="button" role="tab" aria-selected={selectedTab === 'gjelectricity'} onClick={() => onSelectTab('gjelectricity')} className={tabStyle(selectedTab === 'gjelectricity')}>
+            GJ Electricity
           </button>
           <button type="button" role="tab" aria-selected={selectedTab === 'board'} onClick={() => onSelectTab('board')} className={`${tabStyle(selectedTab === 'board')} inline-flex items-center gap-2`}>
             <span>Vij Industries Board</span>
@@ -51,7 +54,8 @@ export function CompanySectionNav({ selectedTab, onSelectTab, unreadCount, hasNe
           onChange={(event) => onSelectTab(event.target.value as CompanySubTab)}
           className="min-w-0 flex-1 rounded-md border border-slate-700 bg-[#111827] px-3 py-2 text-slate-100"
         >
-          <option value="companies">All Companies (4)</option>
+          <option value="companies">All Companies (5)</option>
+          <option value="gjelectricity">GJ Electricity</option>
           <option value="board">Vij Industries Board{unreadCount ? ` (${unreadCount} unread)` : ''}</option>
           <option value="ledger">Company Full Ledger</option>
           <option value="employee">{hasNegativeChat ? 'VI Employee (new)' : 'VI Employee'}</option>

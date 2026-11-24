@@ -1,4 +1,4 @@
-// seeder.ts — Initializes deterministic seeded Vij city with 50 citizens, 4 companies, Mart, and board state
+// seeder.ts — Initializes deterministic seeded Vij city with 50 citizens, 5 companies, Mart, housing, electricity, and board state
 
 import { createInitialBoardState } from './boardSeats';
 import { createEmptyChatGroupState } from './chatGroups';
@@ -6,6 +6,9 @@ import { assignArchetypeProfile } from './chatArchetypes';
 import { buildSeedCitizen } from './citizenFactory';
 import { assignInitialCitizensToCompanies, createInitialCompanies } from './companySetup';
 import { APP_VERSION, INITIAL_TREASURY, MART_INITIAL_CASH } from './constants';
+import { createInitialElectricityState, seedGJElectricityVacancies } from './electricitySetup';
+import { seedCitizenElectronics } from './electronicsCitizen';
+import { ensureMartElectronics } from './electronicsMart';
 import { formatSimDate } from './formatters';
 import { createInitialHousingState } from './housingSeed';
 import { createInitialMart } from './martSetup';
@@ -24,10 +27,15 @@ export function createInitialCityState(providedSeed?: number): CityState {
   const names = shuffleNames(CITIZEN_NAME_POOL);
   const traitSigs = new Set<string>();
   const citizens = SEED_ROSTER.map((slot, idx) => buildSeedCitizen(idx, slot, names[idx], traitSigs));
+  for (const c of citizens) seedCitizenElectronics(c);
   const mart = createInitialMart(citizens);
+  ensureMartElectronics(mart);
   const companies = createInitialCompanies();
   assignInitialCitizensToCompanies(citizens, companies, mart);
+  const vacancies: CityState['vacancies'] = [];
+  seedGJElectricityVacancies(companies, vacancies);
   const housing = createInitialHousingState(citizens);
+  const electricity = createInitialElectricityState(housing, citizens);
   const boardState = createInitialBoardState(citizens);
   const sharity = createInitialSharityState(citizens, companies);
   const chatGroup = createEmptyChatGroupState();
@@ -55,7 +63,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     treasury: INITIAL_TREASURY,
     citizens,
     companies,
-    vacancies: [],
+    vacancies,
     jobEvents: [],
     mart,
     tierMovementsThisMonth: [],
@@ -66,6 +74,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     sharity,
     chatGroups: { vijindustries: chatGroup },
     housing,
+    electricity,
     events: [
       {
         id: 'evt_init_1',
@@ -73,7 +82,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
         dateLabel,
         type: 'system',
         title: `City of Vij Opened (Seed ${seed})`,
-        detail: `50 citizens settled (41 employed, 9 unemployed). Treasury: ∆${INITIAL_TREASURY.toLocaleString('en-IN')} · Each company starts with ∆${MART_INITIAL_CASH.toLocaleString('en-IN')}.`,
+        detail: `50 citizens settled (42 employed across 5 companies, 8 unemployed). Treasury: ∆${INITIAL_TREASURY.toLocaleString('en-IN')} · Each company starts with ∆${MART_INITIAL_CASH.toLocaleString('en-IN')}.`,
       },
     ],
   };

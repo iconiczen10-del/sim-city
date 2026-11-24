@@ -6,6 +6,7 @@ import { CITY_SOCIAL_BANK } from './sharityBankCitySocial';
 import { EXTRA_TOPIC_BANK, TRIGGER_HASHTAGS, VOICE_PREFIXES } from './sharityBankExtra';
 import { MART_HOUSING_BANK } from './sharityBankMartHousing';
 import { MORE_TOPIC_BANK, VOICE_CLOSERS } from './sharityBankMore';
+import { UTILITY_SHARITY_BANK } from './sharityBankUtility';
 import type { SharitySentiment, SharityState, SharityTopicId, SharityVoice } from './sharityTypes';
 import type { Citizen } from './types';
 
@@ -15,6 +16,7 @@ const COMBINED_BANK: Record<string, VoiceTemplates> = {
   ...CITY_SOCIAL_BANK,
   ...EXTRA_TOPIC_BANK,
   ...MORE_TOPIC_BANK,
+  ...UTILITY_SHARITY_BANK,
 };
 
 const NEG_TRIGGERS = new Set([
@@ -24,6 +26,7 @@ const NEG_TRIGGERS = new Set([
   'take_taxes', 'take_low_pay', 'take_rent', 'nat_fire', 'nat_theft', 'nat_flood', 'nat_poisoning',
   'nat_power_cut', 'nat_price_jump', 'crime_theft', 'crime_suspicion', 'crime_neighbor',
   'job_loss_hardship', 'savings_gone', 'illness_hardship', 'grief_death', 'close_call', 'std_downgrade',
+  'power_cut_notice', 'summer_blackout', 'appliance_broken',
 ]);
 
 export function chooseCitizenVoice(

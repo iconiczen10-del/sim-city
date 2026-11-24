@@ -33,7 +33,9 @@ export type EventCategory =
   | 'contribution' | 'investment' | 'sharity' | 'viral' | 'cancelled' | 'argument' | 'tribute'
   | 'city-wave' | 'work-consequence' | 'breakdown' | 'theft-attempt' | 'theft-caught'
   | 'need-critical' | 'emotion-spike' | 'eviction' | 'bought-house' | 'moved'
-  | 'homeless' | 'housing-search' | 'roommate-conflict' | 'sold-house' | 'rent-raise';
+  | 'homeless' | 'housing-search' | 'roommate-conflict' | 'sold-house' | 'rent-raise'
+  | 'electric-bill' | 'power-cut' | 'blackout' | 'plant-built' | 'plant-failed'
+  | 'tariff-change' | 'appliance-buy' | 'appliance-broke';
 
 export interface CitizenTraits {
   ambition: number;
@@ -71,7 +73,7 @@ export interface CityEvent {
   type: EventCategory;
   citizenId?: string;
   citizenName?: string;
-  companyId?: 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart';
+  companyId?: 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart' | 'gjelectricity';
   title: string;
   detail: string;
 }

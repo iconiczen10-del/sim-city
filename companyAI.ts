@@ -133,7 +133,8 @@ export function runCompanyMonthlyAI(params: {
         releaseEmployee({ emp: cut, comp, kind: 'layoff', reason: `${comp.name} laid off ${cut.name} (${cut.roleLevel}) after ${comp.negativeProfitStreak} unprofitable months.`, vacancies, jobEvents, clock, dateLabel, events });
       }
     } else if (comp.id !== 'vijindustries' && comp.positiveProfitStreak >= 2 && comp.direction === 'aggressive' && comp.cash > 25000) {
-      const openRole: Exclude<RoleLevel, 'Unemployed'> = comp.id === 'vijtech' || comp.id === 'vijcapital' ? 'Staff' : 'Entry';
+      if (comp.id === 'gjelectricity' && employees.length >= 3) continue;
+      const openRole: Exclude<RoleLevel, 'Unemployed'> = comp.id === 'vijtech' || comp.id === 'vijcapital' || comp.id === 'gjelectricity' ? 'Staff' : 'Entry';
       openVacancy(vacancies, comp, openRole, `${comp.name} growth expansion`, clock, dateLabel);
     }
 

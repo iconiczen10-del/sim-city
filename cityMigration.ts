@@ -7,7 +7,12 @@ import { createSeedHealthProfile } from './citizenHealthSystem';
 import { createSeedNeeds } from './citizenNeeds';
 import { evaluateSurvivalLadder } from './citizenSurvivalEngine';
 import { backfillTraits18 } from './citizenTraits';
+import { createInitialCompanies } from './companySetup';
+import type { Company } from './companyTypes';
 import { APP_VERSION } from './constants';
+import { createInitialElectricityState, seedGJElectricityVacancies, seedHousingElectricity } from './electricitySetup';
+import { seedCitizenElectronics } from './electronicsCitizen';
+import { ensureMartElectronics } from './electronicsMart';
 import { formatMonthYear } from './formatters';
 import { computeHousingSatisfaction, seedHousingPreferences } from './housingPreferences';
 import { syncCitizenHousingLinks } from './housingScores';
@@ -24,7 +29,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   const validMart = parsed.mart?.categoryMoods && parsed.mart.schedules;
   if (
     !Array.isArray(citizenList) || citizenList.length !== 50
-    || !Array.isArray(companyList) || companyList.length !== 4
+    || !Array.isArray(companyList) || (companyList.length !== 4 && companyList.length !== 5)
     || !validMart
   ) return null;
 
@@ -56,13 +61,18 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
       sharityWorkNotes: Array.isArray(citizen.sharityWorkNotes) ? citizen.sharityWorkNotes : [],
     };
     evaluateSurvivalLadder(out);
+    seedCitizenElectronics(out);
     return out;
   });
-  const companies = companyList.map((company) => ({
+  const companies: Company[] = companyList.map((company) => ({
     ...company,
     ledger: Array.isArray(company.ledger) ? company.ledger : [],
     sharityCriticismLog: Array.isArray(company.sharityCriticismLog) ? company.sharityCriticismLog : [],
   }));
+  if (!companies.some((c) => c.id === 'gjelectricity')) {
+    const gj = createInitialCompanies().find((c) => c.id === 'gjelectricity')!;
+    companies.push(gj);
+  }
   const sharity = ensureValidSharityState(parsed.sharity, citizens, companies);
 
   for (const citizen of citizens) {
@@ -87,6 +97,11 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     c.housingSatisfaction = computeHousingSatisfaction(c, c.homeId ? byHouse.get(c.homeId) : undefined, sharity);
   }
   syncCitizenHousingLinks(citizens, housing.houses, sharity);
+  ensureMartElectronics(parsed.mart!);
+  if (housing.houses.some((h) => !h.usageProfile || !h.electricLedger)) seedHousingElectricity(housing, citizens);
+  const electricity = parsed.electricity ?? createInitialElectricityState(housing, citizens);
+  const vacancies = Array.isArray(parsed.vacancies) ? [...parsed.vacancies] : [];
+  if (!parsed.electricity) seedGJElectricityVacancies(companies, vacancies);
 
   return {
     ...(parsed as CityState),
@@ -95,10 +110,12 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     rngState,
     citizens,
     companies,
+    vacancies,
     boardState: parsed.boardState ?? createInitialBoardState(citizens),
     sharity,
     chatGroups,
     housing,
+    electricity,
   };
 }
 

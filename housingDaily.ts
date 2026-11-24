@@ -45,7 +45,8 @@ export function stepHousingDailyEffects(params: {
       const sat = computeHousingSatisfaction(c, house, sharity);
       c.housingSatisfaction = sat;
 
-      const shelterVal = r1(clamp(scores.comfort * 0.5 + scores.space * 0.3 + scores.privacy * 0.2, 5, 100));
+      const powerOff = Boolean(house.electricLedger?.powerCut || house.electricLedger?.blackedOutToday);
+      const shelterVal = r1(clamp(scores.comfort * 0.5 + scores.space * 0.3 + scores.privacy * 0.2 - (powerOff ? 12 : 0), 5, 100));
       c.needs.shelter.value = shelterVal;
       c.needs.shelter.lastRestoredDay = clock.totalDays;
       c.needs.safety.value = scores.safety;
@@ -53,7 +54,7 @@ export function stepHousingDailyEffects(params: {
 
       const poorSleep = scores.comfort < 35 || scores.noise > 68 || sat.total < 30;
       c.sleepEnergyMult = sat.total > 75 ? 0.85 : poorSleep ? 1.35 : 1.0;
-      c.hygieneDrainMult = 1.0;
+      c.hygieneDrainMult = powerOff ? 1.25 : 1.0;
       c.housingSkillMult = sat.total > 75 ? 1.1 : sat.total < 30 ? 0 : 1.0;
 
       if (sat.total > 75) {
@@ -68,7 +69,7 @@ export function stepHousingDailyEffects(params: {
         applyEmotionPulse(c.emotions, 'shame', 1.0, `Poor living conditions at ${house.name}`, clock, dateLabel);
       }
 
-      let moodOff = (shelterVal - 50) * 0.14;
+      let moodOff = (shelterVal - 50) * 0.14 - (powerOff ? 4 : 0);
       if (house.condition < 40) { moodOff -= 3; if (simRand() < 0.015) c.health = clamp(c.health - 3, 0, 100); }
       if (c.traits.neatness >= 62 && house.condition < 50) moodOff -= 2.5;
       for (const rId of c.roommateIds ?? []) {
