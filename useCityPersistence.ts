@@ -5,9 +5,10 @@ import type { BoardMeeting } from './boardTypes';
 import { DAYS_PER_MONTH } from './constants';
 import { createInitialCityState } from './seeder';
 import { advanceCityDay } from './advanceCityDay';
+import { executeCityExport } from './saveExportActions';
+import type { SaveNotice } from './SaveNoticeBanner';
 import {
   clearAllDbData,
-  exportCityBundleJson,
   loadAppPersistence,
   parseImportedCityBundle,
   saveBoardMeetingToDb,
@@ -20,6 +21,7 @@ export function useCityPersistence() {
   const [city, setCity] = useState<CityState | null>(null);
   const [meetings, setMeetings] = useState<BoardMeeting[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
+  const [exportNotice, setExportNotice] = useState<SaveNotice | null>(null);
 
   const cityRef = useRef<CityState | null>(null);
   const meetingsRef = useRef<BoardMeeting[]>([]);
@@ -109,20 +111,16 @@ export function useCityPersistence() {
     }
   }, [reportDbError]);
 
-  const exportJson = useCallback(() => {
+  const exportCity = useCallback((mode: 'download' | 'upload') => {
     if (!cityRef.current) return;
-    try {
-      const json = exportCityBundleJson(cityRef.current, meetingsRef.current);
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `vij-seed-${cityRef.current.seed}-y${cityRef.current.year}m${cityRef.current.month}d${cityRef.current.day}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      reportDbError('Export JSON failed', e);
+    const res = executeCityExport(cityRef.current, meetingsRef.current, mode);
+    if (!res.ok) {
+      setExportNotice(res.notice);
+      return;
     }
+    setCity(res.updatedCity);
+    saveCityToDb(res.updatedCity).catch((e) => reportDbError('Save after export failed', e));
+    setExportNotice(res.notice);
   }, [reportDbError]);
 
   const importJson = useCallback(async (file: File) => {
@@ -135,10 +133,11 @@ export function useCityPersistence() {
       setCity(importedCity);
       setMeetings(importedMeetings);
       setWarning(null);
+      setExportNotice(null);
     } catch (e) {
       reportDbError('Import JSON failed', e);
     }
   }, [reportDbError]);
 
-  return { loading, city, meetings, warning, dismissWarning: () => setWarning(null), stepOneDay, updateCity, markMeetingRead, resetCity, exportJson, importJson };
+  return { loading, city, meetings, warning, dismissWarning: () => setWarning(null), exportNotice, dismissExportNotice: () => setExportNotice(null), stepOneDay, updateCity, markMeetingRead, resetCity, exportCity, importJson };
 }

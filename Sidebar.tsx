@@ -1,6 +1,7 @@
 // Sidebar.tsx — Responsive navigation and simulation utilities
-import { AtSign, Briefcase, Building2, Download, Home, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
+import { AtSign, Briefcase, Building2, Home, LayoutDashboard, RotateCcw, ScrollText, Store, Upload, Users } from 'lucide-react';
 import { useRef } from 'react';
+import { ExportMenu } from './ExportMenu';
 import type { NavTab } from './types';
 
 interface SidebarProps {
@@ -14,12 +15,12 @@ interface SidebarProps {
   boardUnreadCount: number;
   sharityPostCount: number;
   sharityUnreadCount: number;
-  onExportJson: () => void;
+  onExportCity: (mode: 'download' | 'upload') => void;
   onImportJson: (file: File) => void;
   onRequestNewCity: () => void;
 }
 
-export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, eventCount, martLowStockCount, homelessCount, boardUnreadCount, sharityPostCount, sharityUnreadCount, onExportJson, onImportJson, onRequestNewCity }: SidebarProps) {
+export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, eventCount, martLowStockCount, homelessCount, boardUnreadCount, sharityPostCount, sharityUnreadCount, onExportCity, onImportJson, onRequestNewCity }: SidebarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const navItems: { id: NavTab; label: string; count?: number; icon: typeof LayoutDashboard }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -33,11 +34,11 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
   ];
   const showUnread = (id: NavTab) => (id === 'companies' && boardUnreadCount > 0) || (id === 'sharity' && sharityPostCount > 0 && sharityUnreadCount > 0);
   const unreadCount = (id: NavTab) => id === 'sharity' ? sharityUnreadCount : boardUnreadCount;
-  const utilities = (
+  const renderUtilities = (mobile: boolean) => (
     <>
-      <button type="button" onClick={onExportJson} className="flex items-center justify-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-[11px] font-medium text-slate-300 hover:text-slate-50" aria-label="Export city data"><Download className="size-3" aria-hidden="true" /><span>Export</span></button>
-      <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center justify-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-[11px] font-medium text-slate-300 hover:text-slate-50" aria-label="Import city data"><Upload className="size-3" aria-hidden="true" /><span>Import</span></button>
-      <button type="button" onClick={onRequestNewCity} className="flex items-center justify-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-[11px] font-medium text-slate-300 hover:text-slate-50"><RotateCcw className="size-3" aria-hidden="true" /><span>New City</span></button>
+      <ExportMenu onDownload={() => onExportCity('download')} onUpload={() => onExportCity('upload')} mobile={mobile} />
+      <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center justify-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-[11px] font-medium text-slate-300 hover:text-slate-50 cursor-pointer" aria-label="Import city data"><Upload className="size-3" aria-hidden="true" /><span>Import</span></button>
+      <button type="button" onClick={onRequestNewCity} className="flex items-center justify-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-[11px] font-medium text-slate-300 hover:text-slate-50 cursor-pointer"><RotateCcw className="size-3" aria-hidden="true" /><span>New City</span></button>
     </>
   );
   return (
@@ -54,7 +55,7 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
           })}
         </nav>
         <div className="flex flex-col gap-2 border-t border-slate-800/80 pt-4">
-          <div className="grid grid-cols-2 gap-2">{utilities}</div>
+          <div className="grid grid-cols-2 gap-2">{renderUtilities(false)}</div>
         </div>
       </aside>
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImportJson(file); event.target.value = ''; }} />
@@ -70,7 +71,7 @@ export function Sidebar({ activeTab, onSelectTab, citizenCount, vacancyCount, ev
             </button>;
           })}
         </div>
-        <div className="flex items-center justify-center gap-2 border-t border-slate-800/70 px-2 py-1.5">{utilities}</div>
+        <div className="flex items-center justify-center gap-2 border-t border-slate-800/70 px-2 py-1.5">{renderUtilities(true)}</div>
       </nav>
     </>
   );

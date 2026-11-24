@@ -2,7 +2,7 @@
 
 import { validateAndMigrateCity } from './cityMigration';
 import type { BoardMeeting } from './boardTypes';
-import { APP_VERSION, LEGACY_STORAGE_KEYS, STORAGE_KEY } from './constants';
+import { LEGACY_STORAGE_KEYS, STORAGE_KEY } from './constants';
 import {
   idbClearAll,
   idbGetAllMeetings,
@@ -10,6 +10,7 @@ import {
   idbPutCity,
   idbPutMeeting,
 } from './idbHelpers';
+import { buildVijSaveBundle } from './saveExport';
 import type { CityState } from './types';
 
 
@@ -74,7 +75,7 @@ export async function clearAllDbData(): Promise<void> {
 }
 
 export function exportCityBundleJson(city: CityState, meetings: BoardMeeting[]): string {
-  return JSON.stringify({ format: 'vij_city_export_v1', version: APP_VERSION, exportedAt: new Date().toISOString(), city, boardMeetings: meetings }, null, 2);
+  return JSON.stringify(buildVijSaveBundle(city, meetings), null, 2);
 }
 
 export function parseImportedCityBundle(rawJson: string): { city: CityState; meetings: BoardMeeting[] } {
@@ -82,7 +83,7 @@ export function parseImportedCityBundle(rawJson: string): { city: CityState; mee
   const rawCity = parsed && typeof parsed === 'object' && 'city' in parsed ? parsed.city : parsed;
   const city = validateAndMigrateCity(rawCity);
   if (!city) {
-    throw new Error('Invalid Vij city JSON file: expected 50 citizens, 4 companies, and Mart state.');
+    throw new Error('Invalid Vij city JSON file: expected 50 citizens, 4-5 companies, and Mart state.');
   }
   const meetings = Array.isArray(parsed?.boardMeetings) ? (parsed.boardMeetings as BoardMeeting[]) : [];
   return { city, meetings: meetings.sort((a, b) => b.totalDay - a.totalDay) };

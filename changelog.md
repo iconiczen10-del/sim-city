@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.1 — 2026-11-24
+- Implemented **Export Options (Download to PC & Upload to SimCity Saves)**:
+- Extended exported JSON save files with top-level `vijSave: true`, `gameVersion`, `simDay`, `citizensAlive`, and `summary` (`richest` citizen, all 5 `companies` statuses/cash, `treasury`, `martStatus`, and `gjPowerStatus`), while keeping backwards-compatible import support for legacy saves.
+- Replaced the single Export button with an **Export** dropdown menu (`ExportMenu`) offering **Download to PC** (`vij-save-day-[simDay]-[date].json`) and **Upload to SimCity Saves** (downloads a local copy first and opens `https://gdrive063-ship-it.github.io/simcity-saves/upload.html` in a new tab with zero game network requests).
+- Added Escape/outside-click menu dismissal, `"City saved to file (day X)"` Event Log entries on each export, download failure notices, upload guidance banner, and a copyable plain-text fallback URL if the browser blocks the new tab.
+
 ## v0.9.0 — 2026-11-24
 - Implemented **GJ Electricity (5th Private Company), Household/Company Power Billing, and Electronics at Vij Mart**:
 - Added **GJ Electricity (`gjelectricity`)** as the 5th private company (`∆40,000` starting cash, `1.10x` industry multiplier, 1–3 employees starting with founding CEO plus Engineer and Finance Officer job market vacancies, and **zero** simulated outside revenue — 100% revenue earned from monthly electricity bills).

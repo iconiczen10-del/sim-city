@@ -10,6 +10,7 @@ import { HousingView } from './HousingView';
 import { JobMarketView } from './JobMarketView';
 import { MartView } from './MartView';
 import { OverviewView } from './OverviewView';
+import { SaveNoticeBanner } from './SaveNoticeBanner';
 import { SharityView } from './SharityView';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
@@ -19,7 +20,7 @@ import { useCityPersistence } from './useCityPersistence';
 const SPEED_INTERVAL_MS: Record<Exclude<SimSpeed, 0>, number> = { 1: 10000, 2: 5000, 5: 2000, 10: 1000, 20: 500 };
 
 export default function App() {
-  const { loading, city, meetings, warning, dismissWarning, stepOneDay, updateCity, markMeetingRead, resetCity, exportJson, importJson } = useCityPersistence();
+  const { loading, city, meetings, warning, dismissWarning, exportNotice, dismissExportNotice, stepOneDay, updateCity, markMeetingRead, resetCity, exportCity, importJson } = useCityPersistence();
 
   const [speed, setSpeed] = useState<SimSpeed>(1);
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
@@ -82,6 +83,8 @@ export default function App() {
         </div>
       )}
 
+      {exportNotice && <SaveNoticeBanner notice={exportNotice} onDismiss={dismissExportNotice} />}
+
       <div className="flex-1 flex min-h-0 min-w-0">
         <Sidebar
           activeTab={activeTab}
@@ -94,7 +97,7 @@ export default function App() {
           boardUnreadCount={boardUnreadCount}
           sharityPostCount={city.sharity.posts.length}
           sharityUnreadCount={city.sharity.unreadPostCount}
-          onExportJson={exportJson}
+          onExportCity={exportCity}
           onImportJson={importJson}
           onRequestNewCity={() => setShowNewCityConfirm(true)}
         />
@@ -134,7 +137,7 @@ export default function App() {
       {showNewCityConfirm && (
         <ConfirmModal
           title="Start a New City?"
-          message="This replaces the current simulation of Vij, clears stored board meetings, resets treasury to ∆20,000, seeds 4 companies at ∆40,000 each, and creates 50 fresh citizens."
+          message="This replaces the current simulation of Vij, clears stored board meetings, resets treasury to ∆20,000, seeds 5 companies at ∆40,000 each, and creates 50 fresh citizens."
           confirmLabel="Create New City"
           seedValue={seedInput}
           onSeedChange={setSeedInput}
