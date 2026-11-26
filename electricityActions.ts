@@ -9,6 +9,7 @@ import { makeCityEvent } from './eventFactory';
 import { formatMonthYear, formatSimDate } from './formatters';
 import { DISTRICTS } from './housingCatalog';
 import type { DistrictId } from './housingTypes';
+import { recordSimEvent } from './recordsStore';
 import type { CityState } from './types';
 
 function clockFrom(city: CityState) {
@@ -53,10 +54,12 @@ export function repairGJPlant(prev: CityState, plantId: string): CityState {
   plant.status = 'repairing';
   plant.daysRemaining = PLANT_REPAIR_DAYS;
   const clock = clockFrom(next);
-  appendCompanyLedger(gj, clock, formatSimDate(next.day, next.month, next.year), {
+  const dl = formatSimDate(next.day, next.month, next.year);
+  appendCompanyLedger(gj, clock, dl, {
     kind: 'outflow', category: 'plant_capex', label: `Repair ${plant.name}`,
     detail: `CEO ordered 10-day repair`, amount: PLANT_REPAIR_COST, balanceAfter: gj.cash,
   });
+  recordSimEvent({ simDay: next.totalDays, dateLabel: dl, category: 'gjelectricity', subType: 'plant_repair', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `CEO ordered repair for ${plant.name}`, detail: { plantId } });
   return next;
 }
 
@@ -72,6 +75,7 @@ export function toggleDistrictPowerCut(prev: CityState, district: DistrictId): C
     title: has ? `${DISTRICTS[district].label} Power Restored` : `${DISTRICTS[district].label} Power Cut`,
     detail: `GJ Electricity CEO ${has ? 'restored supply to' : 'cut grid feed for'} ${DISTRICTS[district].label}.`,
   }));
+  recordSimEvent({ simDay: next.totalDays, dateLabel: formatSimDate(next.day, next.month, next.year), category: 'gjelectricity', subType: 'grid_control', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `CEO ${has ? 'restored' : 'cut'} grid power for ${DISTRICTS[district].label}`, detail: { district, restored: has } });
   return next;
 }
 
@@ -81,6 +85,7 @@ export function toggleCompanyPowerCut(prev: CityState, companyId: CompanyId): Ci
   const el = next.electricity!;
   const has = el.manualCutCompanies.includes(companyId);
   el.manualCutCompanies = has ? el.manualCutCompanies.filter((id) => id !== companyId) : [...el.manualCutCompanies, companyId];
+  recordSimEvent({ simDay: next.totalDays, dateLabel: formatSimDate(next.day, next.month, next.year), category: 'gjelectricity', subType: 'grid_control', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `CEO ${has ? 'restored' : 'cut'} grid feed for ${companyId}`, detail: { companyId, restored: has } });
   return next;
 }
 
@@ -93,6 +98,7 @@ export function moveRationingPriority(prev: CityState, tier: RationingTier, dir:
   if (idx < 0 || swap < 0 || swap >= arr.length) return prev;
   [arr[idx], arr[swap]] = [arr[swap], arr[idx]];
   next.electricity!.rationingPriority = arr;
+  recordSimEvent({ simDay: next.totalDays, dateLabel: formatSimDate(next.day, next.month, next.year), category: 'gjelectricity', subType: 'rationing_priority', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `CEO updated rationing priority (${arr.join(' > ')})`, detail: { rationingPriority: arr, tier, dir } });
   return next;
 }
 

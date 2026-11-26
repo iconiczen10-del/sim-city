@@ -6,7 +6,7 @@ import { clamp } from './economy';
 import type { ManagerStyle, MartState } from './martTypes';
 import type { Citizen } from './types';
 
-export const WORKING_ROLES_DESC: Exclude<RoleLevel, 'Unemployed'>[] = [
+export const WORKING_ROLES_DESC: Exclude<RoleLevel, 'Unemployed' | 'Retired'>[] = [
   'CEO',
   'Executive',
   'Manager',
@@ -23,6 +23,7 @@ export const ROLE_RANK: Record<RoleLevel, number> = {
   Staff: 2,
   Entry: 1,
   Unemployed: 0,
+  Retired: 0,
 };
 
 export const EDU_RANK: Record<EducationLevel, number> = {
@@ -35,7 +36,7 @@ export const EDU_RANK: Record<EducationLevel, number> = {
 };
 
 export const ROLE_REQUIREMENTS: Record<
-  Exclude<RoleLevel, 'Unemployed'>,
+  Exclude<RoleLevel, 'Unemployed' | 'Retired'>,
   { minEdu: EducationLevel; minSkill: number; minExp: number }
 > = {
   Entry: { minEdu: 'none', minSkill: 0, minExp: 0 },
@@ -58,7 +59,7 @@ export function getCompanyHealthMultiplier(company: Company): number {
 }
 
 export function computeCitizenPerformance(citizen: Citizen, totalDays = 0): number {
-  if (!citizen.alive || citizen.roleLevel === 'Unemployed') return 0;
+  if (!citizen.alive || citizen.roleLevel === 'Unemployed' || citizen.roleLevel === 'Retired') return 0;
   if (citizen.healthProfile?.breakdownUntilDay && totalDays > 0 && citizen.healthProfile.breakdownUntilDay >= totalDays) {
     return 5;
   }
@@ -71,7 +72,8 @@ export function computeCitizenPerformance(citizen: Citizen, totalDays = 0): numb
   const moodBonus = ((citizen.mood - 50) / 50) * 8;
   const hSat = citizen.housingSatisfaction?.total ?? 50;
   const housingPerf = hSat > 75 ? 4 : hSat < 30 ? -6 : 0;
-  return Math.round(clamp(28 + skillPart + discPart - stressPenalty - energyPenalty + bossBonus + moodBonus + housingPerf, 5, 99));
+  const agePenalty = citizen.age >= 56 ? (citizen.age - 55) * 1.15 : 0;
+  return Math.round(clamp(28 + skillPart + discPart - stressPenalty - energyPenalty + bossBonus + moodBonus + housingPerf - agePenalty, 5, 99));
 }
 
 export function syncMartPersonalityFromCeo(mart: MartState, citizens: Citizen[]): void {

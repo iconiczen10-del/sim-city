@@ -5,6 +5,7 @@ import { MART_RUSH_FEE } from './constants';
 import { makeCityEvent } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta, formatSimDate } from './formatters';
 import type { ShoppingCategory } from './martTypes';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState } from './types';
 
 export function applyDeliverySchedule(
@@ -23,13 +24,10 @@ export function applyDeliverySchedule(
   sched.nextDeliveryLabel = mode === 'auto' ? 'Auto' : `Manual (${sched.gapDays}d)`;
 
   const clock = { totalDays: prev.totalDays, day: prev.day, month: prev.month, year: prev.year };
-  next.events.unshift(makeCityEvent(clock, `sg_sched_${category}_${Date.now()}`, {
-    type: 'simgod',
-    title: 'SimGod Action: Delivery Schedule',
-    detail: mode === 'auto'
-      ? `Returned ${CATEGORY_LABELS[category]} ordering to Auto.`
-      : `Set ${CATEGORY_LABELS[category]} delivery every ${sched.gapDays}d (target ${sched.targetSupplyDays}d supply).`,
-  }));
+  const dateLabel = formatSimDate(prev.day, prev.month, prev.year);
+  const detail = mode === 'auto' ? `Returned ${CATEGORY_LABELS[category]} ordering to Auto.` : `Set ${CATEGORY_LABELS[category]} delivery every ${sched.gapDays}d (target ${sched.targetSupplyDays}d supply).`;
+  next.events.unshift(makeCityEvent(clock, `sg_sched_${category}_${Date.now()}`, { type: 'simgod', title: 'SimGod Action: Delivery Schedule', detail }));
+  recordSimGodAction({ city: next, dateLabel, targetId: 'vijmart', targetKind: 'mart', targetName: 'Vij Mart', preview: `${CATEGORY_LABELS[category]} schedule (${mode})`, cause: 'SimGod delivery override', effect: detail });
   return next;
 }
 
@@ -69,10 +67,7 @@ export function applyOrderIntervention(
     detail = `Cancelled ${order.quantity} ${CATEGORY_LABELS[order.category]} (L${order.standard}) delivery.`;
   }
 
-  next.events.unshift(makeCityEvent(clock, `sg_ord_${orderId}_${Date.now()}`, {
-    type: 'simgod',
-    title: `SimGod Action: Delivery ${action}`,
-    detail,
-  }));
+  next.events.unshift(makeCityEvent(clock, `sg_ord_${orderId}_${Date.now()}`, { type: 'simgod', title: `SimGod Action: Delivery ${action}`, detail }));
+  recordSimGodAction({ city: next, dateLabel: formatSimDate(prev.day, prev.month, prev.year), targetId: 'vijmart', targetKind: 'mart', targetName: 'Vij Mart', preview: `Delivery ${action} (${orderId})`, cause: `SimGod delivery ${action}`, effect: detail });
   return next;
 }

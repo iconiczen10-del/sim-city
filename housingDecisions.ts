@@ -31,7 +31,7 @@ export function evaluateCitizenHousingDecisions(params: {
     if (!c.alive) continue;
     if (!c.housingPrefs) c.housingPrefs = seedHousingPreferences(c);
     const house = c.homeId ? byHouse.get(c.homeId) : undefined;
-    stepAnnualPreferenceDrift(c, house, clock.year);
+    stepAnnualPreferenceDrift(c, house, clock.year, clock.totalDays, dateLabel);
     const sat = computeHousingSatisfaction(c, house, sharity);
     c.housingSatisfaction = sat;
 

@@ -56,7 +56,7 @@ export function SharityFeedFilters(p: SharityFeedFiltersProps) {
             ))}
           </div>
           {p.scope === 'following' && (
-            <select aria-label="View following feed as" value={p.activeViewerId} onChange={(e) => p.onViewer(e.target.value)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+            <select aria-label="View following feed as" value={p.activeViewerId} onChange={(e) => p.onViewer(e.target.value)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200 max-w-full">
               {p.city.citizens.map((c) => <option key={c.id} value={c.id}>As {c.name}</option>)}
             </select>
           )}
@@ -72,7 +72,7 @@ export function SharityFeedFilters(p: SharityFeedFiltersProps) {
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
           <input type="text" value={p.search} onChange={(e) => p.onSearch(e.target.value)} placeholder="Search posts, @handles, #tags..." className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500" />
         </div>
-        <select aria-label="Filter by author" value={p.authorFilter} onChange={(e) => p.onAuthor(e.target.value)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+        <select aria-label="Filter by author" value={p.authorFilter} onChange={(e) => p.onAuthor(e.target.value)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200 max-w-full">
           <option value="all">All Authors</option>
           {Object.values(p.city.sharity.profiles).map((pr) => <option key={pr.id} value={pr.id}>{pr.name} ({pr.handle})</option>)}
         </select>

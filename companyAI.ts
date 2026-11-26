@@ -26,7 +26,7 @@ function releaseEmployee(params: {
 }): void {
   const { emp, comp, kind, reason, vacancies, jobEvents, clock, dateLabel, events } = params;
   const oldRole = emp.roleLevel;
-  if (oldRole !== 'Unemployed' && kind !== 'layoff') {
+  if (oldRole !== 'Unemployed' && oldRole !== 'Retired' && kind !== 'layoff') {
     openVacancy(vacancies, comp, oldRole, `${emp.name} (${kind})`, clock, dateLabel);
   }
   emp.employerId = null;
@@ -78,7 +78,8 @@ export function runCompanyMonthlyAI(params: {
     for (const emp of employees) {
       emp.tenureMonths += 1;
       emp.monthsSincePromotion += 1;
-      emp.skill = Math.round(clamp(emp.skill + (0.08 + ((emp.traits.curiosity ?? 50) / 100) * 0.42) * (emp.housingSkillMult ?? 1), 0, 100) * 10) / 10;
+      const ageSkillMult = emp.age <= 40 ? 1.0 : emp.age <= 55 ? 0.55 : 0.35;
+      emp.skill = Math.round(clamp(emp.skill + (0.08 + ((emp.traits.curiosity ?? 50) / 100) * 0.42) * (emp.housingSkillMult ?? 1) * ageSkillMult, 0, 100) * 10) / 10;
       const boss = emp.bossId ? byId.get(emp.bossId) : null;
       if (boss && boss.alive) {
         const bossPush = (boss.traits.kindness - boss.traits.greed) * 0.12;
@@ -134,7 +135,7 @@ export function runCompanyMonthlyAI(params: {
       }
     } else if (comp.id !== 'vijindustries' && comp.positiveProfitStreak >= 2 && comp.direction === 'aggressive' && comp.cash > 25000) {
       if (comp.id === 'gjelectricity' && employees.length >= 3) continue;
-      const openRole: Exclude<RoleLevel, 'Unemployed'> = comp.id === 'vijtech' || comp.id === 'vijcapital' || comp.id === 'gjelectricity' ? 'Staff' : 'Entry';
+      const openRole: Exclude<RoleLevel, 'Unemployed' | 'Retired'> = comp.id === 'vijtech' || comp.id === 'vijcapital' || comp.id === 'gjelectricity' ? 'Staff' : 'Entry';
       openVacancy(vacancies, comp, openRole, `${comp.name} growth expansion`, clock, dateLabel);
     }
 

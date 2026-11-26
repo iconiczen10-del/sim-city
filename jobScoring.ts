@@ -9,7 +9,7 @@ import type { Citizen, RoleLevel } from './types';
 export function openVacancy(
   vacancies: CompanyVacancy[],
   company: Company,
-  role: Exclude<RoleLevel, 'Unemployed'>,
+  role: Exclude<RoleLevel, 'Unemployed' | 'Retired'>,
   reason: string,
   clock: SimClock,
   dateLabel: string
@@ -33,7 +33,7 @@ export function openVacancy(
   });
 }
 
-export function meetsRoleRequirements(c: Citizen, role: Exclude<RoleLevel, 'Unemployed'>): boolean {
+export function meetsRoleRequirements(c: Citizen, role: Exclude<RoleLevel, 'Unemployed' | 'Retired'>): boolean {
   const req = ROLE_REQUIREMENTS[role];
   return (
     EDU_RANK[c.education] >= EDU_RANK[req.minEdu] &&
@@ -69,7 +69,8 @@ export function collectApplicantsForVacancy(
 ): VacancyApplicant[] {
   const apps: VacancyApplicant[] = [];
   for (const c of citizens) {
-    if (!c.alive || !meetsRoleRequirements(c, vacancy.role)) continue;
+    if (!c.alive || c.roleLevel === 'Retired' || c.retired || c.age < 25) continue;
+    if (!meetsRoleRequirements(c, vacancy.role)) continue;
     if (c.healthProfile?.breakdownUntilDay && totalDays > 0 && totalDays <= c.healthProfile.breakdownUntilDay) continue;
     const isInternal = c.employerId === comp.id;
     const roleDiff = ROLE_RANK[vacancy.role] - ROLE_RANK[c.roleLevel];

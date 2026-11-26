@@ -14,9 +14,9 @@ export function MartDecisionLogPanel({ mart, selectedCat }: MartDecisionLogPanel
   const pf = sampleItem?.priceFactors;
 
   return (
-    <div className="grid grid-cols-12 gap-4">
-      <div className="col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
-        <div className="flex items-baseline justify-between mb-3">
+    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+      <div className="sm:col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
           <h3 className="font-display text-sm font-semibold text-slate-100">
             Why This Price ({CATEGORY_LABELS[selectedCat]} L3)
           </h3>
@@ -55,7 +55,7 @@ export function MartDecisionLogPanel({ mart, selectedCat }: MartDecisionLogPanel
         )}
       </div>
 
-      <div className="col-span-7 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+      <div className="sm:col-span-7 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
         <h3 className="font-display text-sm font-semibold text-slate-100 mb-3">Manager Decision Log</h3>
         <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
           {mart.decisionLog.slice(0, 30).map((d) => (

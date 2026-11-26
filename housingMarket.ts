@@ -13,6 +13,7 @@ import { getTenantMonthlyRent } from './housingScores';
 import type { House, HousingState } from './housingTypes';
 import { getAffinity } from './sharityAffinity';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 function scoreVacancyForCitizen(c: Citizen, h: House, citizens: Citizen[], sharity: SharityState): number {
@@ -86,6 +87,12 @@ export function stepHousingMarketDaily(params: {
       });
     }
     const chosen = ranked.find((r) => landlordAcceptsApplicant(r.house, c, citizens, r.score));
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'search',
+      subjectId: c.id, subjectKind: 'citizen', subjectName: c.name,
+      summary: chosen ? `${c.name} searched ${ranked.length} open house(s) and picked ${chosen.house.name} (score ${chosen.score})` : `${c.name} searched ${ranked.length} house(s) with no accepted match`,
+      detail: { vacanciesChecked: vacs.length, affordableRanked: ranked.slice(0, 3).map((r) => ({ houseId: r.house.id, name: r.house.name, score: r.score })), chosenHouseId: chosen?.house.id ?? null, chosenScore: chosen?.score ?? null },
+    });
     if (chosen) {
       const mCost = c.homeId ? getMoveCost(curHouse, chosen.house) : 0;
       if (mCost > 0) c.savings = Math.max(0, Math.round((c.savings - mCost) * 100) / 100);

@@ -8,6 +8,7 @@ import { HOUSE_SPECS } from './housingCatalog';
 import { evictCitizenFromHouse, moveCitizenToHouse } from './housingEviction';
 import { syncCitizenHousingLinks } from './housingScores';
 import type { DistrictId } from './housingTypes';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState } from './types';
 
 function cloneState(city: CityState) {
@@ -31,11 +32,12 @@ export function simGodRaiseHouseRent(city: CityState, houseId: string, pct = 25)
     applyEmotionPulse(occ.emotions, 'anger', 20, `${h.name} forced rent raise`, clock, dateLabel);
   }
   next.events.unshift(makeCityEvent(clock, `sg_hraise_${h.id}`, { type: 'rent-raise', title: 'SimGod Forced Rent Raise', detail: `${h.name} rent raised ${formatDelta(old)} → ${formatDelta(h.rentPrice)} (+${pct}%).` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: h.id, targetKind: 'house', targetName: h.name, preview: `Force rent +${pct}%`, cause: 'SimGod rent directive', effect: `${h.name} rent ${formatDelta(old)} → ${formatDelta(h.rentPrice)}` });
   return next;
 }
 
 export function simGodDistrictMarketShift(city: CityState, district: DistrictId, mode: 'boom' | 'bust'): CityState {
-  const { next, clock } = cloneState(city);
+  const { next, clock, dateLabel } = cloneState(city);
   const mult = mode === 'boom' ? 1.2 : 0.8;
   for (const h of next.housing.houses) {
     if (h.district !== district || h.condemned) continue;
@@ -49,6 +51,7 @@ export function simGodDistrictMarketShift(city: CityState, district: DistrictId,
     m.lastDriftPct = mode === 'boom' ? 20 : -20;
   }
   next.events.unshift(makeCityEvent(clock, `sg_hmkt_${district}`, { type: 'simgod', title: `SimGod District ${mode === 'boom' ? 'Boom' : 'Bust'}`, detail: `${district} rents shifted ${mode === 'boom' ? '+20%' : '-20%'}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: 'city', targetKind: 'city', targetName: 'City of Vij', preview: `${district} ${mode}`, cause: `SimGod district ${mode}`, effect: `${district} rents & prices ${mode === 'boom' ? '+20%' : '-20%'}` });
   return next;
 }
 
@@ -71,6 +74,7 @@ export function simGodForceSellBack(city: CityState, houseId: string): CityState
   next.housing.transactions.unshift({ id: `htx_sgsell_${clock.totalDays}_${h.id}`, day: clock.totalDays, dateLabel, kind: 'sold', citizenId: owner?.id ?? '', citizenName: owner?.name ?? 'Owner', houseId: h.id, houseName: h.name, amount: payout, note: 'Forced sale back to government' });
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hsell_${h.id}`, { type: 'sold-house', citizenId: owner?.id, citizenName: owner?.name, title: 'SimGod Forced Sell-Back', detail: `${h.name} sold back to government for ${formatDelta(payout)}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: h.id, targetKind: 'house', targetName: h.name, preview: `Force sell-back (${formatDelta(payout)})`, cause: 'SimGod forced sale', effect: `Transferred ${h.name} back to Gov` });
   return next;
 }
 
@@ -86,6 +90,7 @@ export function simGodHousingShortage(city: CityState, houseCount: number, days:
   }
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hshort_${clock.totalDays}`, { type: 'simgod', title: 'SimGod Housing Shortage', detail: `Closed ${active.length} residences for ${days} days of urgent maintenance.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: 'city', targetKind: 'city', targetName: 'City of Vij', preview: `Close ${active.length} houses (${days}d)`, cause: 'Emergency maintenance shortage', effect: `Closed ${active.length} residences` });
   return next;
 }
 
@@ -99,5 +104,6 @@ export function simGodForceRoommates(city: CityState, citizenAId: string, citize
   moveCitizenToHouse({ citizen: b, target: h, housing: next.housing, allCitizens: next.citizens, clock, dateLabel, reason: 'Assigned shared residence', events: next.events, forced: true });
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hroom_${h.id}`, { type: 'simgod', title: 'SimGod Forced Roommates', detail: `Paired ${a.name} and ${b.name} inside ${h.name}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: h.id, targetKind: 'house', targetName: h.name, preview: `Pair ${a.name} & ${b.name}`, cause: 'Forced roommate assignment', effect: `Assigned ${a.name} and ${b.name} to ${h.name}` });
   return next;
 }

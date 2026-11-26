@@ -51,6 +51,13 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   theft_victim: 'Stolen From',
   breakdown: 'Mental Breakdown',
   helped: 'Helped by Neighbor',
+  marriage: 'Marriage',
+  widowed: 'Loss of Spouse',
+  orphan: 'Orphaned Start',
+  child_birth: 'Welcomed Child',
+  retired: 'Retirement',
+  heartbreak: 'Relationship Breakup',
+  family_pride: 'Family Milestone',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
@@ -68,6 +75,12 @@ export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
   risk_choice: 'Risk Choice',
   housing_buy: 'Buy Property',
   housing_move: 'Housing Move',
+  retirement_choice: 'Retirement Decision',
+  marriage_proposal: 'Marriage Proposal',
+  cohabitation: 'Move In Together',
+  child_launch: 'Age 25 Life Path',
+  child_tuition: 'Child Tuition',
+  breakup: 'Relationship Split',
 };
 
 export const LIFE_LOG_LABELS: Record<LifeLogCategory, string> = {

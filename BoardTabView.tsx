@@ -88,8 +88,8 @@ export function BoardTabView({ city, meetings, onMarkMeetingRead, onSelectCitize
       <BoardSeatsAndKpis comp={comp} liveMetrics={liveMetrics} displaySeats={displaySeats} onSelectCitizen={onSelectCitizen} />
 
       {selected ? (
-        <div className="grid grid-cols-12 gap-5 items-start">
-          <div className="col-span-7">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+          <div className="sm:col-span-7">
             <BoardTranscriptPanel
               lines={selected.transcript}
               visibleCount={visibleCount}
@@ -101,7 +101,7 @@ export function BoardTabView({ city, meetings, onMarkMeetingRead, onSelectCitize
               onSelectCitizen={onSelectCitizen}
             />
           </div>
-          <div className="col-span-5">
+          <div className="sm:col-span-5">
             <BoardProbabilityPanel meeting={selected} voteRevealed={voteRevealed} onSelectCitizen={onSelectCitizen} />
           </div>
         </div>

@@ -60,8 +60,9 @@ export function stepCitizenHealthDaily(
     const energyFactor = n.energy.value < 20 ? 0.015 : 0;
     const houseFactor = n.shelter.value < 35 || n.safety.value < 45 ? 0.008 : 0;
     const baseIll = minQuality === 1 ? 0.018 : minQuality <= 3 ? 0.003 : 0.0008;
+    const ageIllMult = c.age >= 56 ? 1.35 : 1.0;
     const housingIllMult = (c.housingSatisfaction?.total ?? 50) < 30 ? 1.2 : 1.0;
-    if (simRand() < (baseIll + immFactor + hygFactor + energyFactor + houseFactor) * housingIllMult) {
+    if (simRand() < (baseIll + immFactor + hygFactor + energyFactor + houseFactor) * housingIllMult * ageIllMult) {
       const hit = (minQuality === 1 ? 8 : 5) * ageMult;
       c.health = clamp(c.health - hit, 0, 100);
       hp.illnessName = n.hygiene.value < 30 ? 'Hygiene Infection' : minQuality === 1 ? 'Dietary Illness' : 'Seasonal Fever';

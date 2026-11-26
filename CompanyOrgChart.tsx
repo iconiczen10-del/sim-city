@@ -11,7 +11,7 @@ interface CompanyOrgChartProps {
   onSelectCitizen: (citizenId: string) => void;
 }
 
-const ROLE_RING: Record<Exclude<RoleLevel, 'Unemployed'>, string> = {
+const ROLE_RING: Record<Exclude<RoleLevel, 'Unemployed' | 'Retired'>, string> = {
   CEO: 'border-amber-500/50 bg-amber-500/10',
   Executive: 'border-purple-500/40 bg-purple-500/10',
   Manager: 'border-sky-500/40 bg-sky-500/10',
@@ -47,11 +47,11 @@ export function CompanyOrgChart({ company, citizens, onSelectCitizen }: CompanyO
           const group = staff.filter((c) => c.roleLevel === role);
           if (group.length === 0) return null;
           return (
-            <div key={role} style={{ paddingLeft: `${Math.min(depth * 14, 56)}px` }} className="space-y-1.5">
+            <div key={role} style={{ paddingLeft: `${Math.min(depth * 8, 24)}px` }} className="space-y-1.5">
               <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
                 L{depth + 1} · {role} ({group.length})
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {group.map((emp) => {
                   const boss = emp.bossId ? byId.get(emp.bossId) : null;
                   return (

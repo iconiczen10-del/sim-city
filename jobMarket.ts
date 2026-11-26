@@ -49,7 +49,7 @@ export function processJobMarketMonthEnd(params: {
     const prevCompId = hiree.employerId;
     const wasInternal = prevCompId === comp.id;
 
-    if (prevCompId && prevRole !== 'Unemployed') {
+    if (prevCompId && prevRole !== 'Unemployed' && prevRole !== 'Retired') {
       const oldComp = companies.find((co) => co.id === prevCompId);
       if (oldComp) {
         openVacancy(queue, oldComp, prevRole, wasInternal ? `${hiree.name} promoted` : `${hiree.name} departed`, clock, dateLabel);

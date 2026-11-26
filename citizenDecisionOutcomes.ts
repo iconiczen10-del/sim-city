@@ -4,7 +4,8 @@ import { pushDecision, sumDecisionFactors } from './citizenDecisions';
 import type { DecisionKind, DecisionOption, DecisionRecord, SignedFactor } from './citizenInspectorTypes';
 import { appendLifeLog } from './citizenLedger';
 import type { SimClock } from './eventFactory';
-import { formatDelta } from './formatters';
+import { formatDelta, formatSimDate } from './formatters';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen } from './types';
 
 function evaluateOutcome(c: Citizen, dec: DecisionRecord, clock: SimClock, windowDays: 7 | 30): { day: number; summary: string; worked: boolean } {
@@ -35,12 +36,25 @@ function evaluateOutcome(c: Citizen, dec: DecisionRecord, clock: SimClock, windo
 }
 
 export function stepCitizenDecisionOutcomes(c: Citizen, clock: SimClock): void {
+  const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
   for (const dec of c.decisions) {
     if (!dec.outcome7d && clock.totalDays >= dec.totalDay + 7) {
       dec.outcome7d = evaluateOutcome(c, dec, clock, 7);
+      recordSimEvent({
+        simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'decision_outcome',
+        subjectId: c.id, subjectKind: 'citizen', subjectName: c.name,
+        summary: `7d outcome for "${dec.title}": ${dec.outcome7d.worked ? 'Worked' : 'Struggled'} — ${dec.outcome7d.summary}`,
+        detail: { decisionId: dec.id, window: 7, chosenOption: dec.chosenOption, outcome: dec.outcome7d },
+      });
     }
     if (!dec.outcome30d && clock.totalDays >= dec.totalDay + 30) {
       dec.outcome30d = evaluateOutcome(c, dec, clock, 30);
+      recordSimEvent({
+        simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'decision_outcome',
+        subjectId: c.id, subjectKind: 'citizen', subjectName: c.name,
+        summary: `30d outcome for "${dec.title}": ${dec.outcome30d.worked ? 'Worked' : 'Struggled'} — ${dec.outcome30d.summary}`,
+        detail: { decisionId: dec.id, window: 30, chosenOption: dec.chosenOption, outcome: dec.outcome30d },
+      });
     }
   }
 }
@@ -79,5 +93,11 @@ export function recordConsequentialDecision(params: {
     const logCat = kind === 'theft_choice' ? 'health' : kind === 'help_choice' ? 'gift' : 'money';
     appendLifeLog(citizen, clock.totalDays, dateLabel, logCat, diarySentence);
   }
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'decision',
+    subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+    summary: `${title}: chose "${chosenOption}" (${chosenReason})`,
+    detail: { decisionId: rec.id, kind, category, chosenOption, chosenReason, options },
+  });
   return rec;
 }

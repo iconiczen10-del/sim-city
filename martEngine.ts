@@ -1,6 +1,6 @@
 // martEngine.ts — Daily Mart deliveries, late arrivals, spoilage, rationing, reputation, and AI orchestration
 
-import { FOOD_SPOIL_DAYS, SHOPPING_CATEGORIES } from './constants';
+import { SHOPPING_CATEGORIES } from './constants';
 import { clamp } from './economy';
 import { stepElectronicsMartDayEnd, stepElectronicsMartDayStart } from './electronicsMart';
 import { makeCityEvent, type SimClock } from './eventFactory';
@@ -10,7 +10,9 @@ import { updateSalesForecasts } from './martForecast';
 import { getMartFloorManager } from './martManager';
 import { processMartOrdering } from './martOrdering';
 import { findStockItem, round2 } from './martSetup';
+import { processMartFoodSpoilage } from './martSpoilage';
 import type { MarginMood, MartState } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import { simRand, simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
@@ -74,32 +76,7 @@ export function processMartDayEnd(
   events: CityEvent[],
   outsideSupplierActive = false
 ): void {
-  // 1. Food spoilage (> 4 days)
-  for (const item of mart.stock) {
-    if (item.category !== 'food' || !item.foodAges) continue;
-    const spoiled = item.foodAges[FOOD_SPOIL_DAYS - 1] ?? 0;
-    for (let i = FOOD_SPOIL_DAYS - 1; i > 0; i--) item.foodAges[i] = item.foodAges[i - 1];
-    item.foodAges[0] = 0;
-    if (spoiled > 0) {
-      item.quantity = Math.max(0, item.quantity - spoiled);
-      mart.monthSpoilageCount += spoiled;
-      mart.wasteLog.unshift({
-        id: `waste_m_${clock.totalDays}_${item.standard}`,
-        dateLabel,
-        source: 'mart',
-        ownerName: 'Vij Mart',
-        category: 'food',
-        standard: item.standard,
-        quantity: spoiled,
-        reason: 'spoiled',
-      });
-      events.push(makeCityEvent(clock, `spoil_m_${item.standard}`, {
-        type: 'spoilage',
-        title: 'Mart Food Spoiled',
-        detail: `${spoiled} meals of ${STANDARD_LABELS[item.standard]} food spoiled in Vij Mart.`,
-      }));
-    }
-  }
+  processMartFoodSpoilage(mart, clock, dateLabel, events);
 
   // 2. Stats, rationing check, & reputation
   const alive = citizens.filter((c) => c.alive);
@@ -118,8 +95,12 @@ export function processMartDayEnd(
     }));
   }
 
-  const stockouts = mart.stock.filter((s) => s.quantity === 0 && s.dailyForecast > 0).length;
-  if (stockouts > 0) mart.monthStockoutDays += 1;
+  const stockoutSkus = mart.stock.filter((s) => s.quantity === 0 && s.dailyForecast > 0);
+  const stockouts = stockoutSkus.length;
+  if (stockouts > 0) {
+    mart.monthStockoutDays += 1;
+    recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'mart', subType: 'stockout', subjectId: 'vijmart', subjectKind: 'mart', subjectName: 'Vij Mart', summary: `Vij Mart ended day with ${stockouts} stocked-out SKU(s)`, detail: { skus: stockoutSkus.map((s) => `${s.category}:L${s.standard}`) } });
+  }
   if (mart.closedDaysLeft > 0 || mart.closedUntilFunded) mart.monthClosureDays += 1;
   const floorMgr = getMartFloorManager(citizens);
   if (floorMgr && floorMgr.mood < 20) {

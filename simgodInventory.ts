@@ -1,6 +1,6 @@
 // simgodInventory.ts — Inventory valuation, target selection, adding, and removing units
 
-import type { MassTargetScope } from './citizenInspectorTypes';
+import type { MassTargetScope } from './simgodTypes';
 import { HOUSEHOLD_PACK_DAYS, MART_BASE_PRICES, SHOPPING_CATEGORIES } from './constants';
 import type { LivingStandard, ShoppingCategory } from './martTypes';
 import { simIdSuffix, simShuffle } from './rng';

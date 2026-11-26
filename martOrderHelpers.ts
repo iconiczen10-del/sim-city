@@ -4,6 +4,7 @@ import { MART_RUSH_FEE } from './constants';
 import { CATEGORY_LABELS, formatDelta } from './formatters';
 import type { MartManagerTraits } from './martManager';
 import type { MartState, MartStockItem, ShoppingCategory } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 
 export function chooseAutoGapDays(mart: MartState, cat: ShoppingCategory): number {
   if (cat === 'food') return 3;
@@ -27,13 +28,17 @@ export function logOrderDecision(
   const rushNote = useRush
     ? ` Stock-out rush (1d ETA${rushPaidNow ? `, +${formatDelta(MART_RUSH_FEE)} fee` : ''}).`
     : '';
+  const reason = `Forecast: ground truth ${gt} + EMA ${ema} (${Math.round(profile.gtWeight * 100)}/${Math.round(profile.emaWeight * 100)}). ${profile.safetyReason}. Cash reserve protected.${rushNote}`;
   mart.decisionLog.unshift({
     id: `dec_o_${totalDays}_${item.category}_${item.standard}`,
-    dateLabel,
-    category: item.category,
-    managerName: profile.managerName,
-    summary: `${profile.managerName} ordered ${qty} ${unitLabel} (L${item.standard})`,
-    reason: `Forecast: ground truth ${gt} + EMA ${ema} (${Math.round(profile.gtWeight * 100)}/${Math.round(profile.emaWeight * 100)}). ${profile.safetyReason}. Cash reserve protected.${rushNote}`,
+    dateLabel, category: item.category, managerName: profile.managerName,
+    summary: `${profile.managerName} ordered ${qty} ${unitLabel} (L${item.standard})`, reason,
   });
   mart.decisionLog = mart.decisionLog.slice(0, 80);
+  recordSimEvent({
+    simDay: totalDays, dateLabel, category: 'mart', subType: 'mart_manager',
+    subjectId: 'vijmart', subjectKind: 'mart', subjectName: 'Vij Mart',
+    summary: `${profile.managerName} ordered ${qty} ${unitLabel} L${item.standard}${useRush ? ' (rush)' : ''}`,
+    detail: { managerName: profile.managerName, category: item.category, standard: item.standard, qty, useRush, rushPaidNow, reason, safetyMult: profile.safetyMult },
+  });
 }

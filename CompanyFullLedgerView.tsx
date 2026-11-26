@@ -64,7 +64,7 @@ export function CompanyFullLedgerView({ city }: CompanyFullLedgerViewProps) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1 p-0.5 bg-[#090d16] border border-slate-800 rounded-md">
             {PERIOD_TABS.map((t) => (
               <button
@@ -94,7 +94,7 @@ export function CompanyFullLedgerView({ city }: CompanyFullLedgerViewProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         {[
           { label: `${comp.name} Cash`, val: formatDelta(comp.cash), cls: comp.cash < 0 ? 'text-rose-300' : 'text-amber-300' },
           { label: 'Recorded Inflows', val: `+${formatPrice(totals.inflows)}`, cls: 'text-emerald-300' },
@@ -111,7 +111,7 @@ export function CompanyFullLedgerView({ city }: CompanyFullLedgerViewProps) {
       <CompanyLedgerPeriodTable period={period} rows={rows} selectedKey={selectedKey} onSelectKey={setSelectedKey} />
 
       <div className="bg-[#111827] border border-slate-800/90 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between text-xs">
+        <div className="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="font-semibold text-slate-100">
             Transaction Journal <span className="font-mono text-slate-400">({journalEntries.length} shown)</span>
           </span>
@@ -121,9 +121,9 @@ export function CompanyFullLedgerView({ city }: CompanyFullLedgerViewProps) {
         {journalEntries.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-500">No matching transactions recorded yet.</div>
         ) : (
-          <div className="divide-y divide-slate-800/70 max-h-80 overflow-y-auto text-xs">
+          <div className="divide-y divide-slate-800/70 max-h-80 overflow-y-auto overflow-x-auto text-xs">
             {journalEntries.map((e) => (
-              <div key={e.id} className="px-4 py-2.5 flex items-center justify-between gap-4 hover:bg-slate-800/25">
+              <div key={e.id} className="px-4 py-2.5 flex items-center justify-between gap-4 min-w-[540px] hover:bg-slate-800/25">
                 <div className="flex items-baseline gap-3 min-w-0">
                   <span className="font-mono text-[11px] text-slate-500 w-28 shrink-0">{e.dateLabel}</span>
                   <span className="font-mono text-[11px] text-slate-400 w-32 shrink-0">{LEDGER_CATEGORY_LABELS[e.category]}</span>

@@ -41,7 +41,7 @@ export function TierBreakdown({ citizens }: TierBreakdownProps) {
         })}
       </div>
 
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {TIER_ORDER.map((tier) => {
           const count = counts[tier];
           const pct = Math.round((count / total) * 100);

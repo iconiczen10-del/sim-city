@@ -18,7 +18,7 @@ export interface CompanyVacancy {
   id: string;
   companyId: CompanyId;
   companyName: string;
-  role: Exclude<RoleLevel, 'Unemployed'>;
+  role: Exclude<RoleLevel, 'Unemployed' | 'Retired'>;
   minSkill: number;
   minExp: number;
   minEdu: EducationLevel;

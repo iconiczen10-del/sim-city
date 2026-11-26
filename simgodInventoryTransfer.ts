@@ -8,6 +8,7 @@ import { CATEGORY_LABELS, formatDelta, formatSimDate } from './formatters';
 import type { ShoppingCategory } from './martTypes';
 import { addItemUnits, removeCategoryUnits } from './simgodInventory';
 import { getSimRngState, simPick, syncSimRng } from './rng';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState } from './types';
 
 function simClock(city: CityState): SimClock {
@@ -63,5 +64,6 @@ export function applySimGodInventoryTransfer(
   }));
   next.events = next.events.slice(0, 600);
   next.rngState = getSimRngState();
+  recordSimGodAction({ city: next, dateLabel, targetId: receiver.id, targetKind: 'citizen', targetName: receiver.name, preview: `${mode} ${summary}: ${giver.name} → ${receiver.name}`, cause: `SimGod ${mode}`, effect: `Moved ${summary} (${formatDelta(addedVal)}) from ${giver.name} to ${receiver.name}` });
   return next;
 }

@@ -1,6 +1,7 @@
 // simgodInventoryActions.ts — SimGod mass/single add and destroy inventory actions with previews
 
-import type { LossCause, MassTargetScope } from './citizenInspectorTypes';
+import type { LossCause } from './citizenInspectorTypes';
+import type { MassTargetScope } from './simgodTypes';
 import { reactToItemLoss, reactToReceivedItems } from './citizenReactions';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatDelta, formatSimDate, STANDARD_LABELS } from './formatters';
@@ -14,6 +15,7 @@ import {
 } from './simgodInventory';
 import { getSimRngState, syncSimRng } from './rng';
 import { resolveCauseLabel } from './simgodInventoryTransfer';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState, RoleLevel, TierId } from './types';
 
 function simClock(city: CityState): SimClock {
@@ -107,5 +109,10 @@ export function executeMassInventoryAction(
   next.events.unshift(makeCityEvent(clock, `sg_mass_${opts.action}`, { type: 'simgod', citizenId: affected === 1 ? opts.targetIds[0] : undefined, title, detail }));
   next.events = next.events.slice(0, 600);
   next.rngState = getSimRngState();
+  recordSimGodAction({
+    city: next, dateLabel, targetId: affected === 1 ? opts.targetIds[0] : 'city',
+    targetKind: affected === 1 ? 'citizen' : 'city', targetName: affected === 1 ? next.citizens.find((c) => c.id === opts.targetIds[0])?.name ?? 'Citizen' : `${affected} Citizens`,
+    preview: `${opts.action} ${catText} (${affected} citizen(s))`, cause: causeLabel, effect: detail,
+  });
   return next;
 }

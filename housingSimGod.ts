@@ -6,6 +6,7 @@ import { makeCityEvent } from './eventFactory';
 import { formatDelta, formatSimDate } from './formatters';
 import { evictCitizenFromHouse, moveCitizenToHouse } from './housingEviction';
 import { computeHouseScores, syncCitizenHousingLinks } from './housingScores';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState } from './types';
 
 function cloneHousingCity(city: CityState) {
@@ -23,6 +24,7 @@ export function simGodMoveCitizen(city: CityState, citizenId: string, targetHous
   moveCitizenToHouse({ citizen: cit, target, housing: next.housing, allCitizens: next.citizens, clock, dateLabel, reason: 'Relocated by housing notice', events: next.events, forced: true });
   applyEmotionPulse(cit.emotions, 'fear', 12, `Unexpected relocation to ${target.name}`, clock, dateLabel);
   next.events.unshift(makeCityEvent(clock, `sg_hmove_${cit.id}`, { type: 'simgod', citizenId: cit.id, citizenName: cit.name, title: 'SimGod Relocated Resident', detail: `${cit.name} moved to ${target.name}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: cit.id, targetKind: 'citizen', targetName: cit.name, preview: `Move ${cit.name} → ${target.name}`, cause: 'SimGod relocation order', effect: `Relocated ${cit.name} to ${target.name}` });
   return next;
 }
 
@@ -33,27 +35,30 @@ export function simGodEvictCitizen(city: CityState, citizenId: string): CityStat
   if (!cit || !house) return city;
   evictCitizenFromHouse({ citizen: cit, house, housing: next.housing, allCitizens: next.citizens, clock, dateLabel, missedMonths: 0, reason: 'Immediate eviction order', events: next.events });
   next.events.unshift(makeCityEvent(clock, `sg_hevict_${cit.id}`, { type: 'simgod', citizenId: cit.id, citizenName: cit.name, title: 'SimGod Eviction', detail: `Evicted ${cit.name} from ${house.name}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: cit.id, targetKind: 'citizen', targetName: cit.name, preview: `Evict ${cit.name} from ${house.name}`, cause: 'Immediate eviction order', effect: `Evicted ${cit.name} from ${house.name}` });
   return next;
 }
 
 export function simGodChangeRent(city: CityState, houseId: string, newRent: number): CityState {
-  const { next, clock } = cloneHousingCity(city);
+  const { next, clock, dateLabel } = cloneHousingCity(city);
   const house = next.housing.houses.find((h) => h.id === houseId);
   if (!house) return city;
   const old = house.rentPrice;
   house.rentPrice = Math.max(20, Math.round(newRent));
   next.events.unshift(makeCityEvent(clock, `sg_hrent_${house.id}`, { type: 'simgod', title: 'SimGod Rent Change', detail: `${house.name} monthly rent adjusted ${formatDelta(old)} → ${formatDelta(house.rentPrice)}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: house.id, targetKind: 'house', targetName: house.name, preview: `Rent ${formatDelta(old)} → ${formatDelta(house.rentPrice)}`, cause: 'SimGod rent override', effect: `Adjusted ${house.name} monthly rent` });
   return next;
 }
 
 export function simGodChangeCondition(city: CityState, houseId: string, newCond: number): CityState {
-  const { next, clock } = cloneHousingCity(city);
+  const { next, clock, dateLabel } = cloneHousingCity(city);
   const house = next.housing.houses.find((h) => h.id === houseId);
   if (!house) return city;
   house.condition = Math.round(clamp(newCond, 1, 100));
   house.condemned = false;
   house.scores = computeHouseScores(house, next.citizens.filter((c) => house.occupantIds.includes(c.id)), next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hcond_${house.id}`, { type: 'simgod', title: 'SimGod House Condition', detail: `${house.name} condition set to ${house.condition}/100.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: house.id, targetKind: 'house', targetName: house.name, preview: `Condition → ${house.condition}/100`, cause: 'SimGod condition edit', effect: `Set ${house.name} condition to ${house.condition}` });
   return next;
 }
 
@@ -70,11 +75,12 @@ export function simGodCondemnHouse(city: CityState, houseId: string): CityState 
   }
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hcondemn_${house.id}`, { type: 'simgod', title: 'SimGod Condemned House', detail: `${house.name} condemned and cleared.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: house.id, targetKind: 'house', targetName: house.name, preview: `Condemn ${house.name}`, cause: 'SimGod safety condemnation', effect: `Condemned ${house.name} and displaced residents` });
   return next;
 }
 
 export function simGodTransferOwner(city: CityState, houseId: string, newOwnerId: 'gov' | string): CityState {
-  const { next, clock } = cloneHousingCity(city);
+  const { next, clock, dateLabel } = cloneHousingCity(city);
   const house = next.housing.houses.find((h) => h.id === houseId);
   if (!house) return city;
   house.ownerId = newOwnerId;
@@ -82,6 +88,7 @@ export function simGodTransferOwner(city: CityState, houseId: string, newOwnerId
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   const label = newOwnerId === 'gov' ? 'Government' : next.citizens.find((c) => c.id === newOwnerId)?.name ?? newOwnerId;
   next.events.unshift(makeCityEvent(clock, `sg_hown_${house.id}`, { type: 'simgod', title: 'SimGod Ownership Transfer', detail: `${house.name} transferred to ${label}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: house.id, targetKind: 'house', targetName: house.name, preview: `Owner → ${label}`, cause: 'SimGod title transfer', effect: `Transferred ${house.name} to ${label}` });
   return next;
 }
 
@@ -95,6 +102,7 @@ export function simGodVacateHouse(city: CityState, houseId: string): CityState {
   }
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hvac_${house.id}`, { type: 'simgod', title: 'SimGod Vacated House', detail: `Cleared all occupants from ${house.name}.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: house.id, targetKind: 'house', targetName: house.name, preview: `Vacate ${house.name}`, cause: 'SimGod building clear', effect: `Cleared all residents from ${house.name}` });
   return next;
 }
 
@@ -108,5 +116,6 @@ export function simGodHomelessnessWave(city: CityState, count: number): CityStat
   }
   syncCitizenHousingLinks(next.citizens, next.housing.houses, next.sharity);
   next.events.unshift(makeCityEvent(clock, `sg_hwave_${clock.totalDays}`, { type: 'simgod', title: 'SimGod Homelessness Wave', detail: `Evicted ${picked.length} citizen(s) across Vij.` }));
+  recordSimGodAction({ city: next, dateLabel, targetId: 'city', targetKind: 'city', targetName: 'City of Vij', preview: `Homelessness wave (${picked.length})`, cause: 'District displacement crisis', effect: `Evicted ${picked.length} citizen(s)` });
   return next;
 }

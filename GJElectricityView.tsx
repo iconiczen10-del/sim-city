@@ -8,6 +8,7 @@ import { getSeasonFromMonth } from './electricityCatalog';
 import { formatDelta, formatSignedDelta } from './formatters';
 import { GJDemandBlackoutsPanel } from './GJDemandBlackoutsPanel';
 import { GJPlantsTariffPanel } from './GJPlantsTariffPanel';
+import { RecordsPanel } from './RecordsPanel';
 import { SparkChart } from './SparkChart';
 import type { CityState } from './types';
 
@@ -85,6 +86,10 @@ export function GJElectricityView({ city, onUpdateCity, onSelectCitizen }: GJEle
         onToggleCompany={(id) => onUpdateCity((p) => toggleCompanyPowerCut(p, id))}
         onMovePriority={(tier, dir) => onUpdateCity((p) => moveRationingPriority(p, tier, dir))}
       />
+
+      <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+        <RecordsPanel pageSize={3} fixedSubjectId="gjelectricity" title="GJ Electricity Records" refreshKey={city.totalDays} maxDay={city.totalDays} />
+      </div>
     </div>
   );
 }

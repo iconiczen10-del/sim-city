@@ -30,7 +30,7 @@ export function BoardSeatsAndKpis({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-6 gap-3 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
         {kpis.map((k) => (
           <div key={k.label} className="bg-[#111827] border border-slate-800/90 rounded-lg px-3 py-2.5">
             <div className="text-[11px] text-slate-400">{k.label}</div>
@@ -39,7 +39,7 @@ export function BoardSeatsAndKpis({
         ))}
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         {displaySeats.map((seat) => (
           <div key={`${seat.seatIndex}_${seat.citizenId ?? 'v'}`} className="bg-[#111827] border border-slate-800/90 rounded-lg p-3.5 text-xs space-y-1">
             <div className="flex items-center justify-between text-[11px] text-slate-400">

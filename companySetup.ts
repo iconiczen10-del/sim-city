@@ -39,7 +39,7 @@ export function createInitialCompanies(): Company[] {
   ];
 }
 
-const SEAT_QUOTAS: Record<Exclude<RoleLevel, 'Unemployed'>, [CompanyId, number][]> = {
+const SEAT_QUOTAS: Record<Exclude<RoleLevel, 'Unemployed' | 'Retired'>, [CompanyId, number][]> = {
   CEO: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 1], ['vijmart', 1], ['gjelectricity', 1]],
   Executive: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 2]],
   Manager: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 3]],
@@ -70,17 +70,17 @@ export function assignInitialCitizensToCompanies(
   companies: Company[],
   mart: MartState
 ): void {
-  const pools: Record<Exclude<RoleLevel, 'Unemployed'>, CompanyId[]> = {
+  const pools: Record<Exclude<RoleLevel, 'Unemployed' | 'Retired'>, CompanyId[]> = {
     CEO: [], Executive: [], Manager: [], 'Team Lead': [], Staff: [], Entry: [],
   };
-  for (const role of Object.keys(SEAT_QUOTAS) as Exclude<RoleLevel, 'Unemployed'>[]) {
+  for (const role of Object.keys(SEAT_QUOTAS) as Exclude<RoleLevel, 'Unemployed' | 'Retired'>[]) {
     for (const [cid, count] of SEAT_QUOTAS[role]) {
       for (let i = 0; i < count; i++) pools[role].push(cid);
     }
   }
 
   for (const c of citizens) {
-    if (c.roleLevel === 'Unemployed') {
+    if (c.roleLevel === 'Unemployed' || c.roleLevel === 'Retired') {
       c.employerId = null;
       c.bossId = null;
       c.performanceScore = 0;

@@ -40,7 +40,7 @@ export function MartManagerCard({
   const perfColor = performance >= 60 ? 'text-emerald-300' : performance >= 30 ? 'text-amber-300' : 'text-rose-400';
 
   return (
-    <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 flex items-center justify-between gap-4">
+    <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <button
         type="button"
         onClick={() => onSelectCitizen(manager.id)}
@@ -64,7 +64,7 @@ export function MartManagerCard({
               </span>
             )}
           </div>
-          <div className="grid grid-cols-7 gap-2 mt-2 text-[11px] font-mono">
+          <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 mt-2 text-[11px] font-mono">
             <div><span className="text-slate-500">Skill</span> <span className="text-slate-200">{manager.skill}</span></div>
             <div><span className="text-slate-500">Disc</span> <span className="text-slate-200">{manager.traits.discipline}</span></div>
             <div><span className="text-slate-500">Greed</span> <span className="text-slate-200">{manager.traits.greed}</span></div>
@@ -79,7 +79,7 @@ export function MartManagerCard({
       <button
         type="button"
         onClick={onFireManager}
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-xs font-medium shrink-0 cursor-pointer"
+        className="inline-flex min-h-[40px] sm:min-h-0 items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-xs font-medium shrink-0 cursor-pointer"
       >
         <UserX className="w-3.5 h-3.5" aria-hidden="true" />
         <span>Fire Manager</span>

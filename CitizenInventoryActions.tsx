@@ -67,18 +67,18 @@ export function CitizenInventoryActions({ citizen, city, onUpdateCity }: Citizen
 
   return (
     <div className="bg-[#0c1220] border border-amber-500/30 rounded-md p-4 space-y-3 text-xs">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="font-semibold text-amber-300">SimGod Inventory Controls</div>
-        <div className="flex gap-1 bg-[#090d16] p-0.5 rounded border border-slate-800">
+        <div className="flex gap-1 bg-[#090d16] p-0.5 rounded border border-slate-800 overflow-x-auto max-w-full no-scrollbar">
           {([['add', 'Add'], ['remove', 'Destroy'], ['transfer', 'Steal / Gift'], ['edit', 'Edit Item']] as const).map(([id, lbl]) => (
-            <button key={id} type="button" onClick={() => { setMode(id); setArmed(false); }} className={`px-2 py-1 rounded cursor-pointer ${mode === id ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'}`}>
+            <button key={id} type="button" onClick={() => { setMode(id); setArmed(false); }} className={`px-2 py-1 rounded whitespace-nowrap shrink-0 cursor-pointer ${mode === id ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'}`}>
               {lbl}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
         <select value={cat} onChange={(e) => { setCat(e.target.value as ShoppingCategory | 'all'); setArmed(false); }} className="bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 text-slate-100">
           {SHOPPING_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
           {mode === 'remove' && <option value="all">All Categories</option>}
@@ -133,7 +133,7 @@ export function CitizenInventoryActions({ citizen, city, onUpdateCity }: Citizen
           Preview &amp; Confirm Action
         </button>
       ) : (
-        <div className="flex items-center justify-between gap-3 bg-[#090d16] border border-amber-500/40 rounded px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#090d16] border border-amber-500/40 rounded px-3 py-2">
           <span className="text-slate-200">{previewText}</span>
           <div className="flex gap-2 shrink-0">
             <button type="button" onClick={() => setArmed(false)} className="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">Cancel</button>

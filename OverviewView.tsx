@@ -8,12 +8,13 @@ import type { CityState } from './types';
 
 interface OverviewViewProps {
   city: CityState;
+  isPhone?: boolean;
   onOpenEvents: () => void;
   onOpenCompanies: () => void;
   onSelectCitizen: (citizenId: string) => void;
 }
 
-export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCitizen }: OverviewViewProps) {
+export function OverviewView({ city, isPhone = false, onOpenEvents, onOpenCompanies, onSelectCitizen }: OverviewViewProps) {
   const alive = city.citizens.filter((c) => c.alive);
   const pop = alive.length;
   const deaths = city.citizens.length - pop;
@@ -48,17 +49,17 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
         {kpis.map((kpi) => (
           <div key={kpi.label} className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
             <div className="text-xs text-slate-400 mb-2">{kpi.label}</div>
-            <div className={`font-mono tabular-nums text-2xl font-semibold tracking-tight ${kpi.label === 'Homelessness Index' && homeless.length > 0 ? 'text-rose-300' : 'text-slate-50'}`}>{kpi.value}</div>
+            <div className={`font-mono tabular-nums text-xl sm:text-2xl font-semibold tracking-tight ${kpi.label === 'Homelessness Index' && homeless.length > 0 ? 'text-rose-300' : 'text-slate-50'}`}>{kpi.value}</div>
             <div className="text-xs text-slate-500 mt-1.5 font-mono tabular-nums">{kpi.sub}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-7">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
+        <div className="sm:col-span-7">
           <TierBreakdown citizens={alive} />
         </div>
-        <section className="col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-5 flex flex-col justify-between">
+        <section className="sm:col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-sm font-semibold text-slate-100">Company Health Summary</h2>
             <button type="button" onClick={onOpenCompanies} className="inline-flex items-center gap-1 text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer">
@@ -84,36 +85,38 @@ export function OverviewView({ city, onOpenEvents, onOpenCompanies, onSelectCiti
         </section>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <section className="col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-5 flex flex-col">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-display text-sm font-semibold text-slate-100">Tier Movement This Month</h2>
-            <span className="font-mono text-xs text-slate-400">{city.tierMovementsThisMonth.length} shifts</span>
-          </div>
-          {city.tierMovementsThisMonth.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded">
-              No tier transitions recorded yet for the latest completed month.
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
+        {!isPhone && (
+          <section className="sm:col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-5 flex flex-col">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="font-display text-sm font-semibold text-slate-100">Tier Movement This Month</h2>
+              <span className="font-mono text-xs text-slate-400">{city.tierMovementsThisMonth.length} shifts</span>
             </div>
-          ) : (
-            <div className="divide-y divide-slate-800/80">
-              {city.tierMovementsThisMonth.map((m) => (
-                <button key={`${m.citizenId}_${m.monthLabel}`} type="button" onClick={() => onSelectCitizen(m.citizenId)} className="w-full py-2.5 flex items-center justify-between text-left hover:bg-slate-800/30 px-2 -mx-2 rounded cursor-pointer">
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-100 truncate">{m.citizenName}</div>
-                    <div className="text-xs text-slate-500 font-mono">Score {m.statusScore.toFixed(1)} · {m.monthLabel}</div>
-                  </div>
-                  <div className="flex items-center gap-1.5 font-mono text-xs shrink-0">
-                    <span className="text-slate-400">{m.fromTier}</span>
-                    {m.direction === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> : <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" aria-hidden="true" />}
-                    <span className={m.direction === 'up' ? 'text-emerald-300 font-semibold' : 'text-rose-300 font-semibold'}>{m.toTier}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+            {city.tierMovementsThisMonth.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded">
+                No tier transitions recorded yet for the latest completed month.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-800/80">
+                {city.tierMovementsThisMonth.map((m) => (
+                  <button key={`${m.citizenId}_${m.monthLabel}`} type="button" onClick={() => onSelectCitizen(m.citizenId)} className="w-full py-2.5 flex items-center justify-between text-left hover:bg-slate-800/30 px-2 -mx-2 rounded cursor-pointer">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-slate-100 truncate">{m.citizenName}</div>
+                      <div className="text-xs text-slate-500 font-mono">Score {m.statusScore.toFixed(1)} · {m.monthLabel}</div>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-mono text-xs shrink-0">
+                      <span className="text-slate-400">{m.fromTier}</span>
+                      {m.direction === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> : <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" aria-hidden="true" />}
+                      <span className={m.direction === 'up' ? 'text-emerald-300 font-semibold' : 'text-rose-300 font-semibold'}>{m.toTier}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
-        <section className="col-span-7 bg-[#111827] border border-slate-800/90 rounded-lg p-5">
+        <section className={`${isPhone ? 'sm:col-span-12' : 'sm:col-span-7'} bg-[#111827] border border-slate-800/90 rounded-lg p-5`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-sm font-semibold text-slate-100">Live City Feed</h2>
             <button type="button" onClick={onOpenEvents} className="inline-flex items-center gap-1 text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer">

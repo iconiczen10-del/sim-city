@@ -14,14 +14,14 @@ export function CitizenWorkSection({ citizen, city }: CitizenWorkSectionProps) {
 
   return (
     <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-3 text-xs">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
         <span className="font-semibold text-slate-200">Career &amp; Boss Relationship</span>
         <span className="font-mono text-amber-300">
-          {employer ? `${employer.name} · ${citizen.roleLevel}` : `Unemployed (${citizen.unemployedDays}d)`}
+          {employer ? `${employer.name} · ${citizen.roleLevel}` : citizen.roleLevel === 'Retired' ? 'Retired' : citizen.age < 25 ? `Youth (${citizen.age}y · Job-locked <25)` : `Unemployed (${citizen.unemployedDays}d)`}
         </span>
       </div>
 
-      <div className="grid grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         <div>
           <div className="text-slate-400">Monthly Salary</div>
           <div className="font-mono font-semibold text-slate-100 mt-0.5">{formatDelta(citizen.lastGrossPay)}</div>

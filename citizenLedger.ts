@@ -1,12 +1,11 @@
-// citizenLedger.ts — Monthly money ledger, 60-day searchable life log, and change explanations
+// citizenLedger.ts — Monthly money ledger, unlimited citizen diary records, and change explanations
 
 import type {
   ChangeExplanation,
   LedgerEntry,
   LifeLogCategory,
-  LifeLogEntry,
 } from './citizenInspectorTypes';
-import { LIFE_LOG_RETENTION_DAYS } from './constants';
+import { recordSimEvent } from './recordsStore';
 import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
@@ -17,17 +16,17 @@ export function appendLifeLog(
   category: LifeLogCategory,
   summary: string
 ): void {
-  const entry: LifeLogEntry = {
-    id: `life_${totalDay}_${citizen.id}_${category}_${simIdSuffix()}`,
-    totalDay,
+  recordSimEvent({
+    simDay: totalDay,
     dateLabel,
-    category,
+    category: 'citizens',
+    subType: 'diary',
+    subjectId: citizen.id,
+    subjectKind: 'citizen',
+    subjectName: citizen.name,
     summary,
-  };
-  const cutoff = totalDay - LIFE_LOG_RETENTION_DAYS;
-  citizen.lifeLog = [entry, ...citizen.lifeLog]
-    .filter((e) => e.totalDay >= cutoff)
-    .slice(0, 320);
+    detail: { diaryCategory: category, summary },
+  });
 }
 
 export function appendLedgerEntry(

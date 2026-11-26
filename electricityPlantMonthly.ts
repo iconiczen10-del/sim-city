@@ -9,6 +9,7 @@ import {
 import type { ElectricityState } from './electricityTypes';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatMonthYear } from './formatters';
+import { recordSimEvent } from './recordsStore';
 import { simRand } from './rng';
 import type { Citizen, CityEvent } from './types';
 
@@ -65,14 +66,8 @@ export function stepGJPlantsAndAIMonthEnd(params: {
       gj.cash = Math.round((gj.cash - PLANT_REPAIR_COST) * 100) / 100;
       p.status = 'repairing';
       p.daysRemaining = PLANT_REPAIR_DAYS;
-      appendCompanyLedger(gj, clock, dateLabel, {
-        kind: 'outflow',
-        category: 'plant_capex',
-        label: `Repair ${p.name}`,
-        detail: '10-day repair started',
-        amount: PLANT_REPAIR_COST,
-        balanceAfter: gj.cash,
-      });
+      appendCompanyLedger(gj, clock, dateLabel, { kind: 'outflow', category: 'plant_capex', label: `Repair ${p.name}`, detail: '10-day repair started', amount: PLANT_REPAIR_COST, balanceAfter: gj.cash });
+      recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'gjelectricity', subType: 'plant_repair', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `Started repair on ${p.name} (∆${PLANT_REPAIR_COST})`, detail: { plantId: p.id, cost: PLANT_REPAIR_COST, days: PLANT_REPAIR_DAYS } });
     }
   }
 
@@ -117,5 +112,6 @@ export function stepGJPlantsAndAIMonthEnd(params: {
       ...electricity.tariffHistory.slice(-23),
       { day: clock.totalDays, label: monthLabel, multiplier: electricity.tariff.multiplier, effectiveBand2: Math.round(1.5 * electricity.tariff.multiplier * 100) / 100 },
     ];
+    recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'gjelectricity', subType: 'tariff', subjectId: 'gjelectricity', subjectKind: 'gjelectricity', subjectName: 'GJ Electricity', summary: `AI raised tariff multiplier to ${electricity.tariff.multiplier.toFixed(2)}x (${electricity.tariff.lastReason})`, detail: { multiplier: electricity.tariff.multiplier, reason: electricity.tariff.lastReason } });
   }
 }

@@ -33,10 +33,10 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
   const [lean, setLean] = useState(mart.personality.greedyLean);
 
   return (
-    <div className="grid grid-cols-2 gap-4 text-xs">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
         <h3 className="font-display text-sm font-semibold text-slate-100">Stock & Batch Sabotage</h3>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <select value={cat} onChange={(e) => setCat(e.target.value as ShoppingCategory)} className="bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 text-slate-100">
             {SHOPPING_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
           </select>
@@ -54,7 +54,7 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
           </button>
         </div>
 
-        <div className="pt-2 border-t border-slate-800/70 flex items-center gap-2">
+        <div className="pt-2 border-t border-slate-800/70 flex flex-wrap items-center gap-2">
           <span className="text-slate-400">Contaminate</span>
           <input type="number" min={1} max={100} value={contamQty} onChange={(e) => setContamQty(Number(e.target.value) || 5)} className="w-20 bg-[#090d16] border border-slate-800 rounded px-2 py-1 font-mono text-slate-100" />
           <button
@@ -69,7 +69,7 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
 
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
         <h3 className="font-display text-sm font-semibold text-slate-100">Price Override & Store Closure</h3>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <select value={priceMode} onChange={(e) => setPriceMode(e.target.value as 'fixed' | 'multiplier')} className="bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 text-slate-100">
             <option value="multiplier">Multiplier</option>
             <option value="fixed">Fixed ∆</option>
@@ -86,7 +86,7 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
           </button>
         )}
 
-        <div className="pt-2 border-t border-slate-800/70 flex items-center gap-2">
+        <div className="pt-2 border-t border-slate-800/70 flex flex-wrap items-center gap-2">
           <span className="text-slate-400">Close Shop (days)</span>
           <input type="number" min={0} max={30} value={closeDays} onChange={(e) => setCloseDays(Number(e.target.value) || 0)} className="w-20 bg-[#090d16] border border-slate-800 rounded px-2 py-1 font-mono text-slate-100" />
           <button type="button" onClick={() => handlers.onCloseShop(closeDays)} className="flex-1 py-1.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300 hover:bg-rose-500/25 cursor-pointer">
@@ -97,8 +97,8 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
 
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
         <h3 className="font-display text-sm font-semibold text-slate-100">Mart Cash Injection / Drain</h3>
-        <div className="flex items-center gap-2">
-          <input type="number" min={100} step={500} value={cashAmt} onChange={(e) => setCashAmt(Number(e.target.value) || 500)} className="flex-1 bg-[#090d16] border border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-100" />
+        <div className="flex flex-wrap items-center gap-2">
+          <input type="number" min={100} step={500} value={cashAmt} onChange={(e) => setCashAmt(Number(e.target.value) || 500)} className="flex-1 min-w-[100px] bg-[#090d16] border border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-100" />
           <button type="button" onClick={() => handlers.onCash(cashAmt)} className="px-3 py-1.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 cursor-pointer">
             +Add ∆
           </button>
@@ -110,7 +110,7 @@ export function MartSabotagePanel({ mart, handlers }: MartSabotagePanelProps) {
 
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
         <h3 className="font-display text-sm font-semibold text-slate-100">Manager Personality</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select value={style} onChange={(e) => setStyle(e.target.value as ManagerStyle)} className="bg-[#090d16] border border-slate-800 rounded px-2.5 py-1.5 text-slate-100">
             <option value="cautious">Cautious</option>
             <option value="balanced">Balanced</option>

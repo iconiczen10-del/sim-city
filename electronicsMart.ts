@@ -1,43 +1,18 @@
 // electronicsMart.ts — Vij Mart electronics stock seeding, mood pricing, Vij Industries wholesale orders, and retail purchase
 
-import { MART_CASH_RESERVE, MART_LEAD_TIME_DAYS, MART_SUPPLIER, MART_WHOLESALE_RATIO, MOOD_MARGIN_RANGES, OUTSIDE_WHOLESALE_MULT } from './constants';
-import { APPLIANCE_CATALOG, APPLIANCE_IDS, APPLIANCE_TIERS, createOwnedAppliance } from './electronicsCatalog';
-import type { ApplianceId, ApplianceTier, ElectronicsOrder, ElectronicsStockItem, OwnedAppliance } from './electronicsTypes';
+import { MART_CASH_RESERVE, MART_LEAD_TIME_DAYS, MART_SUPPLIER, MOOD_MARGIN_RANGES, OUTSIDE_WHOLESALE_MULT } from './constants';
+import { APPLIANCE_CATALOG, createOwnedAppliance } from './electronicsCatalog';
+import { ensureMartElectronics } from './electronicsMartSetup';
+import type { ApplianceId, ApplianceTier, ElectronicsOrder, OwnedAppliance } from './electronicsTypes';
 import { appendLedgerEntry } from './citizenLedger';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { round2 } from './martSetup';
-import type { CategoryMoodState, MarginMood, MartState } from './martTypes';
+import type { MarginMood, MartState } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import { simRand } from './rng';
 import type { Citizen, CityEvent } from './types';
 
-export function createInitialElectronicsStock(): ElectronicsStockItem[] {
-  const items: ElectronicsStockItem[] = [];
-  for (const applianceId of APPLIANCE_IDS) {
-    const spec = APPLIANCE_CATALOG[applianceId];
-    for (const tier of APPLIANCE_TIERS) {
-      const basePrice = spec.prices[tier];
-      const buyCost = round2(basePrice * MART_WHOLESALE_RATIO);
-      const qty = spec.essential ? (tier === 'basic' ? 8 : tier === 'mid' ? 6 : 4) : (tier === 'basic' ? 5 : tier === 'mid' ? 4 : 3);
-      items.push({
-        applianceId, tier, quantity: qty, basePrice, buyCost, sellPrice: basePrice,
-        dailyForecast: spec.essential ? 0.35 : 0.15, salesHistory: [0],
-      });
-    }
-  }
-  return items;
-}
-
-export function defaultElectronicsMood(): CategoryMoodState {
-  return { mood: 'typical', marginPct: 48, daysRemaining: 4, reason: 'Standard retail electronics margin' };
-}
-
-export function ensureMartElectronics(mart: MartState): void {
-  if (!Array.isArray(mart.electronicsStock) || mart.electronicsStock.length === 0) {
-    mart.electronicsStock = createInitialElectronicsStock();
-  }
-  if (!mart.electronicsMood) mart.electronicsMood = defaultElectronicsMood();
-  if (!Array.isArray(mart.electronicsDeliveries)) mart.electronicsDeliveries = [];
-}
+export { createInitialElectronicsStock, defaultElectronicsMood, ensureMartElectronics } from './electronicsMartSetup';
 
 export function stepElectronicsMartDayStart(mart: MartState, clock: SimClock, events: CityEvent[]): void {
   ensureMartElectronics(mart);
@@ -139,6 +114,12 @@ export function buyElectronicsFromMart(params: {
   ].slice(-18);
 
   appendLedgerEntry(citizen, clock.totalDays, dateLabel, 'expense', 'Electronics', `${owned.name} (${sku.tier})`, sku.sellPrice);
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'electronics', subType: 'appliance_purchase',
+    subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+    summary: `${citizen.name} bought ${sku.tier} ${owned.name} for ∆${sku.sellPrice} (lifespan ${owned.totalLifespanDays}d)`,
+    detail: { applianceId: owned.applianceId, name: owned.name, tier: sku.tier, price: sku.sellPrice, totalLifespanDays: owned.totalLifespanDays },
+  });
   events.push(makeCityEvent(clock, `ebuy_${citizen.id}_${applianceId}`, {
     type: 'appliance-buy', citizenId: citizen.id, citizenName: citizen.name, companyId: 'vijmart',
     title: 'Electronics Purchase', detail: `${citizen.name} bought a ${sku.tier} ${owned.name} for ∆${sku.sellPrice}.`,

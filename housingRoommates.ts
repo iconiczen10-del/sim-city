@@ -11,6 +11,7 @@ import type { House, HousingState } from './housingTypes';
 import { simRand } from './rng';
 import { adjustAffinity, getAffinity } from './sharityAffinity';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 export function canJoinAsRoommate(applicant: Citizen, house: House, occupants: Citizen[], sharity: SharityState): boolean {
@@ -112,6 +113,12 @@ export function tryAskFriendForShelter(params: {
     if (discount < 1) applyEmotionPulse(seeker.emotions, 'gratitude', 26, `${host.name} offered shelter`, clock, dateLabel);
     appendLifeLog(host, clock.totalDays, dateLabel, 'gift', `Took ${seeker.name} in at ${fh.name}.`);
     adjustAffinity(sharity, seeker.id, host.id, 10);
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'friend_stay',
+      subjectId: seeker.id, subjectKind: 'citizen', subjectName: seeker.name,
+      summary: `${host.name} sheltered ${seeker.name} at ${fh.name} (${Math.round((1 - discount) * 100)}% rent discount)`,
+      detail: { hostId: host.id, hostName: host.name, houseId: fh.id, houseName: fh.name, rentDiscountPct: Math.round((1 - discount) * 100) },
+    });
     return true;
   }
   seeker.stress = clamp(seeker.stress + 3, 0, 100);

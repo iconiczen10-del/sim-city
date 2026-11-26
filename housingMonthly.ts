@@ -13,6 +13,7 @@ import { computeHouseScores, getHouseMonthlyMaintenance, getTenantMonthlyRent, s
 import type { HousingState } from './housingTypes';
 import { simRandInt } from './rng';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 function shouldEvictForArrears(missedMonths: number, landlord: Citizen | undefined, tenant: Citizen): boolean {
@@ -97,10 +98,12 @@ export function processHousingMonthEnd(params: {
         }
         appendLedgerEntry(c, clock.totalDays, dateLabel, 'expense', 'Housing', `Rent (${h.name})`, perTenant);
         rentCollectedTotal += perTenant; rentPaidCount += 1;
+        recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'rent', subjectId: c.id, subjectKind: 'citizen', subjectName: c.name, summary: `${c.name} paid ${formatDelta(perTenant)} rent for ${h.name}`, detail: { houseId: h.id, houseName: h.name, amount: perTenant, landlordId: h.ownerId } });
       } else {
         const missed = (c.rentArrearsMonths ?? 0) + 1;
         c.rentArrearsMonths = missed; c.rentArrears = Math.round(c.rentArrears + perTenant);
         addCitizenMemory(c, clock, dateLabel, 'broke', `Missed month #${missed} rent (${formatDelta(perTenant)}) at ${h.name}.`, -28);
+        recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'rent_arrears', subjectId: c.id, subjectKind: 'citizen', subjectName: c.name, summary: `${c.name} missed month #${missed} rent (${formatDelta(perTenant)}) at ${h.name}`, detail: { houseId: h.id, missedMonths: missed, amount: perTenant, totalArrears: c.rentArrears } });
         if (missed === 1) {
           applyEmotionPulse(c.emotions, 'sadness', 12, 'Rent overdue warning', clock, dateLabel);
           c.mood = clamp(c.mood - 6, 0, 100);

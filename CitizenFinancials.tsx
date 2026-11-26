@@ -26,7 +26,7 @@ export function CitizenFinancials({ citizen }: CitizenFinancialsProps) {
   const estMonthlyBalance = netPay - fixed.total - estMartSpend;
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2">
         <div className="text-xs font-semibold text-slate-200 mb-2">Monthly Budget & Fixed Costs</div>
         <div className="flex justify-between text-xs">

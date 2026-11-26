@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { CompanyOrgChart } from './CompanyOrgChart';
 import type { Company } from './companyTypes';
 import { formatDelta, formatSignedDelta } from './formatters';
+import { RecordsPanel } from './RecordsPanel';
 import { SparkChart } from './SparkChart';
 import type { Citizen, CityEvent } from './types';
 
@@ -29,12 +30,12 @@ export function CompanyDetailModal({
   ).slice(0, 12);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-6" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-[#111827] border border-slate-700/80 rounded-lg p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-2 sm:p-6" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto overflow-x-hidden bg-[#111827] border border-slate-700/80 rounded-lg p-4 sm:p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-3">
-              <h2 className="font-display text-xl font-semibold text-slate-50">{company.name}</h2>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h2 className="font-display text-lg sm:text-xl font-semibold text-slate-50">{company.name}</h2>
               <span className="font-mono text-xs px-2 py-0.5 rounded border border-slate-700 text-slate-300">{company.sector}</span>
               <span className={`font-mono text-xs px-2 py-0.5 rounded border ${company.bankrupt ? 'border-rose-500/50 text-rose-300 bg-rose-500/10' : company.direction === 'aggressive' ? 'border-amber-500/40 text-amber-300 bg-amber-500/10' : 'border-sky-500/40 text-sky-300 bg-sky-500/10'}`}>
                 {company.bankrupt ? 'Bankrupt' : company.direction === 'aggressive' ? 'Aggressive CEO' : 'Conservative CEO'}
@@ -46,12 +47,12 @@ export function CompanyDetailModal({
               <span className="font-mono text-slate-200">{company.reputation.toFixed(0)}/100</span>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close company modal" className="p-1.5 rounded-md text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer">
+          <button type="button" onClick={onClose} aria-label="Close company modal" className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-md text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer shrink-0">
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="grid grid-cols-5 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
           {[
             { label: 'Cash Reserve', val: formatDelta(company.cash) },
             { label: 'Last Month Revenue', val: formatDelta(company.lastMonthRevenue) },
@@ -68,7 +69,7 @@ export function CompanyDetailModal({
 
         <CompanyOrgChart company={company} citizens={citizens} onSelectCitizen={(id) => { onClose(); onSelectCitizen(id); }} />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SparkChart title="Monthly Profit Over Time (∆)" points={profitPoints} strokeColor="#34d399" formatValue={(v) => formatSignedDelta(v)} />
 
           <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2 text-xs">
@@ -104,6 +105,10 @@ export function CompanyDetailModal({
             </div>
           </div>
         )}
+
+        <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4">
+          <RecordsPanel pageSize={3} fixedSubjectId={company.id} title={`${company.name} Records`} refreshKey={events[0]?.totalDay} />
+        </div>
       </div>
     </div>
   );

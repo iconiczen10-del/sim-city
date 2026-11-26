@@ -1,5 +1,6 @@
 // citizenFactory.ts — Constructs individual calibrated citizens with starting inventory, memory, and stress
 
+import { seedCitizenAgingFields } from './agingEngine';
 import { buildMoodFactors } from './citizenBreakdowns';
 import { createSeedEmotions } from './citizenEmotions';
 import { createSeedHealthProfile } from './citizenHealthSystem';
@@ -36,7 +37,9 @@ export function buildSeedCitizen(
   const id = `cit_${index + 1}`;
   const cfg = ROLE_CONFIGS[slot.role];
   const traits = createSeedTraits(existingTraitSigs);
-  const age = randInt(cfg.ageRange[0], cfg.ageRange[1]);
+  const ageDraft = { age: 30 } as Citizen;
+  seedCitizenAgingFields(ageDraft, cfg.ageRange, 1);
+  const age = ageDraft.age;
   const experience = Math.min(Math.max(0, age - 18), randInt(cfg.expRange[0], cfg.expRange[1]));
   const skill = randInt(cfg.skillRange[0], cfg.skillRange[1]);
   const education = pick(cfg.edus);
@@ -59,6 +62,8 @@ export function buildSeedCitizen(
     id,
     name: nameEntry.name,
     age,
+    birthDay: ageDraft.birthDay, birthMonth: ageDraft.birthMonth, birthYear: ageDraft.birthYear,
+    lucky: ageDraft.lucky, luckyExtraYears: ageDraft.luckyExtraYears, luckyYearsUsed: 0, retired: false, highMoodMonths: 0,
     gender: nameEntry.gender,
     education,
     skill,
@@ -87,13 +92,7 @@ export function buildSeedCitizen(
     moodBreakdown: [],
     stressBreakdown: [],
     monthlyLedger: [],
-    lifeLog: [{
-      id: `life_init_${id}`,
-      totalDay: 1,
-      dateLabel: '1 Jan, Year 1',
-      category: 'mood',
-      summary: `Settled into ${homeType.replace('_', ' ')} as ${slot.role}.`,
-    }],
+    lifeLog: [],
     changeExplanations: [],
     lastPaidPrices: {
       food: MART_BASE_PRICES.food[standards.food],

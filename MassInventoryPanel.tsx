@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { LOSS_CAUSE_LABELS } from './citizenInspectorLabels';
-import type { LossCause, MassTargetScope } from './citizenInspectorTypes';
+import type { LossCause } from './citizenInspectorTypes';
+import type { MassTargetScope } from './simgodTypes';
 import { LIVING_STANDARDS, SHOPPING_CATEGORIES, TIER_ORDER } from './constants';
 import { CATEGORY_LABELS, formatDelta, STANDARD_LABELS } from './formatters';
 import type { LivingStandard, ShoppingCategory } from './martTypes';
@@ -14,7 +15,7 @@ interface MassInventoryPanelProps {
   onUpdateCity: (next: CityState) => void;
 }
 
-const ROLES: RoleLevel[] = ['CEO', 'Executive', 'Manager', 'Team Lead', 'Staff', 'Entry', 'Unemployed'];
+const ROLES: RoleLevel[] = ['CEO', 'Executive', 'Manager', 'Team Lead', 'Staff', 'Entry', 'Unemployed', 'Retired'];
 
 export function MassInventoryPanel({ city, onUpdateCity }: MassInventoryPanelProps) {
   const living = useMemo(() => city.citizens.filter((c) => c.alive), [city.citizens]);
@@ -52,7 +53,7 @@ export function MassInventoryPanel({ city, onUpdateCity }: MassInventoryPanelPro
         </span>
       </div>
 
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
         <select value={scope} onChange={(e) => { setScope(e.target.value as MassTargetScope); setArmed(false); }} className="bg-[#090d16] border border-slate-800 rounded px-2 py-1.5 text-slate-100">
           <option value="single">One Citizen</option>
           <option value="tier">By Tier</option>
@@ -109,7 +110,7 @@ export function MassInventoryPanel({ city, onUpdateCity }: MassInventoryPanelPro
           Review Mass Action ({preview.count} citizens · {formatDelta(preview.totalValue)})
         </button>
       ) : (
-        <div className="flex items-center justify-between bg-[#090d16] border border-amber-500/40 rounded px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-[#090d16] border border-amber-500/40 rounded px-3 py-2">
           <span className="text-slate-200">
             Confirm: affects {preview.count} citizen(s), total value {formatDelta(preview.totalValue)}
             {action === 'remove' ? ` (perceived: ${LOSS_CAUSE_LABELS[cause]})` : ''}.

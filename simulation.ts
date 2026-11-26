@@ -10,7 +10,10 @@ import { processCitizenDailySurvival } from './dailyCitizen';
 import { stepElectricityDailyDemand } from './electricityDemand';
 import { stepElectricityGridDaily } from './electricityGrid';
 import { createInitialElectricityState } from './electricitySetup';
+import { stepElectricityTappingDaily } from './electricityTapping';
 import { makeCityEvent } from './eventFactory';
+import { handleSurvivalDeathFamilyEffects, stepFamilyAndAgingDaily, stepFamilyAndAgingMonthEnd } from './familySimulationStep';
+import { createInitialFamilyState } from './familyTreeEngine';
 import { formatMonthYear, formatSimDate } from './formatters';
 import { stepHousingDailyEffects } from './housingDaily';
 import { stepHousingMarketDaily } from './housingMarket';
@@ -46,36 +49,39 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   if (vijMartComp) mart.cash = Math.max(0, vijMartComp.cash);
   processMartDayStart(mart, clock, newEvents);
 
-  let treasury = prev.treasury;
-  let deathsToday = 0;
+  const family = prev.family ? structuredClone(prev.family) : createInitialFamilyState(prev.citizens);
+  let treasury = prev.treasury, deathsToday = 0;
   const shortageMap = new Map<string, boolean>();
   let citizens = prev.citizens.map((orig) => (orig.alive ? structuredClone(orig) : orig));
+  const cityDraft: CityState = { ...prev, day, month, year, totalDays, treasury, citizens, companies, vacancies, jobEvents, mart, boardState, sharity, housing, electricity, family };
   const homelessCount = stepHousingDailyEffects({ citizens, housing, sharity, clock, dateLabel, events: newEvents });
 
   for (const c of citizens) {
     if (!c.alive) continue;
     if (day === 1) c.monthlyLedger = [];
-    if (c.roleLevel === 'Unemployed') {
+    if (c.roleLevel === 'Unemployed' && c.age >= 25) {
       c.unemployedDays += 1;
       if (c.unemployedDays >= 90 && c.skill > 6) c.skill = Math.round((c.skill - 0.15) * 10) / 10;
     } else c.unemployedDays = 0;
-
     const prevEmployer = c.employerId, prevRole = c.roleLevel;
     const res = processCitizenDailySurvival(c, mart, clock, dateLabel, newEvents, citizens, sharity);
-    treasury += res.estateToTreasury;
     if (res.died) {
       deathsToday += 1;
-      if (prevEmployer && prevRole !== 'Unemployed') {
+      if (prevEmployer && prevRole !== 'Unemployed' && prevRole !== 'Retired') {
         const comp = companies.find((co) => co.id === prevEmployer);
         if (comp) openVacancy(vacancies, comp, prevRole, `${c.name} passed away`, clock, dateLabel);
       }
       c.employerId = null; c.bossId = null;
+      treasury += handleSurvivalDeathFamilyEffects({ deceased: c, estate: res.estateToTreasury, city: cityDraft, clock, dateLabel, events: newEvents });
     }
     shortageMap.set(c.id, res.shortageToday);
   }
+  stepFamilyAndAgingDaily({ city: cityDraft, clock, dateLabel, events: newEvents });
+  citizens = cityDraft.citizens;
   treasury = stepHousingMarketDaily({ citizens, housing, sharity, treasury, clock, dateLabel, events: newEvents });
   stepElectricityDailyDemand({ electricity, housing, citizens, companies, clock, dateLabel });
   stepElectricityGridDaily({ electricity, housing, citizens, companies, clock, dateLabel, events: newEvents });
+  stepElectricityTappingDaily({ electricity, housing, citizens, clock, dateLabel, events: newEvents });
 
   citizens = citizens.map((c) => {
     if (!c.alive) return c;
@@ -104,9 +110,11 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   let nextVacancies = vacancies;
 
   if (day === DAYS_PER_MONTH) {
-    const mr = runCityMonthEnd({ citizens, companies, vacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity, electricity });
+    const mr = runCityMonthEnd({ citizens, companies, vacancies: nextVacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity, electricity });
     citizens = mr.citizens; nextVacancies = mr.vacancies; jobEvents = mr.jobEvents; treasury = mr.treasury;
     tierMovementsThisMonth = mr.movements; lastMonthTaxCollected = mr.taxCollected; lastTotalPayroll = mr.totalPayroll; lastBusinessTaxCollected = mr.businessTaxCollected;
+    cityDraft.citizens = citizens; cityDraft.vacancies = nextVacancies; cityDraft.jobEvents = jobEvents;
+    treasury += stepFamilyAndAgingMonthEnd({ city: cityDraft, clock, dateLabel, events: newEvents });
   }
 
   const newMeeting = runVijIndustriesBoardStep({ companies, citizens, board: boardState, vacancies: nextVacancies, jobEvents, clock, dateLabel, events: newEvents, isMonthEnd: day === DAYS_PER_MONTH, lastMeeting });
@@ -129,7 +137,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
     newMeeting,
     state: {
       ...prev, rngState: getSimRngState(), day, month, year, totalDays, treasury, citizens, companies,
-      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing, electricity,
+      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing, electricity, family,
       events: [...newEvents.reverse(), ...prev.events].slice(0, 600),
       tierMovementsThisMonth, lastMonthTaxCollected, lastTotalPayroll, lastBusinessTaxCollected,
     },

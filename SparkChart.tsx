@@ -1,6 +1,6 @@
 // SparkChart.tsx — Lightweight SVG time-series chart with baseline grid and latest readout
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 export interface ChartPoint {
   label: string;
@@ -15,7 +15,7 @@ interface SparkChartProps {
   fixedDomain?: [number, number];
 }
 
-export function SparkChart({
+export const SparkChart = memo(function SparkChart({
   title,
   points,
   strokeColor,
@@ -28,17 +28,18 @@ export function SparkChart({
   const padX = 8;
   const padY = 10;
 
-  const vals = points.map((p) => p.value);
+  const visible = points.length > 48 ? points.slice(-48) : points;
+  const vals = visible.map((p) => p.value);
   const rawMin = fixedDomain ? fixedDomain[0] : Math.min(...vals);
   const rawMax = fixedDomain ? fixedDomain[1] : Math.max(...vals);
   const minVal = rawMin;
   const maxVal = rawMax === rawMin ? rawMin + 1 : rawMax;
 
-  const coords = points.map((p, idx) => {
+  const coords = visible.map((p, idx) => {
     const x =
-      points.length === 1
+      visible.length === 1
         ? w / 2
-        : padX + (idx / (points.length - 1)) * (w - padX * 2);
+        : padX + (idx / (visible.length - 1)) * (w - padX * 2);
     const ratio = (p.value - minVal) / (maxVal - minVal);
     const y = h - padY - ratio * (h - padY * 2);
     return { x, y, ...p };
@@ -99,4 +100,4 @@ export function SparkChart({
       </div>
     </div>
   );
-}
+});

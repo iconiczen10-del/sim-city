@@ -55,7 +55,7 @@ export function CitizenInventoryPanel({ citizen, city, onUpdateCity, showFullDet
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <MeterBar label="Hunger" value={citizen.hunger} color={citizen.hunger < 30 ? 'bg-rose-500' : 'bg-amber-400'} />
         <MeterBar label="Thirst" value={citizen.thirst} color={citizen.thirst < 30 ? 'bg-rose-500' : 'bg-sky-400'} />
         <MeterBar label="Health" value={citizen.health} color={citizen.health < 45 ? 'bg-rose-500' : 'bg-emerald-400'} />
@@ -66,14 +66,14 @@ export function CitizenInventoryPanel({ citizen, city, onUpdateCity, showFullDet
         <CitizenInventoryActions citizen={citizen} city={city} onUpdateCity={onUpdateCity} />
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-slate-200">Owned Items ({rows.length})</span>
             <span className="font-mono text-amber-300">Total {formatDelta(rows.reduce((s, r) => s + r.val, 0))}</span>
           </div>
           {!showFullDetails ? (
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               {SHOPPING_CATEGORIES.map((cat) => (
                 <div key={cat} className="bg-[#090d16] border border-slate-800/70 rounded px-2.5 py-1.5 flex justify-between">
                   <span className="text-slate-400">{CATEGORY_LABELS[cat]}</span>

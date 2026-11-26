@@ -7,6 +7,7 @@ import type { CitizenHousingPreferences, DistrictId, House, HousingSatisfactionB
 import { simPick } from './rng';
 import { getAffinity } from './sharityAffinity';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, HomeType } from './types';
 
 export const HOME_TYPE_ORDER: HomeType[] = ['shared_room', 'small_flat', 'apartment', 'villa', 'mansion'];
@@ -77,10 +78,11 @@ export function computeHousingSatisfaction(
   };
 }
 
-export function stepAnnualPreferenceDrift(c: Citizen, house: House | undefined, year: number): void {
+export function stepAnnualPreferenceDrift(c: Citizen, house: House | undefined, year: number, totalDay?: number, dateLabel?: string): void {
   const prefs = c.housingPrefs ?? seedHousingPreferences(c);
   c.housingPrefs = prefs;
   if (prefs.lastDriftYear >= year) return;
+  const before = { type: prefs.preferredType, district: prefs.preferredDistrict };
   prefs.lastDriftYear = year;
 
   if (c.tier === 'T1' || c.tier === 'T2') {
@@ -97,6 +99,14 @@ export function stepAnnualPreferenceDrift(c: Citizen, house: House | undefined, 
     const curIdx = HOME_TYPE_ORDER.indexOf(house.type);
     const prefIdx = HOME_TYPE_ORDER.indexOf(prefs.preferredType);
     if (curIdx > prefIdx) prefs.preferredType = house.type;
+  }
+  if ((before.type !== prefs.preferredType || before.district !== prefs.preferredDistrict) && totalDay && dateLabel) {
+    recordSimEvent({
+      simDay: totalDay, dateLabel, category: 'housing', subType: 'preference_drift',
+      subjectId: c.id, subjectKind: 'citizen', subjectName: c.name,
+      summary: `${c.name} housing preference shifted (${before.type}/${before.district} → ${prefs.preferredType}/${prefs.preferredDistrict})`,
+      detail: { before, after: { type: prefs.preferredType, district: prefs.preferredDistrict } },
+    });
   }
 }
 

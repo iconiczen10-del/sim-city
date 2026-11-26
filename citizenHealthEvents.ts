@@ -6,6 +6,7 @@ import { getStressHealthDrain } from './citizenStress';
 import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { DEATH_CAUSE_LABELS, formatDelta, STANDARD_LABELS } from './formatters';
+import { recordSimEvent } from './recordsStore';
 import { simRand } from './rng';
 import type { Citizen, CityEvent, DeathCause } from './types';
 
@@ -67,10 +68,18 @@ export function finalizeCitizenDeath(
   citizen: Citizen,
   clock: SimClock,
   dateLabel: string,
-  events: CityEvent[]
+  events: CityEvent[],
+  causeOverride?: DeathCause
 ): number {
-  const cause: DeathCause = citizen.thirst <= 0 ? 'dehydration' : citizen.hunger <= 0 ? 'starvation' : 'illness';
+  const cause: DeathCause = causeOverride ?? (citizen.thirst <= 0 ? 'dehydration' : citizen.hunger <= 0 ? 'starvation' : 'illness');
   const estate = Math.round(citizen.savings);
+  const lastInventory = structuredClone(citizen.inventory);
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'death',
+    subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+    summary: `${citizen.name} died from ${DEATH_CAUSE_LABELS[cause].toLowerCase()} (estate ${formatDelta(estate)})`,
+    detail: { day: clock.totalDays, cause, lastSavings: estate, lastInventory },
+  });
   citizen.alive = false;
   citizen.deathDate = dateLabel;
   citizen.deathCause = cause;

@@ -12,6 +12,7 @@ import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta } from './formatters';
 import type { ElectricityState } from './electricityTypes';
 import type { MartState } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 export interface MonthlyPayrollSummary {
@@ -124,6 +125,12 @@ export function runCompanyMonthEndFinances(params: {
     businessTaxCollected += bizTax;
 
     applyCompanyStreaksAndBankruptcy({ comp, employees, profit, payRatio, mart, jobEvents, clock, dateLabel, events, boardState });
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'companies', subType: 'company_finances',
+      subjectId: comp.id, subjectKind: comp.id === 'gjelectricity' ? 'gjelectricity' : comp.id === 'vijmart' ? 'mart' : 'company', subjectName: comp.name,
+      summary: `${comp.name} Month-End: Rev ${formatDelta(comp.lastMonthRevenue)}, Profit ${formatDelta(profit)}, Cash ${formatDelta(comp.cash)}, Rep ${Math.round(comp.reputation)}`,
+      detail: { revenue: comp.lastMonthRevenue, costs: totalCosts, profit, cash: comp.cash, payroll: actualPayroll, businessTax: bizTax, reputation: comp.reputation, payRatio },
+    });
   }
 
   return { totalPayroll, businessTaxCollected, citizenPayMap };

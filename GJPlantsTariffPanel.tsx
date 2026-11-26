@@ -93,7 +93,7 @@ export function GJPlantsTariffPanel({
 
         <div>
           <div className="text-slate-400 mb-1.5">Set Tariff Multiplier (-30% to +50%)</div>
-          <div className="grid grid-cols-3 gap-1.5 font-mono tabular-nums">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono tabular-nums">
             {TARIFF_STEPS.map((s) => (
               <button
                 key={s}

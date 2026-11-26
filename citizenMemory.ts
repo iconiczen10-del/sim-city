@@ -3,6 +3,7 @@
 import type { CitizenMemory, MemoryKind } from './citizenInspectorTypes';
 import { clamp } from './economy';
 import type { SimClock } from './eventFactory';
+import { recordSimEvent } from './recordsStore';
 import { simIdSuffix } from './rng';
 import type { Citizen } from './types';
 
@@ -42,17 +43,32 @@ export function addCitizenMemory(
   };
 
   citizen.memories = [mem, ...citizen.memories].slice(0, 48);
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'memory',
+    subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+    summary: `Memory formed (${kind}, wt ${initialWeight}): ${summary}`,
+    detail: { memoryId: mem.id, kind, initialWeight, decayRate: mem.decayRate, summary },
+  });
   return mem;
 }
 
-export function decayCitizenMemories(citizen: Citizen): void {
+export function decayCitizenMemories(citizen: Citizen, totalDay?: number, dateLabel?: string): void {
   citizen.giftShieldDays = Math.max(0, citizen.giftShieldDays - 1);
-  citizen.memories = citizen.memories
-    .map((m) => ({
-      ...m,
-      currentWeight: Math.round(m.currentWeight * (1 - m.decayRate) * 10) / 10,
-    }))
-    .filter((m) => Math.abs(m.currentWeight) >= 1);
+  const nextMems: CitizenMemory[] = [];
+  for (const m of citizen.memories) {
+    const decayed = { ...m, currentWeight: Math.round(m.currentWeight * (1 - m.decayRate) * 10) / 10 };
+    if (Math.abs(decayed.currentWeight) >= 1) {
+      nextMems.push(decayed);
+    } else if (totalDay && dateLabel && Math.abs(m.initialWeight) >= 15) {
+      recordSimEvent({
+        simDay: totalDay, dateLabel, category: 'citizens', subType: 'memory_faded',
+        subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+        summary: `Memory faded (${m.kind}): ${m.summary}`,
+        detail: { memoryId: m.id, kind: m.kind, initialWeight: m.initialWeight, formedDay: m.totalDay },
+      });
+    }
+  }
+  citizen.memories = nextMems;
 }
 
 export function linkMemoriesToDecision(

@@ -37,7 +37,7 @@ export function CitizenHousingTab({ citizen, city, onSelectCitizen }: CitizenHou
         </div>
 
         {house && (
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {(['comfort', 'space', 'noise', 'privacy', 'safety'] as const).map((k) => (
               <div key={k} className="bg-[#111827] border border-slate-800 rounded p-2">
                 <div className="text-slate-400 capitalize">{k}</div>
@@ -65,13 +65,13 @@ export function CitizenHousingTab({ citizen, city, onSelectCitizen }: CitizenHou
 
       {ownedHouses.length > 0 && (
         <section className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-display text-sm font-semibold text-slate-100">Owned Properties ({ownedHouses.length})</h3>
             <span className="font-mono tabular-nums text-emerald-300">Last rental income: {formatDelta(citizen.lastRentalIncome ?? 0)}/mo</span>
           </div>
           <div className="divide-y divide-slate-800/70">
             {ownedHouses.map((oh) => (
-              <div key={oh.id} className="py-1.5 flex items-center justify-between">
+              <div key={oh.id} className="py-1.5 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-slate-200">{oh.name} · {DISTRICTS[oh.district].label} · {oh.occupantIds.length}/{oh.capacity} occupants</span>
                 <span className="font-mono tabular-nums text-slate-400">Rent {formatDelta(oh.rentPrice)}/mo · Cond {oh.condition}</span>
               </div>

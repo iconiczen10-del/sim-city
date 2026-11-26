@@ -5,6 +5,7 @@ import { appendChangeExplanation } from './citizenLedger';
 import { SAVINGS_MILESTONES } from './constants';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta, formatMonthYear, formatSimDate } from './formatters';
+import { recordSimEvent } from './recordsStore';
 import { computeTargetStatusScore, evaluateTierWithHysteresis, stepMonthlyStatusScore } from './status';
 import type { Citizen, CityEvent, TierMovement } from './types';
 
@@ -59,18 +60,25 @@ export function applyMonthlyStatusAndTier(
   if (nextTier !== citizen.tier) {
     const direction = nextTier < citizen.tier ? 'up' : 'down';
     const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
+    const reason = `Status ${statusScore.toFixed(1)} (target ${targetScore.toFixed(1)}, ${citizen.roleLevel}, savings ${formatDelta(citizen.savings)})`;
     const dec = recordStandardOrTierDecision({
       citizen, totalDay: clock.totalDays, dateLabel, kind: 'tier_change', category: 'status',
       title: `Tier ${direction === 'up' ? 'Promotion' : 'Demotion'} (${citizen.tier} → ${nextTier})`,
       chosenOption: `Move to ${nextTier}`, altOption: `Remain ${citizen.tier}`,
-      chosenReason: `Status score reached ${statusScore.toFixed(1)} (target ${targetScore.toFixed(1)}, ±2 monthly cap, ±3 hysteresis).`,
+      chosenReason: reason,
       budgetVal: direction === 'up' ? 20 : -20, memVal: 0, traitVal: Math.round((respect - 50) * 0.2), urgencyOrStatusVal: Math.round(statusScore - citizen.statusScore),
     });
     appendChangeExplanation(citizen, clock.totalDays, dateLabel, 'tier_change', `Tier shifted ${citizen.tier} → ${nextTier} at score ${statusScore.toFixed(1)}.`, dec.id);
 
     movements.push({
       citizenId: citizen.id, citizenName: citizen.name, fromTier: citizen.tier, toTier: nextTier,
-      direction, statusScore, monthLabel: formatMonthYear(clock.month, clock.year),
+      direction, statusScore, monthLabel: formatMonthYear(clock.month, clock.year), day: clock.totalDays, reason,
+    });
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'tier_movement',
+      subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+      summary: `${citizen.name} moved ${citizen.tier} → ${nextTier} (${reason})`,
+      detail: { citizenId: citizen.id, citizenName: citizen.name, fromTier: citizen.tier, toTier: nextTier, direction, statusScore, targetScore, reason, day: clock.totalDays },
     });
     events.push(makeCityEvent(clock, `tier_${citizen.id}`, {
       type: 'tier', citizenId: citizen.id, citizenName: citizen.name,

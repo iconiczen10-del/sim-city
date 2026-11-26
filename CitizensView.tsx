@@ -1,6 +1,6 @@
-// CitizensView.tsx — Citizen directory with filters, sorting, Living/In Memory, and Mass Actions
+// CitizensView.tsx — Citizen directory with filters, sorting, Living/In Memory, Mass Actions, and mobile pagination
 
-import { Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { CitizenCard } from './CitizenCard';
 import { TIER_ORDER } from './constants';
@@ -9,19 +9,22 @@ import type { CitizenSort, CityState, RoleLevel, TierId } from './types';
 
 interface CitizensViewProps {
   city: CityState;
+  isPhone?: boolean;
   onUpdateCity: (next: CityState) => void;
   onSelectCitizen: (citizenId: string) => void;
 }
 
-const ROLE_OPTIONS: RoleLevel[] = ['CEO', 'Executive', 'Manager', 'Team Lead', 'Staff', 'Entry', 'Unemployed'];
+const ROLE_OPTIONS: RoleLevel[] = ['CEO', 'Executive', 'Manager', 'Team Lead', 'Staff', 'Entry', 'Unemployed', 'Retired'];
+const MOBILE_PAGE_SIZE = 12;
 
-export function CitizensView({ city, onUpdateCity, onSelectCitizen }: CitizensViewProps) {
+export function CitizensView({ city, isPhone = false, onUpdateCity, onSelectCitizen }: CitizensViewProps) {
   const [query, setQuery] = useState('');
   const [viewMode, setViewMode] = useState<'living' | 'memory'>('living');
   const [tierFilter, setTierFilter] = useState<TierId | 'ALL'>('ALL');
   const [roleFilter, setRoleFilter] = useState<RoleLevel | 'ALL'>('ALL');
   const [sortBy, setSortBy] = useState<CitizenSort>('status');
   const [showMass, setShowMass] = useState(false);
+  const [page, setPage] = useState(1);
 
   const livingCount = city.citizens.filter((c) => c.alive).length;
   const deceasedCount = city.citizens.length - livingCount;
@@ -44,34 +47,38 @@ export function CitizensView({ city, onUpdateCity, onSelectCitizen }: CitizensVi
     });
   }, [city.citizens, query, viewMode, tierFilter, roleFilter, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / MOBILE_PAGE_SIZE));
+  const clampedPage = Math.min(page, totalPages);
+  const visible = isPhone ? filtered.slice((clampedPage - 1) * MOBILE_PAGE_SIZE, clampedPage * MOBILE_PAGE_SIZE) : filtered;
+
   return (
     <div className="space-y-5">
       <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1 min-w-[260px]">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
           <div className="flex items-center gap-1 p-0.5 bg-[#090d16] border border-slate-800 rounded-md shrink-0">
-            <button type="button" onClick={() => setViewMode('living')} className={`px-2.5 py-1 text-xs rounded cursor-pointer ${viewMode === 'living' ? 'bg-slate-800 text-slate-100 font-medium' : 'text-slate-400 hover:text-slate-100'}`}>
+            <button type="button" onClick={() => { setViewMode('living'); setPage(1); }} className={`px-2.5 py-1 text-xs rounded cursor-pointer ${viewMode === 'living' ? 'bg-slate-800 text-slate-100 font-medium' : 'text-slate-400 hover:text-slate-100'}`}>
               Living ({livingCount})
             </button>
-            <button type="button" onClick={() => setViewMode('memory')} className={`px-2.5 py-1 text-xs rounded cursor-pointer ${viewMode === 'memory' ? 'bg-slate-800 text-rose-300 font-medium' : 'text-slate-400 hover:text-slate-100'}`}>
+            <button type="button" onClick={() => { setViewMode('memory'); setPage(1); }} className={`px-2.5 py-1 text-xs rounded cursor-pointer ${viewMode === 'memory' ? 'bg-slate-800 text-rose-300 font-medium' : 'text-slate-400 hover:text-slate-100'}`}>
               In Memory ({deceasedCount})
             </button>
           </div>
-          <div className="relative flex-1 max-w-xs">
+          <div className="relative flex-1 min-w-[160px] max-w-xs">
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
-            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search citizens..." className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60" />
+            <input type="text" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search citizens..." className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60" />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select aria-label="Filter by tier" value={tierFilter} onChange={(e) => setTierFilter(e.target.value as TierId | 'ALL')} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+          <select aria-label="Filter by tier" value={tierFilter} onChange={(e) => { setTierFilter(e.target.value as TierId | 'ALL'); setPage(1); }} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
             <option value="ALL">All Tiers</option>
             {TIER_ORDER.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select aria-label="Filter by role" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as RoleLevel | 'ALL')} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+          <select aria-label="Filter by role" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value as RoleLevel | 'ALL'); setPage(1); }} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
             <option value="ALL">All Roles</option>
             {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <div className="flex items-center gap-1 p-0.5 bg-[#090d16] border border-slate-800 rounded-md">
+          <div className="flex items-center gap-1 p-0.5 bg-[#090d16] border border-slate-800 rounded-md overflow-x-auto max-w-full">
             {([['status', 'Highest Status'], ['richest', 'Richest'], ['happiest', 'Happiest']] as const).map(([id, lbl]) => (
               <button key={id} type="button" onClick={() => setSortBy(id)} className={`px-2.5 py-1 text-xs rounded whitespace-nowrap cursor-pointer ${sortBy === id ? 'bg-slate-800 text-amber-300 font-medium' : 'text-slate-400 hover:text-slate-100'}`}>
                 {lbl}
@@ -86,14 +93,27 @@ export function CitizensView({ city, onUpdateCity, onSelectCitizen }: CitizensVi
 
       {showMass && <MassInventoryPanel city={city} onUpdateCity={onUpdateCity} />}
 
-      {filtered.length === 0 ? (
+      {visible.length === 0 ? (
         <div className="bg-[#111827] border border-slate-800 rounded-lg py-16 text-center text-sm text-slate-400">
           {viewMode === 'memory' && deceasedCount === 0 ? 'No deceased citizens recorded in Vij.' : 'No citizens match the active search or filters.'}
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-3.5">
-          {filtered.map((c) => <CitizenCard key={c.id} citizen={c} onSelect={onSelectCitizen} />)}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
+            {visible.map((c) => <CitizenCard key={c.id} citizen={c} onSelect={onSelectCitizen} />)}
+          </div>
+          {isPhone && totalPages > 1 && (
+            <div className="flex items-center justify-between pt-1 text-xs">
+              <button type="button" disabled={clampedPage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-slate-800 bg-[#111827] px-3 text-slate-200 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">
+                <ChevronLeft className="size-4" aria-hidden="true" /><span>Previous</span>
+              </button>
+              <span className="font-mono text-slate-400 tabular-nums">Page {clampedPage} / {totalPages}</span>
+              <button type="button" disabled={clampedPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-slate-800 bg-[#111827] px-3 text-slate-200 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">
+                <span>Next</span><ChevronRight className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

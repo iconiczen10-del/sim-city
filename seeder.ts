@@ -9,6 +9,7 @@ import { APP_VERSION, INITIAL_TREASURY, MART_INITIAL_CASH } from './constants';
 import { createInitialElectricityState, seedGJElectricityVacancies } from './electricitySetup';
 import { seedCitizenElectronics } from './electronicsCitizen';
 import { ensureMartElectronics } from './electronicsMart';
+import { createInitialFamilyState } from './familyTreeEngine';
 import { formatSimDate } from './formatters';
 import { createInitialHousingState } from './housingSeed';
 import { createInitialMart } from './martSetup';
@@ -75,6 +76,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     chatGroups: { vijindustries: chatGroup },
     housing,
     electricity,
+    family: createInitialFamilyState(citizens),
     events: [
       {
         id: 'evt_init_1',

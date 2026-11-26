@@ -5,6 +5,7 @@ import { HOUSEHOLD_PACK_DAYS } from './constants';
 import { makeCityEvent } from './eventFactory';
 import { CATEGORY_LABELS, formatSimDate } from './formatters';
 import type { ShoppingCategory } from './martTypes';
+import { recordSimGodAction } from './recordsSimGod';
 import type { CityState } from './types';
 
 export function editCitizenInventoryDirect(
@@ -48,5 +49,6 @@ export function editCitizenInventoryDirect(
     detail: `Directly updated ${CATEGORY_LABELS[category]} item #${index + 1} for ${c.name}.`,
   }));
   next.events = next.events.slice(0, 600);
+  recordSimGodAction({ city: next, dateLabel, targetId: c.id, targetKind: 'citizen', targetName: c.name, preview: `Edit ${c.name} ${CATEGORY_LABELS[category]} #${index + 1}`, cause: 'Direct inventory edit', effect: `Set ${CATEGORY_LABELS[category]} qty/cond (${cleanQty})` });
   return next;
 }

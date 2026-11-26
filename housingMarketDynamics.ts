@@ -11,6 +11,7 @@ import { computeLandlordRent, syncCitizenHousingLinks } from './housingScores';
 import type { DistrictId, DistrictMarketMetric, House, HousingState, TypePricePoint } from './housingTypes';
 import { simRand } from './rng';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 function avgTypePrice(houses: House[], t: House['type']): number {
@@ -114,6 +115,12 @@ export function stepMonthlyMarketDynamics(params: {
       district: dist, vacancyRate: Math.round(vacRate * 100), avgRent,
       rentTrend: driftPct > 0.005 ? 'up' : driftPct < -0.005 ? 'down' : 'flat', lastDriftPct: Math.round(driftPct * 1000) / 10,
     };
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'market_drift',
+      subjectId: 'city', subjectKind: 'city', subjectName: 'City of Vij',
+      summary: `${dist} housing market: ${Math.round(vacRate * 100)}% vacant, avg rent ∆${avgRent} (${metrics[dist].rentTrend} ${metrics[dist].lastDriftPct}%)`,
+      detail: { ...metrics[dist], priceDriftPct: Math.round(priceDrift * 1000) / 10 },
+    });
   }
   housing.districtMetrics = metrics;
   const pt: TypePricePoint = {

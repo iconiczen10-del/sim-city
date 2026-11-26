@@ -3,13 +3,12 @@
 import type { LivingStandard, MarginMood, ShoppingCategory } from './martTypes';
 import type { EducationLevel, HomeType, RoleLevel, TierId } from './types';
 
-export const APP_VERSION = '0.9.1';
+export const APP_VERSION = '1.2.0';
 export const STORAGE_KEY = 'vij_city_state_v9_0';
 export const LEGACY_STORAGE_KEYS = ['vij_city_state_v8_0', 'vij_city_state_v7_0', 'vij_city_state_v6_0', 'vij_city_state_v5_8', 'vij_city_state_v5_7', 'vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
 export const INITIAL_TREASURY = 20000;
 export const DAYS_PER_MONTH = 30;
 export const MONTHS_PER_YEAR = 12;
-export const LIFE_LOG_RETENTION_DAYS = 60;
 
 export const COMPANY_INITIAL_CASH = 40000;
 export const BUSINESS_TAX_RATE = 0.05;
@@ -43,7 +42,7 @@ export const MONTH_NAMES = [
 ] as const;
 
 export const ROLE_SEED_COUNTS: Record<RoleLevel, number> = {
-  CEO: 5, Executive: 4, Manager: 5, 'Team Lead': 6, Staff: 10, Entry: 12, Unemployed: 8,
+  CEO: 5, Executive: 4, Manager: 5, 'Team Lead': 6, Staff: 10, Entry: 12, Unemployed: 8, Retired: 0,
 };
 
 export const ROLE_PAY_BANDS: Record<RoleLevel, { min: number; max: number; expectedMult: number }> = {
@@ -54,6 +53,7 @@ export const ROLE_PAY_BANDS: Record<RoleLevel, { min: number; max: number; expec
   Staff: { min: 700, max: 1100, expectedMult: 1.12 },
   Entry: { min: 400, max: 600, expectedMult: 0.92 },
   Unemployed: { min: 0, max: 0, expectedMult: 1 },
+  Retired: { min: 0, max: 0, expectedMult: 1 },
 };
 
 export const EDUCATION_MULTIPLIERS: Record<EducationLevel, number> = {
@@ -61,7 +61,7 @@ export const EDUCATION_MULTIPLIERS: Record<EducationLevel, number> = {
 };
 
 export const ROLE_STATUS_SCORES: Record<RoleLevel, number> = {
-  CEO: 100, Executive: 88, Manager: 74, 'Team Lead': 58, Staff: 40, Entry: 20, Unemployed: 0,
+  CEO: 100, Executive: 88, Manager: 74, 'Team Lead': 58, Staff: 40, Entry: 20, Unemployed: 0, Retired: 34,
 };
 
 export const FIXED_NON_RENT_COSTS = {

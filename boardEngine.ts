@@ -27,7 +27,7 @@ function checkGreedyResignations(
   events: CityEvent[]
 ): void {
   for (const m of members) {
-    if (m.roleLevel === 'CEO' || m.roleLevel === 'Unemployed') continue;
+    if (m.roleLevel === 'CEO' || m.roleLevel === 'Unemployed' || m.roleLevel === 'Retired') continue;
     const recentResent = m.memories.some((mem) => mem.kind === 'board_contribution' && mem.currentWeight <= -18 && clock.totalDays - mem.totalDay <= 2);
     if (recentResent && m.traits.greed >= 76 && m.mood < 42 && simRand() < 0.45) {
       const oldRole = m.roleLevel;

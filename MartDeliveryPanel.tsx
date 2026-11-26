@@ -23,19 +23,19 @@ export function MartDeliveryPanel({
   return (
     <div className="space-y-5">
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg p-5">
-        <div className="flex items-baseline justify-between mb-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
           <h3 className="font-display text-sm font-semibold text-slate-100">
             Delivery Schedule Control (Per Category)
           </h3>
           <span className="text-xs text-slate-400">2-day lead time · ∆40 trip fee · 4% discount over ∆1,500</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {SHOPPING_CATEGORIES.map((cat) => {
             const s = mart.schedules[cat];
             return (
               <div key={cat} className="bg-[#0c1220] border border-slate-800/80 rounded-md p-3.5 space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-100">{CATEGORY_LABELS[cat]}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[11px] text-sky-300">{s.nextDeliveryLabel}</span>
@@ -51,7 +51,7 @@ export function MartDeliveryPanel({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <label className="space-y-1">
                     <span className="text-slate-400 block">Deliver every N days</span>
                     <input
@@ -82,7 +82,7 @@ export function MartDeliveryPanel({
       </section>
 
       <section className="bg-[#111827] border border-slate-800/90 rounded-lg overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-display text-sm font-semibold text-slate-100">
             In-Transit Wholesale Orders ({mart.deliveries.length})
           </h3>
@@ -94,7 +94,7 @@ export function MartDeliveryPanel({
         ) : (
           <div className="divide-y divide-slate-800/70">
             {mart.deliveries.map((d) => (
-              <div key={d.id} className="px-5 py-3 flex items-center justify-between gap-4 text-xs">
+              <div key={d.id} className="px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
                   <span className="font-medium text-slate-100">
                     {d.quantity}x {CATEGORY_LABELS[d.category]} (L{d.standard})
@@ -104,7 +104,7 @@ export function MartDeliveryPanel({
                   {d.isRush && <span className="ml-2 font-mono text-amber-300">RUSH</span>}
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <span className="font-mono text-sky-300 mr-2">ETA {d.etaDays}d</span>
                   <button
                     type="button"

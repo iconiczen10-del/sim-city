@@ -32,7 +32,7 @@ export function processCitizenDailySurvival(
   sharity?: SharityState
 ): { died: boolean; estateToTreasury: number; shortageToday: boolean } {
   citizen.stockoutMemoryDays = Math.max(0, citizen.stockoutMemoryDays - 1);
-  decayCitizenMemories(citizen);
+  decayCitizenMemories(citizen, clock.totalDays, dateLabel);
 
   const { foodStd, waterStd } = consumeFoodAndWater(citizen, mart, clock, dateLabel, events);
   wearClothesAndHousehold(citizen, mart, clock.totalDays, dateLabel);

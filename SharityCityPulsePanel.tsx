@@ -54,7 +54,7 @@ export function SharityCityPulsePanel({ city }: SharityCityPulsePanelProps) {
           {topConcerns.length === 0 ? (
             <div className="text-slate-500 py-2">No hashtags trending yet.</div>
           ) : (
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {topConcerns.map((t) => (
                 <div key={t.tag} className="flex items-center justify-between bg-[#0c1220] border border-slate-800/80 rounded px-2.5 py-1.5 font-mono">
                   <span className="text-sky-300 truncate">{t.tag}</span>

@@ -59,39 +59,41 @@ export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps)
         </div>
       )}
 
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+          <div key={kpi.label} className="bg-[#111827] border border-slate-800/90 rounded-lg p-3.5 sm:p-4">
             <div className="text-xs text-slate-400 mb-2">{kpi.label}</div>
-            <div className="font-mono text-2xl font-semibold text-slate-50 tracking-tight">{kpi.value}</div>
+            <div className="font-mono text-lg sm:text-2xl font-semibold text-slate-50 tracking-tight tabular-nums">{kpi.value}</div>
             <div className="text-xs text-slate-500 mt-1.5 font-mono">{kpi.sub}</div>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-1 p-1 bg-[#111827] border border-slate-800/90 rounded-lg w-fit">
-        {([
-          { id: 'manager', label: 'AI Manager & Charts' },
-          { id: 'stock', label: 'Stock & Logs' },
-          { id: 'deliveries', label: `Deliveries (${mart.deliveries.length})` },
-          { id: 'simgod', label: 'SimGod Powers' },
-        ] as const).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setSubTab(t.id)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-              subTab === t.id ? 'bg-slate-800 text-amber-300' : 'text-slate-400 hover:text-slate-100'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1 p-1 bg-[#111827] border border-slate-800/90 rounded-lg w-max sm:w-fit">
+          {([
+            { id: 'manager', label: 'AI Manager & Charts' },
+            { id: 'stock', label: 'Stock & Logs' },
+            { id: 'deliveries', label: `Deliveries (${mart.deliveries.length})` },
+            { id: 'simgod', label: 'SimGod Powers' },
+          ] as const).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSubTab(t.id)}
+              className={`min-h-[40px] sm:min-h-0 px-3.5 py-1.5 text-xs font-medium rounded-md whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
+                subTab === t.id ? 'bg-slate-800 text-amber-300' : 'text-slate-400 hover:text-slate-100'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {subTab === 'manager' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SparkChart title="Daily Sales Revenue" points={revenuePts} strokeColor="#fbbf24" formatValue={(v) => formatPrice(v)} />
             <MartPriceMoodChart history={mart.history} />
           </div>

@@ -9,6 +9,7 @@ import { formatSimDate } from './formatters';
 import { openVacancy } from './jobScoring';
 import { round2 } from './martSetup';
 import type { MartState } from './martTypes';
+import { recordSimGodAction } from './recordsSimGod';
 import type { Citizen, CityEvent, CityState } from './types';
 
 export interface MartManagerTraits {
@@ -131,13 +132,7 @@ export function fireMartManagerSimGod(prev: CityState): CityState {
 
   next.mart.managerLowPerfMonths = 0;
   next.mart.panicFreezeDaysLeft = 0;
-  next.mart.decisionLog.unshift({
-    id: `dec_sgfire_${clock.totalDays}`,
-    dateLabel,
-    category: 'store',
-    managerName: 'Fallback AI',
-    summary: `${mgr.name} dismissed; Fallback AI active`,
-    reason: 'Vacancy opened for Team Lead floor manager in Job Market.',
-  });
+  next.mart.decisionLog.unshift({ id: `dec_sgfire_${clock.totalDays}`, dateLabel, category: 'store', managerName: 'Fallback AI', summary: `${mgr.name} dismissed; Fallback AI active`, reason: 'Vacancy opened for Team Lead floor manager in Job Market.' });
+  recordSimGodAction({ city: next, dateLabel, targetId: mgr.id, targetKind: 'citizen', targetName: mgr.name, preview: `Fire Mart Manager ${mgr.name}`, cause: 'SimGod dismissal', effect: note });
   return next;
 }

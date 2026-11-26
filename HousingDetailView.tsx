@@ -8,6 +8,7 @@ import { getHouseMonthlyMaintenance, getTenantMonthlyRent } from './housingScore
 import { HousingSimGodExtraPanel } from './HousingSimGodExtraPanel';
 import { HousingSimGodPanel } from './HousingSimGodPanel';
 import type { House } from './housingTypes';
+import { RecordsPanel } from './RecordsPanel';
 import { SparkChart } from './SparkChart';
 import type { CityState } from './types';
 
@@ -33,15 +34,11 @@ export function HousingDetailView({ city, house, onBack, onUpdateCity, onSelectC
     { label: 'Safety', value: house.scores.safety, color: house.scores.safety < 45 ? 'bg-rose-400' : 'bg-emerald-400' },
   ];
 
-  const condPoints = house.conditionHistory.length > 0
-    ? house.conditionHistory.map((p) => ({ label: p.label, value: p.condition }))
-    : [{ label: 'Now', value: house.condition }];
+  const condPoints = house.conditionHistory.length > 0 ? house.conditionHistory.map((p) => ({ label: p.label, value: p.condition })) : [{ label: 'Now', value: house.condition }];
 
   return (
     <div className="space-y-5">
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer">
-        <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" /><span>Back to Houses</span>
-      </button>
+      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-300 hover:text-amber-200 cursor-pointer"><ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" /><span>Back to Houses</span></button>
 
       <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-5 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-4">
@@ -142,6 +139,9 @@ export function HousingDetailView({ city, house, onBack, onUpdateCity, onSelectC
       </div>
 
       <ElectricityLedgerCard title={`Electricity Ledger — ${house.name}`} ledger={house.electricLedger} profile={house.usageProfile} tariff={city.electricity?.tariff} />
+      <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+        <RecordsPanel pageSize={3} fixedSubjectId={house.id} title={`House Records — ${house.name}`} refreshKey={city.totalDays} maxDay={city.totalDays} />
+      </div>
       <HousingSimGodPanel city={city} house={house} onUpdateCity={onUpdateCity} />
       <HousingSimGodExtraPanel city={city} house={house} onUpdateCity={onUpdateCity} />
     </div>

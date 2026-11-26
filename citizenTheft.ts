@@ -6,6 +6,7 @@ import { appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
 import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
+import { recordSimEvent } from './recordsStore';
 import { simPick, simRand, simRandInt } from './rng';
 import { adjustAffinity } from './sharityAffinity';
 import type { SharityState } from './sharityTypes';
@@ -96,4 +97,10 @@ export function maybeAttemptDesperateTheft(params: {
     addCitizenMemory(thief, clock, dateLabel, 'theft_guilt', `Felt guilty taking ${stolenDesc} unseen.`, -12);
     appendLifeLog(target, clock.totalDays, dateLabel, 'loss', `Noticed ${stolenDesc} missing; assumed spoilage or Vij Mart short-weight.`);
   }
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'theft',
+    subjectId: thief.id, subjectKind: 'citizen', subjectName: thief.name,
+    summary: `${thief.name} stole ${stolenDesc} from ${target.name} (${caught ? 'Caught' : 'Undetected'})`,
+    detail: { thiefId: thief.id, victimId: target.id, victimName: target.name, stolenDesc, caught, catchProb: Math.round(catchProb * 100) / 100, homeless },
+  });
 }

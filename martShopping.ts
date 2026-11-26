@@ -9,6 +9,7 @@ import { makeCityEvent, type SimClock } from './eventFactory';
 import { CATEGORY_LABELS, formatPrice, STANDARD_LABELS } from './formatters';
 import { deductMartStock, findStockItem, round2 } from './martSetup';
 import type { LivingStandard, MartState, ShoppingCategory } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 export function purchaseFromMart(
@@ -106,5 +107,11 @@ export function purchaseFromMart(
   const sale = { id: `sale_${clock.totalDays}_${citizen.id}_${category}`, totalDay: clock.totalDays, dateLabel, category, standard: chosenStandard, quantity: qty, unitPrice: item.sellPrice, totalPrice: totalCost, contaminatedQty: contaminated > 0 ? contaminated : undefined };
   citizen.recentPurchases = [sale, ...citizen.recentPurchases].slice(0, 12);
   mart.salesLog.unshift({ ...sale, citizenId: citizen.id, citizenName: citizen.name });
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'shopping', subType: 'purchase',
+    subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+    summary: `${citizen.name} bought ${qty}x L${chosenStandard} ${CATEGORY_LABELS[category]} (${formatPrice(totalCost)})`,
+    detail: { item: category, standard: chosenStandard, unitPrice: item.sellPrice, totalPrice: totalCost, quantity: qty, day: clock.totalDays, contaminated },
+  });
   return true;
 }

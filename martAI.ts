@@ -6,6 +6,7 @@ import { CATEGORY_LABELS, MOOD_META } from './formatters';
 import { getManagerTraitProfile, getMartFloorManager, type MartManagerTraits } from './martManager';
 import { computeSkuPrice } from './martPricing';
 import type { CategoryMoodState, MarginMood, MartState, ShoppingCategory } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import { simRand, simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
@@ -116,11 +117,15 @@ export function updateMartMoodsAndPrices(
         }));
         mart.decisionLog.unshift({
           id: `dec_m_${clock.totalDays}_${cat}`,
-          dateLabel,
-          category: cat,
-          managerName: profile.managerName,
+          dateLabel, category: cat, managerName: profile.managerName,
           summary: `${profile.managerName} set ${CATEGORY_LABELS[cat]} mood → ${MOOD_META[next.mood].label}`,
           reason: `${next.reason} (${traitNote}).`,
+        });
+        recordSimEvent({
+          simDay: clock.totalDays, dateLabel, category: 'mart', subType: 'mart_manager',
+          subjectId: 'vijmart', subjectKind: 'mart', subjectName: 'Vij Mart',
+          summary: `${profile.managerName} shifted ${CATEGORY_LABELS[cat]} → ${MOOD_META[next.mood].label} (${traitNote})`,
+          detail: { managerName: profile.managerName, category: cat, mood: next.mood, marginPct: next.marginPct, traitNote, reason: next.reason },
         });
       }
       mart.categoryMoods[cat] = next;

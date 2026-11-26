@@ -14,7 +14,7 @@ export function CitizenWhyLedgers({ citizen }: CitizenWhyLedgersProps) {
   const expenseTotal = citizen.monthlyLedger.filter((e) => e.kind === 'expense').reduce((s, e) => s + e.amount, 0);
 
   return (
-    <div className="grid grid-cols-2 gap-4 text-xs">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
       <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4 space-y-2.5">
         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
           <span className="font-semibold text-slate-200">This Month Money Ledger</span>

@@ -27,6 +27,7 @@ export function SharityFeedView({ city, speed, highlightedPostId, onClearHighlig
   const [authorFilter, setAuthorFilter] = useState<string>('all');
   const [hashtagFilter, setHashtagFilter] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [displayLimit, setDisplayLimit] = useState(25);
 
   const followerCounts = useMemo(() => countFollowersMap(city.sharity.follows), [city.sharity.follows]);
   const defaultViewer = useMemo(
@@ -91,11 +92,22 @@ export function SharityFeedView({ city, speed, highlightedPostId, onClearHighlig
               <div className="text-xs text-slate-400">Advance simulation days or clear active filters to inspect posts and reactions.</div>
             </div>
           ) : (
-            visiblePosts.map((post) => {
-              const prof = city.sharity.profiles[post.authorId];
-              if (!prof) return null;
-              return <SharityPostCard key={post.id} post={post} profile={prof} citizen={prof.kind === 'citizen' ? citizensById.get(prof.id) : undefined} sharity={city.sharity} citizensById={citizensById} highlighted={post.id === highlightedPostId} onOpenProfile={onOpenProfile} onSelectHashtag={setHashtagFilter} />;
-            })
+            <>
+              {visiblePosts.slice(0, displayLimit).map((post) => {
+                const prof = city.sharity.profiles[post.authorId];
+                if (!prof) return null;
+                return <SharityPostCard key={post.id} post={post} profile={prof} citizen={prof.kind === 'citizen' ? citizensById.get(prof.id) : undefined} sharity={city.sharity} citizensById={citizensById} highlighted={post.id === highlightedPostId} onOpenProfile={onOpenProfile} onSelectHashtag={setHashtagFilter} />;
+              })}
+              {visiblePosts.length > displayLimit && (
+                <button
+                  type="button"
+                  onClick={() => setDisplayLimit((n) => n + 25)}
+                  className="w-full py-2.5 rounded-lg border border-slate-800 bg-[#111827] hover:border-amber-500/50 text-xs font-medium text-amber-300 cursor-pointer"
+                >
+                  Show more posts ({visiblePosts.length - displayLimit} remaining)
+                </button>
+              )}
+            </>
           )}
         </div>
         <SharityTrendingPanel items={trending} activeHashtag={hashtagFilter} onSelectHashtag={setHashtagFilter} />

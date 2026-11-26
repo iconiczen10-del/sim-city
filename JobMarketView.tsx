@@ -24,7 +24,7 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-4 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
         {[
           { label: 'Open Vacancies', val: String(city.vacancies.length) },
           { label: 'Unemployed Adults', val: String(unemployed.length) },
@@ -38,8 +38,8 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <section className="col-span-7 bg-[#111827] border border-slate-800/90 rounded-lg p-5 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
+        <section className="sm:col-span-7 bg-[#111827] border border-slate-800/90 rounded-lg p-4 sm:p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-sm font-semibold text-slate-100">Open Vacancies &amp; Applicant Queues</h2>
             <span className="font-mono text-xs text-slate-400">{city.vacancies.length} open</span>
@@ -56,7 +56,7 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
                 const apps = v.applicants.length > 0 ? v.applicants : comp ? collectApplicantsForVacancy(city.citizens, v, comp) : [];
                 return (
                   <div key={v.id} className="bg-[#0c1220] border border-slate-800/80 rounded-md p-3.5 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <span className="font-semibold text-slate-100">{v.companyName}</span>
                         <span className="text-amber-300 font-medium ml-2">{v.role}</span>
@@ -91,7 +91,7 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
           )}
         </section>
 
-        <section className="col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-5 space-y-3">
+        <section className="sm:col-span-5 bg-[#111827] border border-slate-800/90 rounded-lg p-4 sm:p-5 space-y-3">
           <h2 className="font-display text-sm font-semibold text-slate-100">Recent Hires, Fires, Quits &amp; Promotions</h2>
           {city.jobEvents.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded">

@@ -9,6 +9,7 @@ import { computeElectronicsDraw } from './electricityStats';
 import type { ElectricLedger, ElectricityState } from './electricityTypes';
 import type { SimClock } from './eventFactory';
 import type { HousingState } from './housingTypes';
+import { recordSimEvent } from './recordsStore';
 import { simPick, simRand, simRandFloat, simRandInt } from './rng';
 import type { Citizen } from './types';
 
@@ -20,20 +21,24 @@ const SPIKE_REASONS = [
   { reason: 'Faulty appliance surge', extra: [3, 6], days: [1, 3] },
 ] as const;
 
-function maybeStepSpikes(ledger: ElectricLedger, occCount: number, clock: SimClock, hasPower: boolean): number {
+function maybeStepSpikes(ledger: ElectricLedger, houseId: string, houseName: string, occCount: number, clock: SimClock, dateLabel: string, hasPower: boolean): number {
   ledger.activeSpikes = ledger.activeSpikes.filter((s) => clock.totalDays <= s.endDay);
   if (hasPower && occCount > 0 && ledger.activeSpikes.length === 0 && simRand() < 0.022) {
     const pick = simPick(SPIKE_REASONS);
     const dur = simRandInt(pick.days[0], pick.days[1]);
     const spike = {
       id: `spk_${clock.totalDays}_${simRandInt(10, 999)}`,
-      startDay: clock.totalDays,
-      endDay: clock.totalDays + dur - 1,
-      extraUnitsPerDay: simRandInt(pick.extra[0], pick.extra[1]),
-      reason: pick.reason,
+      startDay: clock.totalDays, endDay: clock.totalDays + dur - 1,
+      extraUnitsPerDay: simRandInt(pick.extra[0], pick.extra[1]), reason: pick.reason,
     };
     ledger.activeSpikes.push(spike);
     ledger.spikeHistory = [spike, ...ledger.spikeHistory].slice(0, 16);
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'electricity', subType: 'spike',
+      subjectId: houseId, subjectKind: 'house', subjectName: houseName,
+      summary: `${houseName} electricity spike (+${spike.extraUnitsPerDay} u/d for ${dur}d): ${pick.reason}`,
+      detail: { ...spike, durationDays: dur },
+    });
   }
   return ledger.activeSpikes.reduce((s, sp) => s + sp.extraUnitsPerDay, 0);
 }
@@ -90,7 +95,7 @@ export function stepElectricityDailyDemand(params: {
 
     const occFactor = 1.0 + Math.max(0, occ.length - 1) * 0.16;
     const elecLoad = computeElectronicsDraw(occ, season);
-    const spikeExtra = maybeStepSpikes(ledger, occ.length, clock, true);
+    const spikeExtra = maybeStepSpikes(ledger, h.id, h.name, occ.length, clock, dateLabel, true);
     const noise = simRandFloat(0.92, 1.08);
     const units = Math.round(
       Math.max(1.5, (base * occFactor * profileMult * npcMod * seasonMult * summerCoolingMult + elecLoad) * noise + spikeExtra) * 10

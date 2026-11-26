@@ -7,6 +7,7 @@ import type { CitizenEmotion, CitizenNeed, EmotionId, EmotionSnapshot, HealthPro
 import type { CitizenSnapshot, CitizenTraits, CityEvent, DeathCause, EducationLevel, EventCategory, Gender, HomeType, RoleLevel, TierId, TierMovement } from './cityBaseTypes';
 import type { Company, CompanyId, CompanyVacancy, JobMarketEvent, WorkHistoryEntry } from './companyTypes';
 import type { ElectricityState } from './electricityTypes';
+import type { CitizenFamilyFields, CityFamilyState } from './familyTypes';
 import type { CitizenHousingEntry, CitizenHousingPreferences, EvictionRecord, HousingSatisfactionBreakdown, HousingState, OwnershipType } from './housingTypes';
 import type { CitizenInventory, CitizenStandards, MartState, PurchaseRecord, ShoppingCategory } from './martTypes';
 import type { SharityState } from './sharityTypes';
@@ -16,7 +17,7 @@ export type {
   EventCategory, Gender, HomeType, NavTab, RoleLevel, SimSpeed, TierId, TierMovement,
 } from './cityBaseTypes';
 
-export interface Citizen {
+export interface Citizen extends CitizenFamilyFields {
   id: string;
   name: string;
   age: number;
@@ -141,4 +142,5 @@ export interface CityState {
   chatGroups: { vijindustries: ChatGroupState };
   housing: HousingState;
   electricity?: ElectricityState;
+  family?: CityFamilyState;
 }

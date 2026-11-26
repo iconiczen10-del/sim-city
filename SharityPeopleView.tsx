@@ -70,17 +70,17 @@ export function SharityPeopleView({ city, onOpenProfile }: SharityPeopleViewProp
             className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500"
           />
         </div>
-        <select aria-label="Filter by tier" value={tierFilter} onChange={(e) => setTierFilter(e.target.value as TierFilter)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+        <select aria-label="Filter by tier" value={tierFilter} onChange={(e) => setTierFilter(e.target.value as TierFilter)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200 max-w-full">
           <option value="all">All Tiers & Pages</option>
           <option value="T1">T1 Elite</option><option value="T2">T2 Upper</option><option value="T3">T3 Middle</option><option value="T4">T4 Modest</option><option value="T5">T5 Struggling</option>
           <option value="company">Company Pages</option>
         </select>
-        <select aria-label="Filter by company" value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value as CompFilter)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+        <select aria-label="Filter by company" value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value as CompFilter)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200 max-w-full">
           <option value="all">All Affiliations</option>
           {city.companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           <option value="unemployed">Unemployed</option>
         </select>
-        <select aria-label="Sort profiles" value={sortBy} onChange={(e) => setSortBy(e.target.value as PeopleSort)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+        <select aria-label="Sort profiles" value={sortBy} onChange={(e) => setSortBy(e.target.value as PeopleSort)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-200 max-w-full">
           <option value="followers">Sort: Followers</option>
           <option value="following">Sort: Following</option>
           <option value="newest_bio">Sort: Newest Bio</option>

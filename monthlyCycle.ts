@@ -15,6 +15,7 @@ import { getMartFloorManager } from './martManager';
 import type { MartState } from './martTypes';
 import { processLivingCitizenMonthEnd } from './monthlyCitizenStep';
 import type { SharityState } from './sharityTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent, TierMovement } from './types';
 
 export function runCityMonthEnd(params: {
@@ -83,6 +84,12 @@ export function runCityMonthEnd(params: {
     type: 'system', title: `Month-End Summary (${formatMonthYear(clock.month, clock.year)})`,
     detail: `Income Tax +${formatDelta(taxCollected)} · Biz Tax +${formatDelta(payrollRes.businessTaxCollected)} · Payroll ${formatDelta(payrollRes.totalPayroll)} · Treasury ${formatDelta(nextTreasury)} · Savings ${formatDelta(totalSavings)}.`,
   }));
+  recordSimEvent({
+    simDay: clock.totalDays, dateLabel, category: 'city', subType: 'monthly_summary',
+    subjectId: 'city', subjectKind: 'city', subjectName: 'City of Vij',
+    summary: `Month ${clock.month} Y${clock.year}: Treasury ${formatDelta(nextTreasury)}, Payroll ${formatDelta(payrollRes.totalPayroll)}, Alive ${alive.length}, Tier shifts ${movements.length}`,
+    detail: { month: clock.month, year: clock.year, taxCollected, businessTaxCollected: payrollRes.businessTaxCollected, totalPayroll: payrollRes.totalPayroll, treasury: nextTreasury, totalSavings, population: alive.length, homeless: alive.filter((c) => !c.homeId).length, tierMovements: movements.length },
+  });
 
   return {
     citizens: nextCitizens,

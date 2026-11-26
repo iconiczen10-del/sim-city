@@ -1,6 +1,6 @@
 // citizenInspectorTypes.ts — Data types for citizen memory, stress, decisions, breakdowns, ledger, and life log
 
-import type { LivingStandard, ShoppingCategory } from './inventoryTypes';
+import type { ShoppingCategory } from './inventoryTypes';
 
 export type LossCause = 'fire' | 'flood' | 'theft' | 'rats' | 'power_cut' | 'spoilage' | 'random';
 
@@ -28,7 +28,14 @@ export type MemoryKind =
   | 'theft_guilt'
   | 'theft_victim'
   | 'breakdown'
-  | 'helped';
+  | 'helped'
+  | 'marriage'
+  | 'widowed'
+  | 'orphan'
+  | 'child_birth'
+  | 'retired'
+  | 'heartbreak'
+  | 'family_pride';
 
 export interface CitizenMemory {
   id: string;
@@ -77,7 +84,13 @@ export type DecisionKind =
   | 'budget_skip'
   | 'risk_choice'
   | 'housing_buy'
-  | 'housing_move';
+  | 'housing_move'
+  | 'retirement_choice'
+  | 'marriage_proposal'
+  | 'cohabitation'
+  | 'child_launch'
+  | 'child_tuition'
+  | 'breakup';
 
 export interface DecisionOutcome {
   day: number;
@@ -90,7 +103,7 @@ export interface DecisionRecord {
   totalDay: number;
   dateLabel: string;
   kind: DecisionKind;
-  category?: ShoppingCategory | 'survival' | 'status' | 'work' | 'social' | 'security' | 'fun' | 'housing';
+  category?: ShoppingCategory | 'survival' | 'status' | 'work' | 'social' | 'security' | 'fun' | 'housing' | 'family';
   title: string;
   chosenOption: string;
   chosenReason: string;
@@ -130,17 +143,4 @@ export interface LifeLogEntry {
   dateLabel: string;
   category: LifeLogCategory;
   summary: string;
-}
-
-export type MassTargetScope = 'single' | 'tier' | 'role' | 'all' | 'random';
-
-export interface SimGodInvSelection {
-  scope: MassTargetScope;
-  citizenId?: string;
-  tier?: 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
-  role?: string;
-  randomCount?: number;
-  category: ShoppingCategory;
-  standard: LivingStandard;
-  quantity: number;
 }

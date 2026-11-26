@@ -30,8 +30,8 @@ export function MartManagerPanel({ mart, manager, onSelectCitizen, onFireManager
         onFireManager={onFireManager}
       />
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-4 bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+        <div className="sm:col-span-4 bg-[#111827] border border-slate-800/90 rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-sm font-semibold text-slate-100">Store Reputation &amp; AI</h3>
             <span className="font-mono text-sm font-semibold text-slate-100">{mart.reputation.toFixed(1)} / 100</span>
@@ -59,9 +59,9 @@ export function MartManagerPanel({ mart, manager, onSelectCitizen, onFireManager
           </div>
         </div>
 
-        <div className="col-span-8 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
+        <div className="sm:col-span-8 bg-[#111827] border border-slate-800/90 rounded-lg p-4">
           <h3 className="font-display text-sm font-semibold text-slate-100 mb-3">Category Moods &amp; Margins</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SHOPPING_CATEGORIES.map((cat) => {
               const cm = mart.categoryMoods[cat];
               const meta = MOOD_META[cm.mood];

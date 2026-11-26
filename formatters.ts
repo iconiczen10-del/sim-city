@@ -53,7 +53,7 @@ export const CATEGORY_LABELS: Record<ShoppingCategory, string> = {
 };
 
 export const DEATH_CAUSE_LABELS: Record<DeathCause, string> = {
-  starvation: 'Starvation', dehydration: 'Dehydration', illness: 'Illness',
+  starvation: 'Starvation', dehydration: 'Dehydration', illness: 'Illness', old_age: 'Old Age',
 };
 
 export const MOOD_META: Record<MarginMood, { label: string; color: string; textClass: string }> = {

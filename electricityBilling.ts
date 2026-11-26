@@ -11,6 +11,7 @@ import { clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
 import { formatDelta, formatMonthYear } from './formatters';
 import type { HousingState } from './housingTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 function collectPayment(payer: Citizen, amount: number, clock: SimClock, dateLabel: string, label: string): number {
@@ -95,6 +96,12 @@ export function processElectricityMonthEnd(params: {
     leg.bills = [bill, ...leg.bills].slice(0, 24);
     leg.monthlyUnitsHistory = [...leg.monthlyUnitsHistory.slice(-23), { label: monthLabel, units: bill.units, amount: bill.totalDue }];
     for (const c of occ) { c.electricArrears = leg.arrearsBalance; c.electricUnpaidMonths = leg.unpaidMonths; c.electricPowerCut = leg.powerCut; }
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'electricity', subType: 'bill',
+      subjectId: h.id, subjectKind: 'house', subjectName: h.name,
+      summary: `${h.name} bill ${formatDelta(bill.totalDue)} (${bill.units}u, ${bill.status}, paid ${formatDelta(housePaid)})`,
+      detail: { bill, paid: housePaid, reconnectFeeApplied: reconnectNeed, remainingArrears: remaining, unpaidMonths: leg.unpaidMonths },
+    });
   }
 
   // 2. Company electricity bills
@@ -118,6 +125,12 @@ export function processElectricityMonthEnd(params: {
     bill.paidAmount = Math.min(bill.totalDue, paid);
     cLeg.bills = [bill, ...cLeg.bills].slice(0, 24);
     cLeg.monthlyUnitsHistory = [...cLeg.monthlyUnitsHistory.slice(-23), { label: monthLabel, units: bill.units, amount: bill.totalDue }];
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'electricity', subType: 'bill',
+      subjectId: comp.id, subjectKind: 'company', subjectName: comp.name,
+      summary: `${comp.name} electric bill ${formatDelta(bill.totalDue)} (${bill.units}u, ${bill.status})`,
+      detail: { bill, paid, remainingArrears: cLeg.arrearsBalance },
+    });
   }
 
   electricity.monthlyBilledTotal = Math.round(billedTotal * 100) / 100;

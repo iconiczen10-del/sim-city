@@ -48,7 +48,7 @@ export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecis
           <div className="font-semibold text-slate-200">Recent Shifts &amp; Change Explanations</div>
           <div className="space-y-1.5 max-h-36 overflow-y-auto">
             {citizen.changeExplanations.slice(0, 8).map((chg) => (
-              <div key={chg.id} className="flex items-center justify-between gap-3 bg-[#090d16] border border-slate-800/70 rounded px-3 py-1.5">
+              <div key={chg.id} className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-[#090d16] border border-slate-800/70 rounded px-3 py-1.5">
                 <div className="text-slate-300">
                   <span className="font-mono text-slate-500 mr-2">{chg.dateLabel}</span>
                   <span>{chg.summary}</span>
@@ -69,7 +69,7 @@ export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecis
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <BreakdownCard title="Mood Breakdown (Signed Factors)" totalValue={citizen.mood} factors={citizen.moodBreakdown} />
         <BreakdownCard title="Stress Breakdown (Signed Factors)" totalValue={citizen.stress} factors={citizen.stressBreakdown} />
       </div>
@@ -110,7 +110,7 @@ export function CitizenWhyTab({ citizen, highlightedDecisionId, onHighlightDecis
                       ))}
                     </div>
                   )}
-                  <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                     {d.options.map((opt) => (
                       <div key={opt.label} className={`rounded border px-2.5 py-2 ${opt.chosen ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-slate-800/70'}`}>
                         <div className="flex justify-between font-medium mb-1">

@@ -1,6 +1,6 @@
 // MartPriceMoodChart.tsx — Price index history chart with segments colored by Mart mood
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { MOOD_META } from './formatters';
 import type { MarginMood, MartHistoryPoint } from './martTypes';
 
@@ -10,20 +10,21 @@ interface MartPriceMoodChartProps {
 
 const LEGEND_MOODS: MarginMood[] = ['clearance', 'generous', 'good', 'typical', 'greedy', 'gouging'];
 
-export function MartPriceMoodChart({ history }: MartPriceMoodChartProps) {
+export const MartPriceMoodChart = memo(function MartPriceMoodChart({ history }: MartPriceMoodChartProps) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const w = 440;
   const h = 110;
   const padX = 10;
   const padY = 12;
 
-  const vals = history.map((pt) => pt.avgPriceIndex);
+  const visible = history.length > 48 ? history.slice(-48) : history;
+  const vals = visible.map((pt) => pt.avgPriceIndex);
   const minVal = Math.min(80, ...vals);
   const maxVal = Math.max(120, ...vals);
   const span = maxVal === minVal ? 1 : maxVal - minVal;
 
-  const coords = history.map((pt, i) => {
-    const x = history.length === 1 ? w / 2 : padX + (i / (history.length - 1)) * (w - padX * 2);
+  const coords = visible.map((pt, i) => {
+    const x = visible.length === 1 ? w / 2 : padX + (i / (visible.length - 1)) * (w - padX * 2);
     const y = h - padY - ((pt.avgPriceIndex - minVal) / span) * (h - padY * 2);
     return { x, y, ...pt };
   });
@@ -85,4 +86,4 @@ export function MartPriceMoodChart({ history }: MartPriceMoodChartProps) {
       </div>
     </div>
   );
-}
+});

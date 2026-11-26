@@ -10,6 +10,7 @@ import { hasWorkingAppliance } from './electronicsCitizen';
 import type { SimClock } from './eventFactory';
 import { STANDARD_LABELS } from './formatters';
 import type { LivingStandard, MartState } from './martTypes';
+import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent } from './types';
 
 export function consumeFoodAndWater(
@@ -42,6 +43,12 @@ export function consumeFoodAndWater(
       reason: 'spoiled',
     });
     appendLifeLog(citizen, clock.totalDays, dateLabel, 'loss', `${spoiledTotal} stored meal(s) spoiled at home.`);
+    recordSimEvent({
+      simDay: clock.totalDays, dateLabel, category: 'shopping', subType: 'spoilage',
+      subjectId: citizen.id, subjectKind: 'citizen', subjectName: citizen.name,
+      summary: `${citizen.name} lost ${spoiledTotal} stored meal(s) to spoilage`,
+      detail: { source: 'citizen', category: 'food', quantity: spoiledTotal, hasWorkingFridge: hasWorkingAppliance(citizen, 'fridge') },
+    });
   }
 
   citizen.hunger = clamp(citizen.hunger - 36, 0, 100);

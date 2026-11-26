@@ -13,6 +13,7 @@ import { APP_VERSION } from './constants';
 import { createInitialElectricityState, seedGJElectricityVacancies, seedHousingElectricity } from './electricitySetup';
 import { seedCitizenElectronics } from './electronicsCitizen';
 import { ensureMartElectronics } from './electronicsMart';
+import { ensureFamilyState } from './familyTreeEngine';
 import { formatMonthYear } from './formatters';
 import { computeHousingSatisfaction, seedHousingPreferences } from './housingPreferences';
 import { syncCitizenHousingLinks } from './housingScores';
@@ -28,7 +29,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   const companyList = parsed.companies;
   const validMart = parsed.mart?.categoryMoods && parsed.mart.schedules;
   if (
-    !Array.isArray(citizenList) || citizenList.length !== 50
+    !Array.isArray(citizenList) || citizenList.length < 50
     || !Array.isArray(companyList) || (companyList.length !== 4 && companyList.length !== 5)
     || !validMart
   ) return null;
@@ -59,6 +60,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
       sharityMoodLines: Array.isArray(citizen.sharityMoodLines) ? citizen.sharityMoodLines : [],
       sharityStressLines: Array.isArray(citizen.sharityStressLines) ? citizen.sharityStressLines : [],
       sharityWorkNotes: Array.isArray(citizen.sharityWorkNotes) ? citizen.sharityWorkNotes : [],
+      lifeLog: [],
     };
     evaluateSurvivalLadder(out);
     seedCitizenElectronics(out);
@@ -103,7 +105,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   const vacancies = Array.isArray(parsed.vacancies) ? [...parsed.vacancies] : [];
   if (!parsed.electricity) seedGJElectricityVacancies(companies, vacancies);
 
-  return {
+  const migrated: CityState = {
     ...(parsed as CityState),
     version: APP_VERSION,
     seed,
@@ -117,6 +119,8 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     housing,
     electricity,
   };
+  ensureFamilyState(migrated);
+  return migrated;
 }
 
 function backfillEmployeeGroup(group: CityState['chatGroups']['vijindustries'], citizens: CityState['citizens'], companies: CityState['companies'], totalDays: number): void {

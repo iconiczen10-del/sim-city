@@ -51,7 +51,7 @@ export function SharityView({
           </p>
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-[#0c111d] border border-slate-800 rounded-md">
+        <div className="flex items-center gap-1 p-1 bg-[#0c111d] border border-slate-800 rounded-md overflow-x-auto max-w-full no-scrollbar">
           {([
             { id: 'feed', label: 'Feed' },
             { id: 'people', label: 'People' },
@@ -63,7 +63,7 @@ export function SharityView({
                 key={t.id}
                 type="button"
                 onClick={() => { onSelectProfileId(null); onClearHighlightPost?.(); setSubTab(t.id); }}
-                className={`px-3.5 py-1.5 text-xs rounded transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3.5 py-1.5 text-xs rounded shrink-0 transition-colors whitespace-nowrap cursor-pointer ${
                   active ? 'bg-amber-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-100'
                 }`}
               >

@@ -2,12 +2,13 @@
 
 import { validateAndMigrateCity } from './cityMigration';
 import type { BoardMeeting } from './boardTypes';
+import { collectChangedCitySlices, commitCitySliceSigs } from './cityDiffSave';
 import { LEGACY_STORAGE_KEYS, STORAGE_KEY } from './constants';
 import {
   idbClearAll,
   idbGetAllMeetings,
   idbGetCity,
-  idbPutCity,
+  idbPutCitySlicesBatch,
   idbPutMeeting,
 } from './idbHelpers';
 import { buildVijSaveBundle } from './saveExport';
@@ -15,6 +16,7 @@ import type { CityState } from './types';
 
 
 function readLegacyLocalStorage(): { city: CityState; key: string } | null {
+  if (typeof window === 'undefined') return null;
   const keys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];
   for (const key of keys) {
     try {
@@ -41,10 +43,12 @@ export async function loadAppPersistence(): Promise<{
     }
     const legacy = readLegacyLocalStorage();
     if (legacy) {
-      await idbPutCity(legacy.city);
+      await saveCityToDb(legacy.city);
       try {
-        window.localStorage.removeItem(legacy.key);
-        for (const k of LEGACY_STORAGE_KEYS) window.localStorage.removeItem(k);
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(legacy.key);
+          for (const k of LEGACY_STORAGE_KEYS) window.localStorage.removeItem(k);
+        }
       } catch {
         // Ignore removal errors once imported
       }
@@ -62,8 +66,12 @@ export async function loadAppPersistence(): Promise<{
   }
 }
 
-export async function saveCityToDb(state: CityState): Promise<void> {
-  await idbPutCity(state);
+export async function saveCityToDb(state: CityState): Promise<number> {
+  const { changed, pendingSigs } = collectChangedCitySlices(state);
+  if (changed.length === 0) return 0;
+  await idbPutCitySlicesBatch(changed);
+  commitCitySliceSigs(pendingSigs);
+  return changed.length;
 }
 
 export async function saveBoardMeetingToDb(meeting: BoardMeeting): Promise<void> {

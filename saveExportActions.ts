@@ -2,7 +2,8 @@
 
 import type { BoardMeeting } from './boardTypes';
 import { makeCityEvent } from './eventFactory';
-import { buildVijSaveBundle } from './saveExport';
+import { buildRecordsExportJson } from './recordsExport';
+import type { SimRecordEntry } from './recordTypes';
 import type { SaveNotice } from './SaveNoticeBanner';
 import type { CityState } from './types';
 
@@ -12,7 +13,7 @@ export function formatExportFilename(simDay: number, now: Date = new Date()): st
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
-  return `vij-save-day-${Math.floor(simDay)}-${yyyy}-${mm}-${dd}.json`;
+  return `vij-records-day-${Math.floor(simDay)}-${yyyy}-${mm}-${dd}.json`;
 }
 
 export function triggerSaveDownload(json: string, filename: string): void {
@@ -43,10 +44,11 @@ export function appendSaveExportEvent(city: CityState, mode: 'download' | 'uploa
 export function executeCityExport(
   city: CityState,
   meetings: BoardMeeting[],
+  allRecords: SimRecordEntry[],
   mode: 'download' | 'upload'
 ): { ok: true; updatedCity: CityState; notice: SaveNotice | null } | { ok: false; notice: SaveNotice } {
   try {
-    const json = JSON.stringify(buildVijSaveBundle(city, meetings), null, 2);
+    const json = buildRecordsExportJson(city, meetings, allRecords);
     triggerSaveDownload(json, formatExportFilename(city.totalDays));
   } catch {
     return { ok: false, notice: { kind: 'error', message: 'Could not create the save file. Try again.' } };
