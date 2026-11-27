@@ -20,6 +20,7 @@ import { purchaseFromMart } from './martShopping';
 import type { MartState } from './martTypes';
 import type { SharityState } from './sharityTypes';
 import { chooseLivingStandards } from './standards';
+import type { HousingState } from './housingTypes';
 import type { Citizen, CityEvent } from './types';
 
 export function processCitizenDailySurvival(
@@ -29,7 +30,8 @@ export function processCitizenDailySurvival(
   dateLabel: string,
   events: CityEvent[],
   allCitizens: Citizen[] = [],
-  sharity?: SharityState
+  sharity?: SharityState,
+  housing?: HousingState
 ): { died: boolean; estateToTreasury: number; shortageToday: boolean } {
   citizen.stockoutMemoryDays = Math.max(0, citizen.stockoutMemoryDays - 1);
   decayCitizenMemories(citizen, clock.totalDays, dateLabel);
@@ -47,11 +49,16 @@ export function processCitizenDailySurvival(
   const panicWater = Math.min(2, citizen.stockoutMemoryDays > 0 ? (panicStress ? 2 : 1) : 0);
   let shortageToday = false;
 
-  if (totalMeals < (citizen.stockoutMemoryDays > 0 ? 5 : 3)) {
+  const hasCaregiver = citizen.youngAdultPhase === 'dependent_youth' && (
+    (citizen.parentIds ?? []).some((id) => allCitizens.some((x) => x.id === id && x.alive))
+    || Boolean(citizen.guardianId && citizen.guardianId !== 'treasury' && allCitizens.some((x) => x.id === citizen.guardianId && x.alive))
+  );
+  const foodNeedLimit = hasCaregiver ? 0 : (citizen.stockoutMemoryDays > 0 ? 5 : 3);
+  if (hasCaregiver ? totalMeals <= 0 : totalMeals < foodNeedLimit) {
     const baseFoodTarget = isBufferBuyer ? 9 : 3;
     const desired = Math.max(3, Math.min(9, baseFoodTarget - totalMeals) + panicFood);
     const unitPrice = findStockItem(mart, 'food', citizen.standards.food)?.sellPrice ?? 2;
-    const bought = purchaseFromMart(citizen, mart, 'food', citizen.standards.food, desired, clock, dateLabel, events);
+    const bought = purchaseFromMart(citizen, mart, 'food', citizen.standards.food, desired, clock, dateLabel, events, { housing });
     if (!bought) shortageToday = true;
     recordShoppingDecision({
       citizen, totalDay: clock.totalDays, dateLabel, category: 'food', currentStock: totalMeals, desiredQty: desired, unitPrice,
@@ -62,10 +69,11 @@ export function processCitizenDailySurvival(
     });
   }
 
-  if (totalWater < (citizen.stockoutMemoryDays > 0 ? 4 : 2)) {
+  const waterNeedLimit = hasCaregiver ? 0 : (citizen.stockoutMemoryDays > 0 ? 4 : 2);
+  if (hasCaregiver ? totalWater <= 0 : totalWater < waterNeedLimit) {
     const desired = Math.max(1, (isBufferBuyer ? 7 - totalWater : 1) + panicWater);
     const unitPrice = findStockItem(mart, 'water', citizen.standards.water)?.sellPrice ?? 0.5;
-    const bought = purchaseFromMart(citizen, mart, 'water', citizen.standards.water, desired, clock, dateLabel, events);
+    const bought = purchaseFromMart(citizen, mart, 'water', citizen.standards.water, desired, clock, dateLabel, events, { housing });
     if (!bought) shortageToday = true;
     recordShoppingDecision({
       citizen, totalDay: clock.totalDays, dateLabel, category: 'water', currentStock: totalWater, desiredQty: desired, unitPrice,
@@ -75,10 +83,10 @@ export function processCitizenDailySurvival(
   }
 
   if (citizen.inventory.outfits.length === 0 || (citizen.inventory.outfits.length === 1 && citizen.inventory.outfits[0].condition < 20)) {
-    purchaseFromMart(citizen, mart, 'clothes', citizen.standards.clothes, 1, clock, dateLabel, events);
+    purchaseFromMart(citizen, mart, 'clothes', citizen.standards.clothes, 1, clock, dateLabel, events, { housing });
   }
   if (citizen.inventory.household.length === 0) {
-    purchaseFromMart(citizen, mart, 'household', citizen.standards.household, 1, clock, dateLabel, events);
+    purchaseFromMart(citizen, mart, 'household', citizen.standards.household, 1, clock, dateLabel, events, { housing });
   }
 
   const stressStep = stepDailyStress(citizen);

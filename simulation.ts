@@ -59,7 +59,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   let citizens = prev.citizens.map((orig) => (orig.alive ? structuredClone(orig) : orig));
   const cityDraft: CityState = { ...prev, day, month, year, totalDays, treasury, citizens, companies, vacancies, jobEvents, mart, boardState, sharity, housing, electricity, family, bank };
   const homelessCount = stepHousingDailyEffects({ citizens, housing, sharity, clock, dateLabel, events: newEvents });
-  supplyDependentChildrenDailyCare(citizens, clock, dateLabel);
+  supplyDependentChildrenDailyCare(citizens, mart, housing, clock, dateLabel, newEvents);
 
   for (const c of citizens) {
     if (!c.alive) continue;
@@ -69,7 +69,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
       if (c.unemployedDays >= 90 && c.skill > 6) c.skill = Math.round((c.skill - 0.15) * 10) / 10;
     } else c.unemployedDays = 0;
     const prevEmployer = c.employerId, prevRole = c.roleLevel;
-    const res = processCitizenDailySurvival(c, mart, clock, dateLabel, newEvents, citizens, sharity);
+    const res = processCitizenDailySurvival(c, mart, clock, dateLabel, newEvents, citizens, sharity, housing);
     if (res.died) {
       deathsToday += 1;
       if (prevEmployer && prevRole !== 'Unemployed' && prevRole !== 'Retired') {

@@ -1,4 +1,4 @@
-# Vij — Mobile-Compatible Version (v1.4.0)
+# Vij — Mobile-Compatible Version (v1.5.0)
 
 ## Scope & Breakpoint
 - **Phone layout** activates automatically on narrow screens (`< 640px`, matching Tailwind `sm:` boundary via `matchMedia('(max-width: 639px)')`).
@@ -23,13 +23,13 @@
 
 ## Mobile Companies Section (4 Horizontally Scrollable Tabs)
 1. **Companies**: Overview, Org Chart (including Vij Bank & GJ Electricity job titles), Vij Bank loan book & reserve dashboard inside `Vij Capital`, and financial ledgers for `Vijtech`, `Vij Capital`, `Vij Industries`, and `Vij Mart`.
-2. **Vij Mart**: Live prices, margin moods, stock levels, electronics, schedules, manager AI, and sabotage controls.
-3. **GJ Electricity**: `1–6` non-CEO staff roster & role coverage, monthly subsidy absorption metrics, `44px+` CEO mood & SimGod override controls, stacked tap-to-expand household subsidy decision cards, gas plant fleet, tariffs, rationing priority, grid cuts, and demand tracking.
+2. **Vij Mart**: Live prices, margin moods, forecast-driven stock levels, electronics, schedules, manager AI, **Outer City Water** emergency supplier pricing & purchase log (`44px+` SimGod overrides), `"Outer City"` purchase badges, and sabotage controls.
+3. **GJ Electricity**: `1–6` non-CEO staff roster (seeded at launch matched by skill/education) & role coverage, monthly subsidy absorption metrics, `44px+` CEO mood & SimGod override controls, stacked tap-to-expand household subsidy decision cards, gas plant fleet, tariffs, rationing priority, grid cuts, and demand tracking.
 4. **Job Market**: Open vacancies (including Vij Bank & GJ named titles and pay bands), and candidate listings.
 
 ## Mobile Citizens & Housing Views
 - **Citizen Debt Tab**: Credit score & band, total debt, DTI ratio, stacked tap-to-expand loan cards (`44px+`), perceived vs actual debt, bank trust, debt shame, repayment strategy, garnishment %, coping actions, and Why/What/How borrowing log.
-- **Housing & Family Tabs**: Combined married **Household Income & Expense Pool** totals, orphan relative guardian / City Treasury care badges, minor inheritance trust funds, and inherited debt tracking.
+- **Housing & Family Tabs**: Combined married **Household Income & Expense Pool** totals, dependent youth living with parents/guardians until 25 (with birth housing upgrades/overcrowding tracking, `Parental Support` income, and parent-paid daily `Child Food/Water`), orphan relative guardian / City Treasury care badges, minor inheritance trust funds, and inherited debt tracking.
 - **Housing Cards**: Each house card displays a clean subsidy status chip and absorbed `∆`, with a `44px+` tap-to-expand reason footer (zero hover-only details). House Detail includes a full Subsidy Status card and tap-to-expand monthly history.
 - **Citizen Housing Tab**: Includes the **What I Know & Electricity Subsidy** panel showing tariff/rule beliefs, active usage conservation %, `Trust in GJ` (`0–100`), latest billing reaction, and tap-to-expand personal bill/subsidy decision history.
 

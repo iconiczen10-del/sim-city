@@ -35,7 +35,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
   const companies = createInitialCompanies();
   assignInitialCitizensToCompanies(citizens, companies, mart);
   const vacancies: CityState['vacancies'] = [];
-  seedGJElectricityVacancies(companies, vacancies);
+  seedGJElectricityVacancies(companies, vacancies, citizens);
   const housing = createInitialHousingState(citizens);
   const electricity = createInitialElectricityState(housing, citizens);
   const boardState = createInitialBoardState(citizens);
@@ -86,7 +86,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
         dateLabel,
         type: 'system',
         title: `City of Vij Opened (Seed ${seed})`,
-        detail: `50 citizens settled (42 employed across 5 companies, 8 unemployed). Treasury: ∆${INITIAL_TREASURY.toLocaleString('en-IN')} · Each company starts with ∆${MART_INITIAL_CASH.toLocaleString('en-IN')}.`,
+        detail: `50 citizens settled (${citizens.filter((c) => c.employerId !== null).length} employed across 5 companies, ${citizens.filter((c) => c.employerId === null).length} unemployed). Treasury: ∆${INITIAL_TREASURY.toLocaleString('en-IN')} · Each company starts with ∆${MART_INITIAL_CASH.toLocaleString('en-IN')}.`,
       },
     ],
   };

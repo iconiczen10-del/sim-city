@@ -4,8 +4,10 @@ import { buildBornChildCitizen } from './childFactory';
 import { appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
 import { makeCityEvent, type SimClock } from './eventFactory';
+import { handleFamilyHousingOnBirth } from './familyHousingMove';
 import { ensureFamilyState, extractSurname, makeTreeNodeFromCitizen } from './familyTreeEngine';
 import { formatDelta } from './formatters';
+import { moveCitizenToHouse } from './housingEviction';
 import { syncCitizenHousingLinks } from './housingScores';
 import { placeOrphanWithGuardianOrTreasury } from './orphanCare';
 import { recordSimEvent } from './recordsStore';
@@ -49,16 +51,12 @@ export function processDuePregnanciesDaily(city: CityState, clock: SimClock, dat
       }
     }
 
-    const targetHouse = livingParent?.homeId
-      ? city.housing.houses.find((h) => h.id === livingParent.homeId)
-      : undefined;
-    if (targetHouse) targetHouse.occupantIds.push(child.id);
-
     p1.childrenIds = [...(p1.childrenIds ?? []), child.id];
     p2.childrenIds = [...(p2.childrenIds ?? []), child.id];
     city.citizens.push(child);
     byId.set(child.id, child);
     if (isOrphan) placeOrphanWithGuardianOrTreasury(child, city, clock, dateLabel, events);
+    else if (livingParent) handleFamilyHousingOnBirth({ livingParent, otherParent: p1.id === livingParent.id ? p2 : p1, child, city, clock, dateLabel, events, moveFn: moveCitizenToHouse });
     fam.nodes[child.id] = makeTreeNodeFromCitizen(child, child.familyId!, child.generation!);
     for (const pid of [p1.id, p2.id]) if (fam.nodes[pid]) fam.nodes[pid].childrenIds.push(child.id);
 

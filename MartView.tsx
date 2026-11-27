@@ -12,6 +12,8 @@ import { MartPriceMoodChart } from './MartPriceMoodChart';
 import { MartSabotagePanel } from './MartSabotagePanel';
 import { MartStockTable } from './MartStockTable';
 import { buildSabotageHandlers } from './martViewActions';
+import { OuterCityWaterPanel } from './OuterCityWaterPanel';
+import { applyOuterWaterOverride, applyOuterWaterPersonality } from './outerCityWaterSimGod';
 import { applyDeliverySchedule, applyOrderIntervention } from './simgodDeliveries';
 import { SparkChart } from './SparkChart';
 import type { CityState } from './types';
@@ -22,15 +24,11 @@ interface MartViewProps {
   onSelectCitizen: (citizenId: string) => void;
 }
 
-type MartTab = 'manager' | 'stock' | 'deliveries' | 'simgod';
+type MartTab = 'manager' | 'stock' | 'deliveries' | 'outer_water' | 'simgod';
 
 export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps) {
   const [subTab, setSubTab] = useState<MartTab>('manager');
-  const [pendingAction, setPendingAction] = useState<{
-    title: string;
-    message: string;
-    run: () => void;
-  } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ title: string; message: string; run: () => void } | null>(null);
 
   const mart = city.mart;
   const stockValue = mart.stock.reduce((sum, item) => sum + item.quantity * item.buyCost, 0);
@@ -75,6 +73,7 @@ export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps)
             { id: 'manager', label: 'AI Manager & Charts' },
             { id: 'stock', label: 'Stock & Logs' },
             { id: 'deliveries', label: `Deliveries (${mart.deliveries.length})` },
+            { id: 'outer_water', label: `Outer City Water (${mart.outerCityWater?.totalUnitsSold ?? 0}u)` },
             { id: 'simgod', label: 'SimGod Powers' },
           ] as const).map((t) => (
             <button
@@ -101,13 +100,7 @@ export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps)
             mart={mart}
             manager={manager}
             onSelectCitizen={onSelectCitizen}
-            onFireManager={() =>
-              manager && confirm(
-                'Fire Vij Mart Manager?',
-                `Dismiss ${manager.name} immediately? Vij Mart will use Fallback AI until the Job Market hires a new Team Lead.`,
-                fireMartManagerSimGod
-              )
-            }
+            onFireManager={() => manager && confirm('Fire Vij Mart Manager?', `Dismiss ${manager.name} immediately? Vij Mart will use Fallback AI until the Job Market hires a new Team Lead.`, fireMartManagerSimGod)}
           />
         </div>
       )}
@@ -124,22 +117,23 @@ export function MartView({ city, onUpdateCity, onSelectCitizen }: MartViewProps)
         <MartDeliveryPanel
           mart={mart}
           onUpdateSchedule={(cat, mode, gap, target) => onUpdateCity((p) => applyDeliverySchedule(p, cat, mode, gap, target))}
-          onOrderAction={(id, act, days) =>
-            confirm(`${act.toUpperCase()} Delivery?`, `Confirm SimGod ${act} on this wholesale order?`, (p) => applyOrderIntervention(p, id, act, days))
-          }
+          onOrderAction={(id, act, days) => confirm(`${act.toUpperCase()} Delivery?`, `Confirm SimGod ${act} on this wholesale order?`, (p) => applyOrderIntervention(p, id, act, days))}
+        />
+      )}
+
+      {subTab === 'outer_water' && (
+        <OuterCityWaterPanel
+          mart={mart}
+          onSelectCitizen={onSelectCitizen}
+          onSetPersonality={(pers) => confirm('Set Outer City Supplier?', `Change Outer City Water personality to ${pers}?`, (p) => applyOuterWaterPersonality(p, pers))}
+          onSetOverride={(mode, val, days) => confirm('Override Outer City Water?', `Apply Outer City Water ${mode} override?`, (p) => applyOuterWaterOverride(p, mode, val, days))}
         />
       )}
 
       {subTab === 'simgod' && <MartSabotagePanel mart={mart} handlers={sabotageHandlers} />}
 
       {pendingAction && (
-        <ConfirmModal
-          title={pendingAction.title}
-          message={pendingAction.message}
-          confirmLabel="Execute SimGod Action"
-          onConfirm={() => { pendingAction.run(); setPendingAction(null); }}
-          onCancel={() => setPendingAction(null)}
-        />
+        <ConfirmModal title={pendingAction.title} message={pendingAction.message} confirmLabel="Execute SimGod Action" onConfirm={() => { pendingAction.run(); setPendingAction(null); }} onCancel={() => setPendingAction(null)} />
       )}
     </div>
   );

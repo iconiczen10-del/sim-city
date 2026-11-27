@@ -63,6 +63,7 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   debt_stress: 'Debt & Collection Stress',
   loan_default: 'Loan Default Impact',
   inherited_debt: 'Inherited Debt',
+  outer_water: 'Outer City Water',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {

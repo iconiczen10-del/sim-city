@@ -79,10 +79,10 @@ export function processHousingMonthEnd(params: {
   for (const h of housing.houses) {
     if (h.condemned) continue;
     const landlord = h.ownerId !== 'gov' ? byCit.get(h.ownerId) : undefined;
-    const baseTenant = getTenantMonthlyRent(h);
+    const baseTenant = getTenantMonthlyRent(h, byCit);
     for (const occId of [...h.occupantIds]) {
       const c = byCit.get(occId);
-      if (!c || !c.alive || h.ownerId === c.id) continue;
+      if (!c || !c.alive || h.ownerId === c.id || c.youngAdultPhase === 'dependent_youth') continue;
       const perTenant = Math.round(baseTenant * (c.friendRentDiscount ?? 1));
       if (perTenant === 0) continue;
       const payable = Math.max(0, c.savings - 25);

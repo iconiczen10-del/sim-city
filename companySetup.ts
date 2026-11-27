@@ -5,6 +5,7 @@ import type { Company, CompanyId } from './companyTypes';
 import { COMPANY_INITIAL_CASH } from './constants';
 import { calculateMarginalTax, calculateMonthlyPay, clamp } from './economy';
 import type { MartState } from './martTypes';
+import { assignFoundingGJStaff } from './gjStaffSetup';
 import { simRandInt } from './rng';
 import type { Citizen, RoleLevel } from './types';
 import { inferBankTitle } from './vijBankCatalog';
@@ -113,6 +114,7 @@ export function assignInitialCitizensToCompanies(
     }
   }
 
+  assignFoundingGJStaff(citizens, companies);
   for (const comp of companies) rebuildCompanyBossTree(comp.id, citizens);
   syncMartPersonalityFromCeo(mart, citizens);
 }

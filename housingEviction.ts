@@ -9,18 +9,14 @@ import { HOME_TYPE_ORDER } from './housingPreferences';
 import { syncCitizenHousingLinks } from './housingScores';
 import type { House, HousingState } from './housingTypes';
 import { makeCityEvent, type SimClock } from './eventFactory';
+import { moveDependentsWithCaregiver, releaseDependentsFromLostHouse } from './familyHousingMove';
 import { formatDelta } from './formatters';
 import { simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
 
 function closeActiveHistory(c: Citizen, day: number, dateLabel: string, reason: string): void {
-  const hist = c.housingHistory ?? [];
-  const open = hist.find((h) => !h.endDay);
-  if (open) {
-    open.endDay = day;
-    open.endDate = dateLabel;
-    open.reason = reason;
-  }
+  const open = (c.housingHistory ?? []).find((h) => !h.endDay);
+  if (open) { open.endDay = day; open.endDate = dateLabel; open.reason = reason; }
 }
 
 export function moveCitizenToHouse(params: {
@@ -35,9 +31,10 @@ export function moveCitizenToHouse(params: {
   forced?: boolean;
 }): void {
   const { citizen, target, housing, allCitizens, clock, dateLabel, reason, events, forced } = params;
+  const oldHouseId = citizen.homeId ?? null;
   let upgraded = false;
-  if (citizen.homeId) {
-    const oldHouse = housing.houses.find((h) => h.id === citizen.homeId);
+  if (oldHouseId) {
+    const oldHouse = housing.houses.find((h) => h.id === oldHouseId);
     if (oldHouse) {
       oldHouse.occupantIds = oldHouse.occupantIds.filter((id) => id !== citizen.id);
       upgraded = HOME_TYPE_ORDER.indexOf(target.type) > HOME_TYPE_ORDER.indexOf(oldHouse.type);
@@ -59,6 +56,7 @@ export function moveCitizenToHouse(params: {
     ...(citizen.housingHistory ?? []),
   ].slice(0, 30);
 
+  moveDependentsWithCaregiver({ caregiver: citizen, oldHouseId, target, housing, allCitizens, clock, dateLabel });
   syncCitizenHousingLinks(allCitizens, housing.houses);
   housing.transactions.unshift({
     id: `htx_move_${clock.totalDays}_${citizen.id}`,
@@ -88,6 +86,7 @@ export function evictCitizenFromHouse(params: {
 }): void {
   const { citizen, house, housing, allCitizens, clock, dateLabel, missedMonths, reason, events } = params;
   house.occupantIds = house.occupantIds.filter((id) => id !== citizen.id);
+  releaseDependentsFromLostHouse(citizen, house, allCitizens);
   closeActiveHistory(citizen, clock.totalDays, dateLabel, reason);
 
   // Lose 40% of household inventory randomly on eviction
@@ -112,8 +111,8 @@ export function evictCitizenFromHouse(params: {
   citizen.roommateIds = [];
   citizen.rentArrears = 0;
   citizen.rentArrearsMonths = 0;
-  citizen.seekingHousing = true;
-  citizen.housingEvalUrgent = true;
+  citizen.seekingHousing = citizen.youngAdultPhase !== 'dependent_youth';
+  citizen.housingEvalUrgent = citizen.youngAdultPhase !== 'dependent_youth';
   citizen.friendRentDiscount = 1;
   citizen.homelessDays = Math.max(1, citizen.homelessDays ?? 0);
 

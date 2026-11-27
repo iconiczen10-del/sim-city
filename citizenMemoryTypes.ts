@@ -38,7 +38,8 @@ export type MemoryKind =
   | 'subsidy_help'
   | 'debt_stress'
   | 'loan_default'
-  | 'inherited_debt';
+  | 'inherited_debt'
+  | 'outer_water';
 
 export interface CitizenMemory {
   id: string;

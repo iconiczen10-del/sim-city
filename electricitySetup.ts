@@ -86,11 +86,12 @@ export function createInitialElectricityState(housing: HousingState, citizens: C
   };
 }
 
-export function seedGJElectricityVacancies(companies: Company[], vacancies: CompanyVacancy[]): void {
+export function seedGJElectricityVacancies(companies: Company[], vacancies: CompanyVacancy[], citizens: Citizen[] = []): void {
   const gj = companies.find((c) => c.id === 'gjelectricity');
   if (!gj || gj.bankrupt) return;
+  const filled = new Set(citizens.filter((c) => c.alive && c.employerId === 'gjelectricity' && c.gjJobTitle).map((c) => c.gjJobTitle));
   const clock = { totalDays: 1, day: 1, month: 1, year: 1 };
-  openVacancy(vacancies, gj, 'Staff', 'Plant Engineer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Plant Engineer');
-  openVacancy(vacancies, gj, 'Team Lead', 'Finance Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Finance Officer');
-  openVacancy(vacancies, gj, 'Team Lead', 'Customer Relations Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Customer Relations Officer');
+  if (!filled.has('Plant Engineer')) openVacancy(vacancies, gj, 'Staff', 'Plant Engineer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Plant Engineer');
+  if (!filled.has('Finance Officer')) openVacancy(vacancies, gj, 'Team Lead', 'Finance Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Finance Officer');
+  if (!filled.has('Customer Relations Officer')) openVacancy(vacancies, gj, 'Team Lead', 'Customer Relations Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Customer Relations Officer');
 }

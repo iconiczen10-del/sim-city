@@ -54,6 +54,9 @@ export function MartLogsPanel({ mart }: MartLogsPanelProps) {
                   <span className="text-slate-400 ml-2">
                     bought {s.quantity}x {CATEGORY_LABELS[s.category]} (L{s.standard} {STANDARD_LABELS[s.standard]})
                   </span>
+                  {s.source === 'outer_city' && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 font-mono text-[10px] text-sky-300">Outer City</span>
+                  )}
                   {s.contaminatedQty ? (
                     <span className="ml-2 font-mono text-[10px] text-lime-300">[TAINTED x{s.contaminatedQty}]</span>
                   ) : null}

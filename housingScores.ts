@@ -25,6 +25,7 @@ export function computeHouseScores(
 
   let comfort = spec.baseComfort * (house.condition / 100);
   if (house.condition < 40) comfort -= (40 - house.condition) * 0.45;
+  if (count > house.capacity) comfort -= (count - house.capacity) * 8;
 
   let space = 100;
   if (count > 0) {
@@ -70,10 +71,12 @@ export function getHouseMonthlyMaintenance(house: House): number {
   return spec.citMaint;
 }
 
-export function getTenantMonthlyRent(house: House): number {
-  const count = Math.max(1, house.occupantIds.length);
+export function getTenantMonthlyRent(house: House, byCit?: Map<string, Citizen>): number {
   if (house.type === 'shared_room') return house.rentPrice;
-  return Math.round(house.rentPrice / count);
+  const payers = byCit
+    ? house.occupantIds.filter((id) => byCit.get(id)?.youngAdultPhase !== 'dependent_youth')
+    : house.occupantIds;
+  return Math.round(house.rentPrice / Math.max(1, payers.length));
 }
 
 export function syncCitizenHousingLinks(citizens: Citizen[], houses: House[], sharity?: SharityState): void {
@@ -104,6 +107,7 @@ export function syncCitizenHousingLinks(citizens: Citizen[], houses: House[], sh
       c.landlordId = home.ownerId === 'gov' || home.ownerId === c.id ? null : home.ownerId;
       c.ownershipType = home.ownerId === c.id ? 'owned' : 'rented';
       c.roommateIds = home.occupantIds.filter((id) => id !== c.id);
+      if (c.youngAdultPhase === 'dependent_youth') c.seekingHousing = false;
     }
   }
 }

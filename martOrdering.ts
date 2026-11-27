@@ -56,29 +56,36 @@ export function processMartOrdering(
     let tripPaid = false;
     let rushPaid = false;
 
+    const cashCoverMult = mart.cash < 3000 ? 0.65 : mart.cash < 6000 ? 0.85 : 1.05;
     for (const item of catItems) {
-      if (mart.deliveries.some((d) => d.category === cat && d.standard === item.standard)) continue;
+      const inTransitQty = mart.deliveries
+        .filter((d) => d.category === cat && d.standard === item.standard)
+        .reduce((sum, d) => sum + d.quantity, 0);
       const isEmergency = item.quantity === 0 && item.dailyForecast > 0;
       const gap = sched.gapDays;
-      const reorderPoint = item.dailyForecast * (cat === 'food' ? 3.4 : gap + 1);
-      const dueBySchedule = sched.mode === 'manual' ? sched.daysUntilOrder === 0 : item.quantity <= reorderPoint;
+      const targetDays = cat === 'food'
+        ? clamp(profile.coverDaysTarget * cashCoverMult, 2.8, FOOD_SPOIL_DAYS - 0.1)
+        : clamp((sched.mode === 'manual' ? sched.targetSupplyDays : profile.coverDaysTarget) * cashCoverMult, 3.5, 7.5);
+      const reorderPoint = item.dailyForecast * (cat === 'food' ? clamp(targetDays, 3.0, 3.9) : Math.max(gap + 1, targetDays + MART_LEAD_TIME_DAYS - 1));
+      const coveredQty = item.quantity + inTransitQty;
+      if (inTransitQty > 0 && coveredQty >= item.dailyForecast * (cat === 'food' ? 2.6 : 3.0)) continue;
+      const dueBySchedule = sched.mode === 'manual' ? sched.daysUntilOrder === 0 : coveredQty <= reorderPoint;
       if (!isEmergency && !dueBySchedule) continue;
 
-      const effectiveSpan = sched.mode === 'manual' ? sched.targetSupplyDays : gap;
-      const rawTarget = item.dailyForecast * effectiveSpan * profile.safetyMult;
-      const maxShelfTotal = cat === 'food' ? item.dailyForecast * FOOD_SPOIL_DAYS : rawTarget;
-      const projectedOnArrival = Math.max(0, item.quantity - item.dailyForecast);
+      const rawTarget = item.dailyForecast * targetDays * (profile.safetyMult > 1.2 ? 1.06 : 1);
+      const maxShelfTotal = cat === 'food' ? item.dailyForecast * FOOD_SPOIL_DAYS : rawTarget * 1.2;
+      const projectedOnArrival = Math.max(0, item.quantity - item.dailyForecast * MART_LEAD_TIME_DAYS) + inTransitQty;
       let orderQty = Math.ceil(Math.min(rawTarget, maxShelfTotal) - projectedOnArrival);
       if (orderQty <= 0) continue;
 
       if (profile.orderNoiseAmp > 0) {
         orderQty = Math.max(1, Math.round(orderQty * (1 + (simRand() * 2 - 1) * profile.orderNoiseAmp)));
       }
-      if (cat === 'food') orderQty = Math.min(orderQty, Math.max(0, Math.floor(item.dailyForecast * FOOD_SPOIL_DAYS)));
+      if (cat === 'food') orderQty = Math.min(orderQty, Math.max(0, Math.ceil(item.dailyForecast * (FOOD_SPOIL_DAYS - 0.25))));
       if (orderQty <= 0) continue;
 
       const unitBuy = round2(item.buyCost * costMult);
-      const canRush = isEmergency && mart.cash >= 3000 && !(item.standard >= 3 && hasBasicInStock);
+      const canRush = isEmergency && inTransitQty === 0 && mart.cash >= 3000 && !(item.standard >= 3 && hasBasicInStock);
       const rushFee = canRush && !rushPaid ? MART_RUSH_FEE : 0;
       const tripFee = tripPaid ? 0 : MART_TRIP_FEE;
       const subTotal = orderQty * unitBuy;

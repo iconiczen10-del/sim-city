@@ -47,7 +47,10 @@ export function stepYouthAndAge25Monthly(city: CityState, clock: SimClock, dateL
 
         if (payer && payer.savings >= supportCost + 35) {
           payer.savings = Math.round((payer.savings - supportCost) * 100) / 100;
+          child.savings = Math.round((child.savings + supportCost) * 100) / 100;
           appendLedgerEntry(payer, clock.totalDays, dateLabel, 'expense', 'Child Support', `Upkeep for ${child.name}`, supportCost);
+          appendLedgerEntry(child, clock.totalDays, dateLabel, 'income', 'Parental Support', `Support from ${payer.name}`, supportCost);
+          appendLifeLog(child, clock.totalDays, dateLabel, 'money', `Received ${formatDelta(supportCost)} parental support from ${payer.name}.`);
           bond.love = Math.round(clamp(bond.love + 1.2, 0, 100));
           bond.gratitude = Math.round(clamp(bond.gratitude + 1.5, 0, 100));
           bond.financialTension = Math.round(clamp(bond.financialTension - 1, 0, 100));

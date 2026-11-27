@@ -7,9 +7,9 @@ import type { MartState, MartStockItem, ShoppingCategory } from './martTypes';
 import { recordSimEvent } from './recordsStore';
 
 export function chooseAutoGapDays(mart: MartState, cat: ShoppingCategory): number {
-  if (cat === 'food') return 3;
+  if (cat === 'food') return 2;
   if (cat === 'water') return mart.cash < 3000 ? 3 : 4;
-  return mart.personality.style === 'aggressive' ? 6 : 4;
+  return mart.personality.style === 'aggressive' ? 5 : 4;
 }
 
 export function logOrderDecision(

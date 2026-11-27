@@ -48,4 +48,5 @@ export interface PurchaseRecord {
   unitPrice: number;
   totalPrice: number;
   contaminatedQty?: number;
+  source?: 'vij_mart' | 'outer_city';
 }

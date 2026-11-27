@@ -2,6 +2,7 @@
 
 import type { ElectronicsOrder, ElectronicsStockItem } from './electronicsTypes';
 import type { LivingStandard, ShoppingCategory } from './inventoryTypes';
+import type { OuterCityWaterState } from './outerCityWaterTypes';
 import type {
   CategoryMoodState,
   DeliverySchedule,
@@ -92,4 +93,5 @@ export interface MartState {
   electronicsStock?: ElectronicsStockItem[];
   electronicsMood?: CategoryMoodState;
   electronicsDeliveries?: ElectronicsOrder[];
+  outerCityWater?: OuterCityWaterState;
 }

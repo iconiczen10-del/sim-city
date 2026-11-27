@@ -19,6 +19,7 @@ export interface MartManagerTraits {
   emaWeight: number;
   emaAlpha: number;
   safetyMult: number;
+  coverDaysTarget: number;
   safetyReason: string;
   orderNoiseAmp: number;
   stressForecastErr: number;
@@ -39,7 +40,7 @@ export function getManagerTraitProfile(manager: Citizen | null): MartManagerTrai
     return {
       managerName: 'Fallback AI', hasManager: false,
       gtWeight: 0.8, emaWeight: 0.2, emaAlpha: 0.2,
-      safetyMult: 1.2, safetyReason: 'Fallback AI baseline safety stock 1.2x',
+      safetyMult: 1.2, coverDaysTarget: 4.0, safetyReason: 'Fallback AI baseline safety stock 1.2x (4d cover)',
       orderNoiseAmp: 0, stressForecastErr: 0, panicFreezeRisk: false,
       greedyBonus: 0, gougingBonus: 0, generousBonus: 0,
       kindnessOverride: false, resentfulMood: false,
@@ -57,6 +58,8 @@ export function getManagerTraitProfile(manager: Citizen | null): MartManagerTrai
   const orderNoiseAmp = manager.experience < 2 ? 0.15 : manager.experience > 5 ? 0 : 0.05;
   const stressForecastErr = manager.stress > 60 ? ((manager.stress - 60) / 10) * 0.05 : 0;
 
+  const coverDaysTarget = round2(clamp(3.1 + (ambition / 100) * 1.1 + (discipline / 100) * 0.7, 3.0, 5.0));
+
   return {
     managerName: manager.name,
     hasManager: true,
@@ -64,6 +67,7 @@ export function getManagerTraitProfile(manager: Citizen | null): MartManagerTrai
     emaWeight: round2(1 - gtWeight),
     emaAlpha,
     safetyMult,
+    coverDaysTarget,
     safetyReason,
     orderNoiseAmp,
     stressForecastErr,

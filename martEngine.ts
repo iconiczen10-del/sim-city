@@ -12,6 +12,7 @@ import { processMartOrdering } from './martOrdering';
 import { findStockItem, round2 } from './martSetup';
 import { processMartFoodSpoilage } from './martSpoilage';
 import type { MarginMood, MartState } from './martTypes';
+import { stepOuterCityWaterDaily } from './outerCityWater';
 import { recordSimEvent } from './recordsStore';
 import { simRand, simRandInt } from './rng';
 import type { Citizen, CityEvent } from './types';
@@ -86,12 +87,12 @@ export function processMartDayEnd(
   const foodTotal = mart.stock.filter((s) => s.category === 'food').reduce((a, b) => a + b.quantity, 0);
   const foodDemand = mart.stock.filter((s) => s.category === 'food').reduce((a, b) => a + b.dailyForecast, 0);
   const wasRationing = mart.rationingActive;
-  mart.rationingActive = foodTotal / Math.max(1, foodDemand) < 2;
+  mart.rationingActive = foodTotal / Math.max(1, foodDemand) < 1;
   if (mart.rationingActive && !wasRationing) {
     events.push(makeCityEvent(clock, 'ration_on', {
       type: 'rationing',
       title: 'Vij Mart Rationing Active',
-      detail: 'Stock fell below 2 days of supply; purchase quantities are rationed per citizen.',
+      detail: 'Stock fell below 1 day of supply; purchase quantities are rationed per citizen.',
     }));
   }
 
@@ -116,6 +117,7 @@ export function processMartDayEnd(
   updateSalesForecasts(mart, citizens, clock.day);
   updateMartMoodsAndPrices(mart, citizens, avgSavings, avgMood, clock, dateLabel, events, outsideSupplierActive);
   processMartOrdering(mart, citizens, clock, dateLabel, events, outsideSupplierActive);
+  stepOuterCityWaterDaily({ mart, citizens, clock, dateLabel, events, outsideSupplierActive });
   stepElectronicsMartDayEnd(mart, clock, dateLabel, outsideSupplierActive);
 
   const avgIndex = mart.stock.reduce((sum, s) => sum + (s.sellPrice / s.basePrice) * 100, 0) / mart.stock.length;

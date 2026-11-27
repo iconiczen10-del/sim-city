@@ -70,6 +70,10 @@ export function stepHousingDailyEffects(params: {
       }
 
       let moodOff = (shelterVal - 50) * 0.14 - (powerOff ? 4 : 0);
+      if (house.occupantIds.length > house.capacity) {
+        c.stress = r1(clamp(c.stress + 1.5, 0, 100));
+        moodOff -= 2.5;
+      }
       if (house.condition < 40) { moodOff -= 3; if (simRand() < 0.015) c.health = clamp(c.health - 3, 0, 100); }
       if (c.traits.neatness >= 62 && house.condition < 50) moodOff -= 2.5;
       for (const rId of c.roommateIds ?? []) {
@@ -87,7 +91,7 @@ export function stepHousingDailyEffects(params: {
       c.housingMoodOffset = r1(moodOff);
     } else {
       homelessCount += 1;
-      c.homeId = null; c.ownershipType = 'homeless'; c.seekingHousing = true; c.housingSkillMult = 0;
+      c.homeId = null; c.ownershipType = 'homeless'; c.seekingHousing = c.youngAdultPhase !== 'dependent_youth'; c.housingSkillMult = 0;
       c.housingSatisfaction = computeHousingSatisfaction(c, null, sharity);
       const days = (c.homelessDays ?? 0) + 1;
       c.homelessDays = days; c.needs.shelter.value = 0; c.needs.safety.value = 20;

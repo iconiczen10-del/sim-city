@@ -19,6 +19,7 @@ import { formatMonthYear } from './formatters';
 import { computeHousingSatisfaction, seedHousingPreferences } from './housingPreferences';
 import { syncCitizenHousingLinks } from './housingScores';
 import { createInitialHousingState, ensureHousingMarketSnapshots } from './housingSeed';
+import { ensureOuterCityWater } from './outerCityWater';
 import { createRandomSeed, normalizeSeed } from './rng';
 import { ensureValidSharityState } from './sharityEngine';
 import type { CityState } from './types';
@@ -105,6 +106,7 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   }
   syncCitizenHousingLinks(citizens, housing.houses, sharity);
   ensureMartElectronics(parsed.mart!);
+  ensureOuterCityWater(parsed.mart!);
   if (housing.houses.some((h) => !h.usageProfile || !h.electricLedger)) seedHousingElectricity(housing, citizens);
   const electricity = parsed.electricity ?? createInitialElectricityState(housing, citizens);
   if (!electricity.subsidyMood) electricity.subsidyMood = 'balanced';

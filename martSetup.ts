@@ -15,6 +15,7 @@ import type {
   MartStockItem,
   ShoppingCategory,
 } from './martTypes';
+import { createInitialOuterCityWater } from './outerCityWater';
 import type { Citizen } from './types';
 
 export function round2(n: number): number {
@@ -70,7 +71,7 @@ export function createInitialMart(citizens: Citizen[]): MartState {
     }
   }
 
-  return {
+  const martState: MartState = {
     cash: MART_INITIAL_CASH,
     todayRevenue: 0,
     monthlyRevenue: 0,
@@ -79,18 +80,8 @@ export function createInitialMart(citizens: Citizen[]): MartState {
     customersTodayIds: [],
     reputation: 70,
     personality: { style: 'balanced', greedyLean: 0 },
-    categoryMoods: {
-      food: defaultMoodState(),
-      water: defaultMoodState(),
-      clothes: defaultMoodState(),
-      household: defaultMoodState(),
-    },
-    schedules: {
-      food: defaultSchedule('food'),
-      water: defaultSchedule('water'),
-      clothes: defaultSchedule('clothes'),
-      household: defaultSchedule('household'),
-    },
+    categoryMoods: { food: defaultMoodState(), water: defaultMoodState(), clothes: defaultMoodState(), household: defaultMoodState() },
+    schedules: { food: defaultSchedule('food'), water: defaultSchedule('water'), clothes: defaultSchedule('clothes'), household: defaultSchedule('household') },
     overrides: {},
     closedDaysLeft: 0,
     closedUntilFunded: false,
@@ -120,6 +111,8 @@ export function createInitialMart(citizens: Citizen[]): MartState {
     wasteLog: [],
     history: [{ label: '1 Jan', revenue: 0, avgPriceIndex: 100, dominantMood: 'typical' }],
   };
+  martState.outerCityWater = createInitialOuterCityWater(martState);
+  return martState;
 }
 
 export function findStockItem(

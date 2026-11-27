@@ -26,6 +26,7 @@ export function evaluateCitizenHousingDecisions(params: {
 }): void {
   const { citizens, housing, sharity, clock, dateLabel } = params;
   const byHouse = new Map(housing.houses.map((h) => [h.id, h]));
+  const byCit = new Map(citizens.map((x) => [x.id, x]));
 
   for (const c of citizens) {
     if (!c.alive) continue;
@@ -34,6 +35,7 @@ export function evaluateCitizenHousingDecisions(params: {
     stepAnnualPreferenceDrift(c, house, clock.year, clock.totalDays, dateLabel);
     const sat = computeHousingSatisfaction(c, house, sharity);
     c.housingSatisfaction = sat;
+    if (c.youngAdultPhase === 'dependent_youth') { c.seekingHousing = false; continue; }
 
     const jobOrPayShift = c.lastEvalGrossPay !== undefined && Math.abs(c.lastGrossPay - c.lastEvalGrossPay) >= Math.max(120, c.lastEvalGrossPay * 0.2);
     const tierShift = c.lastEvalTier !== undefined && c.lastEvalTier !== c.tier;
@@ -49,7 +51,7 @@ export function evaluateCitizenHousingDecisions(params: {
     if (!house) { c.seekingHousing = true; continue; }
 
     const netPay = Math.max(0, c.lastGrossPay - c.lastTax + (c.lastRentalIncome ?? 0));
-    const myRent = house.ownerId === c.id ? 0 : Math.round(getTenantMonthlyRent(house) * (c.friendRentDiscount ?? 1));
+    const myRent = house.ownerId === c.id ? 0 : Math.round(getTenantMonthlyRent(house, byCit) * (c.friendRentDiscount ?? 1));
     const activeEntry = (c.housingHistory ?? []).find((h) => !h.endDay);
     const yearsHere = activeEntry ? (clock.totalDays - activeEntry.startDay) / 360 : 0;
     const stabilityHold = yearsHere >= 2 ? 12 + c.traits.loyalty * 0.12 : 0;

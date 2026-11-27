@@ -100,14 +100,19 @@ export function CitizenInventoryPanel({ citizen, city, onUpdateCity, showFullDet
         </div>
 
         <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-4">
-          <div className="text-xs font-semibold text-slate-200 mb-2.5">Recent Vij Mart Purchases</div>
+          <div className="text-xs font-semibold text-slate-200 mb-2.5">Recent Purchases</div>
           {citizen.recentPurchases.length === 0 ? (
             <div className="text-xs text-slate-500 py-8 text-center">No purchases recorded yet.</div>
           ) : (
             <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
               {citizen.recentPurchases.slice(0, 10).map((p) => (
                 <div key={p.id} className="flex items-center justify-between text-xs border-b border-slate-800/50 pb-1">
-                  <span className="text-slate-300 truncate">{p.quantity}x {CATEGORY_LABELS[p.category]} (L{p.standard})</span>
+                  <span className="text-slate-300 truncate">
+                    {p.quantity}x {CATEGORY_LABELS[p.category]} (L{p.standard})
+                    {p.source === 'outer_city' && (
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 font-mono text-[10px] text-sky-300">Outer City</span>
+                    )}
+                  </span>
                   <span className="font-mono text-slate-400 shrink-0 ml-2">{formatPrice(p.totalPrice)} · {p.dateLabel}</span>
                 </div>
               ))}

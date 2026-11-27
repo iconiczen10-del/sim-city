@@ -51,7 +51,7 @@ export function stepMonthlyRoommateConflicts(params: {
       for (let j = i + 1; j < h.occupantIds.length; j += 1) {
         const a = byId.get(h.occupantIds[i]);
         const b = byId.get(h.occupantIds[j]);
-        if (!a || !b || !a.alive || !b.alive) continue;
+        if (!a || !b || !a.alive || !b.alive || a.youngAdultPhase === 'dependent_youth' || b.youngAdultPhase === 'dependent_youth') continue;
         const aff = getAffinity(sharity, a.id, b.id);
         const neatGap = Math.abs(a.traits.neatness - b.traits.neatness);
         const chance = aff < -20 ? 0.65 : aff < 0 ? 0.35 : neatGap > 50 ? 0.28 : 0;
@@ -84,6 +84,7 @@ export function tryAskFriendForShelter(params: {
   events: CityEvent[];
 }): boolean {
   const { seeker, housing, allCitizens, sharity, clock, dateLabel, events } = params;
+  if (seeker.youngAdultPhase === 'dependent_youth') return false;
   const byHouse = new Map(housing.houses.map((h) => [h.id, h]));
   const friends = allCitizens
     .filter((f) => {

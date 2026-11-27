@@ -35,7 +35,9 @@ function scoreVacancyForCitizen(c: Citizen, h: House, citizens: Citizen[], shari
     roomieScore = clamp(10 + avgAff * 0.1, 0, 20);
   }
   const evictPenalty = (c.evictionRecords?.length ?? 0) > 0 ? -20 : 0;
-  return Math.round(affordScore + typeFit + distBonus + safetyScore + roomieScore + evictPenalty);
+  const depCount = citizens.filter((k) => k.alive && k.youngAdultPhase === 'dependent_youth' && ((k.parentIds ?? []).includes(c.id) || k.guardianId === c.id)).length;
+  const capBonus = depCount > 0 ? (h.capacity >= 1 + depCount ? 14 : -18) : 0;
+  return Math.round(affordScore + typeFit + distBonus + safetyScore + roomieScore + evictPenalty + capBonus);
 }
 
 function landlordAcceptsApplicant(h: House, c: Citizen, citizens: Citizen[], score: number): boolean {
@@ -64,7 +66,7 @@ export function stepHousingMarketDaily(params: {
 
   const byHouse = new Map(housing.houses.map((h) => [h.id, h]));
   const byCit = new Map(citizens.map((c) => [c.id, c]));
-  const searchers = citizens.filter((c) => c.alive && (!c.homeId || c.seekingHousing));
+  const searchers = citizens.filter((c) => c.alive && c.youngAdultPhase !== 'dependent_youth' && (!c.homeId || c.seekingHousing));
 
   for (const c of searchers) {
     const curHouse = c.homeId ? byHouse.get(c.homeId) : undefined;
