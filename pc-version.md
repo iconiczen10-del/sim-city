@@ -1,4 +1,4 @@
-# Vij — PC Version (v1.5.0)
+# Vij — PC Version (v1.6.0)
 
 ## Scope & Breakpoint
 - **PC layout** renders on screens `>= 640px` (`sm:` and wider) with its full desktop layout, sidebar navigation, and high-speed controls completely unchanged.
@@ -11,7 +11,7 @@
 
 ## PC Sidebar Navigation (8 Tabs + Save Tools)
 1. **Overview**: City KPIs, Treasury & Mood sparklines, GJ Electricity grid metrics, Homelessness Index, **Tier Movement This Month**, Company cash list, and recent City Events preview.
-2. **Citizens**: Searchable, tier-filterable directory of all citizens with Citizen Inspector modal (`Overview`, `Family` with dependent-youth/guardian/trust/inherited-debt status, `Housing` with **Household Income & Expense Pool** & **Electricity Subsidy**, `Debt` with credit score, loans & Why/What/How log, `Inventory` with `Outer City` water purchase badges, `Needs`, `Health`, `Traits`, `Decisions`, `Why?`, `Emotions`, `Memories`, `Records`).
+2. **Citizens**: Searchable, tier-filterable directory of all citizens with Citizen Inspector modal (`Overview`, `Family` with Expecting/Due Day & Next child window tracking, age-22 dependent-youth/guardian/trust/inherited-debt status, and Family Tree, `Housing` with **Household Income & Expense Pool** & **Electricity Subsidy**, `Debt` with credit score, loans & Why/What/How log, `Inventory` with `Outer City` water purchase badges, `Needs`, `Health`, `Traits`, `Decisions`, `Why?`, `Emotions`, `Memories`, `Records`).
 3. **Housing**: 60 houses across 5 fictional districts (`Old Town`, `Mill Quarter`, `Greenfield`, `Riverside`, `Hilltop`), family-locked dependent youth moves & overcrowding indicators, subsidy status indicators, Preferences directory, Market Dynamics, House Detail (with Subsidy Status & Electricity Ledger), and SimGod controls.
 4. **Companies**: 5-company corporate cards (`Vijtech`, `Vij Capital`, `Vij Industries`, `Vij Mart`, `GJ Electricity`), Org Charts, Full Ledger (`Per Day` / `Per Week` / `Per Month`), **Vij Bank Operations** inside `Vij Capital` (5 personalities, reserve ratio, lending strictly from bank cash, branch power scaling, banking roles, and filterable Loan Book), **GJ Electricity Operations** (`1–6` non-CEO staff roster seeded at start, subsidy absorption KPIs, CEO mood & SimGod override controls), and Board Meetings.
 5. **Job Market**: Open vacancies (including Vij Bank & GJ named seats & bands), salary bands, and candidate matching.

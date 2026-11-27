@@ -4,7 +4,7 @@ import type { SimClock } from './eventFactory';
 import { areCloseRelatives } from './familyTreeSync';
 import { advanceActiveCouple, computeCompatibility } from './relationshipStages';
 import { recordSimEvent } from './recordsStore';
-import { simRand, simRandInt } from './rng';
+import { simRand, simRandFloat, simRandInt } from './rng';
 import { adjustAffinity, getAffinity } from './sharityAffinity';
 import type { Citizen, CityEvent, CityState } from './types';
 
@@ -17,7 +17,7 @@ function sameDistrict(a: Citizen, b: Citizen, city: CityState): boolean {
 
 export function stepRelationshipsDaily(city: CityState, clock: SimClock, dateLabel: string, events: CityEvent[]): void {
   const byId = new Map(city.citizens.map((c) => [c.id, c]));
-  const adults = city.citizens.filter((c) => c.alive && c.age >= 18);
+  const adults = city.citizens.filter((c) => c.alive && c.age >= 22);
 
   for (const c of adults) {
     if (!c.relationship) c.relationship = { stage: 'single', partnerId: null, stageSinceDay: clock.totalDays, pastSpouseIds: [], exPartnerIds: [] };
@@ -31,6 +31,9 @@ export function stepRelationshipsDaily(city: CityState, clock: SimClock, dateLab
         c.relationship.stage = 'single';
         c.relationship.partnerId = null;
         c.relationship.stageSinceDay = clock.totalDays;
+        c.relationship.lastBirthDayInMarriage = undefined;
+        c.relationship.nextConceptionDay = undefined;
+        c.relationship.conceptionRuleNote = undefined;
       }
     }
   }
@@ -47,7 +50,8 @@ export function stepRelationshipsDaily(city: CityState, clock: SimClock, dateLab
 
   const singles = adults.filter((c) => c.relationship?.stage === 'single' && !c.relationship.partnerId);
   for (const a of singles) {
-    if (a.relationship?.stage !== 'single' || simRand() > 0.18) continue;
+    const noticeRate = a.age <= 30 ? 0.3 : a.age <= 40 ? 0.2 : 0.12;
+    if (a.relationship?.stage !== 'single' || simRand() > noticeRate) continue;
     let best: { cand: Citizen; score: number } | null = null;
     for (const b of singles) {
       if (b.id === a.id || b.relationship?.stage !== 'single' || areCloseRelatives(a, b)) continue;
@@ -64,14 +68,16 @@ export function stepRelationshipsDaily(city: CityState, clock: SimClock, dateLab
     if (best) {
       const b = best.cand;
       const compat = computeCompatibility(a, b);
-      a.relationship = { ...a.relationship!, stage: 'awareness', partnerId: b.id, stageSinceDay: clock.totalDays, compatibility: compat };
-      b.relationship = { ...b.relationship!, stage: 'awareness', partnerId: a.id, stageSinceDay: clock.totalDays, compatibility: compat };
+      const avgAge = (a.age + b.age) / 2;
+      const paceFactor = avgAge <= 30 ? simRandFloat(0.45, 0.72) : avgAge <= 40 ? simRandFloat(0.85, 1.15) : simRandFloat(1.3, 1.75);
+      a.relationship = { ...a.relationship!, stage: 'awareness', partnerId: b.id, stageSinceDay: clock.totalDays, compatibility: compat, paceFactor };
+      b.relationship = { ...b.relationship!, stage: 'awareness', partnerId: a.id, stageSinceDay: clock.totalDays, compatibility: compat, paceFactor };
       adjustAffinity(city.sharity, a.id, b.id, simRandInt(4, 9));
       recordSimEvent({
         simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'courtship_awareness',
         subjectId: a.id, subjectKind: 'citizen', subjectName: a.name,
         summary: `${a.name} and ${b.name} noticed each other (compat ${compat})`,
-        detail: { partnerA: a.id, partnerB: b.id, affinity: getAffinity(city.sharity, a.id, b.id), compatibility: compat },
+        detail: { partnerA: a.id, partnerB: b.id, affinity: getAffinity(city.sharity, a.id, b.id), compatibility: compat, paceFactor: Math.round(paceFactor * 100) / 100 },
       });
     }
   }

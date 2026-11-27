@@ -15,7 +15,7 @@ function computeMonthlyChildSupport(payer: Citizen, child: Citizen, parentCount:
   const pool = getHouseholdSummary(payer, citizens);
   const incFactor = clamp(pool.combinedGrossPay * 0.09, 65, 220);
   const traitFactor = (payer.traits.kindness * 0.45 + payer.traits.loyalty * 0.3 - payer.traits.thriftiness * 0.25);
-  const ageAdj = (child.age - 18) * 6;
+  const ageAdj = Math.max(0, child.age - 22) * 8;
   const singleParentAdj = parentCount === 1 ? -18 : 12;
   const siblingScale = depCount > 1 ? 1 / (1 + (depCount - 1) * 0.16) : 1;
   const debtDrag = clamp((payer.debtProfile?.dtiRatio ?? 0) * 85, 0, 75);
@@ -60,7 +60,7 @@ export function stepYouthAndAge25Monthly(city: CityState, clock: SimClock, dateL
             payer.savings = Math.round((payer.savings - tuition) * 100) / 100;
             appendLedgerEntry(payer, clock.totalDays, dateLabel, 'expense', 'Child Tuition', `Higher education for ${child.name}`, tuition);
             child.skill = Math.round(clamp(child.skill + 2.4, 0, 100) * 10) / 10;
-            if (child.age >= 20 && child.education === 'school') {
+            if (child.age >= 22 && child.education === 'school') {
               child.education = 'diploma';
               recordConsequentialDecision({
                 citizen: payer, clock, dateLabel, kind: 'child_tuition', category: 'family',
@@ -69,7 +69,7 @@ export function stepYouthAndAge25Monthly(city: CityState, clock: SimClock, dateL
                 chosenFactors: [{ label: 'Savings Cushion', value: 30 }], altFactors: [{ label: 'Cash Preservation', value: 12 }],
                 diarySentence: `Paid for ${child.name}'s diploma studies.`,
               });
-            } else if (child.age >= 22 && child.education === 'diploma') child.education = 'degree';
+            } else if (child.age >= 23 && child.education === 'diploma') child.education = 'degree';
           }
         } else if (supporters.length > 0) {
           child.childSupportShortfalls = (child.childSupportShortfalls ?? 0) + 1;

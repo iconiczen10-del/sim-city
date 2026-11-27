@@ -83,7 +83,7 @@ export function handleFamilyHousingOnBirth(params: {
   const coParents = otherParent.alive && otherParent.id !== livingParent.id && (!otherParent.homeId || otherParent.homeId === curHouse?.id)
     ? [livingParent, otherParent] : [livingParent];
   const existingDeps = city.citizens.filter((k) => k.alive && k.youngAdultPhase === 'dependent_youth' && ((k.parentIds ?? []).some((pid) => coParents.some((p) => p.id === pid)) || coParents.some((p) => k.guardianId === p.id)) && (!k.homeId || k.homeId === curHouse?.id));
-  const neededCap = coParents.length + existingDeps.length + 1;
+  const neededCap = Math.max(coParents.length + existingDeps.length + 1, (curHouse?.occupantIds.length ?? 0) + 1);
   const netPay = coParents.reduce((s, p) => s + Math.max(0, p.lastGrossPay - p.lastTax + (p.lastRentalIncome ?? 0)), 0);
   const candidates = city.housing.houses
     .filter((h) => !h.condemned && !h.maintenanceUntilDay && h.occupantIds.length === 0 && h.capacity >= neededCap && h.id !== curHouse?.id)
@@ -129,7 +129,7 @@ export function handleFamilyHousingOnBirth(params: {
       chosenFactors: [{ label: 'Family Capacity', value: 42 }], altFactors: [{ label: 'Moving Cost', value: -Math.round(cand.mCost * 0.1) }],
       diarySentence: `Moved family to ${cand.h.name} for newborn ${child.name}.`,
     });
-    recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'family_upgrade_birth', subjectId: livingParent.id, subjectKind: 'citizen', subjectName: livingParent.name, summary: `${livingParent.name} moved family (${neededCap}) to ${cand.h.name} (${acquiredMode}) for ${child.name}`, detail: { houseId: cand.h.id, mode: acquiredMode, capacity: cand.h.capacity, neededCap, score: cand.score } });
+    recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'family_upgrade_birth', subjectId: livingParent.id, subjectKind: 'citizen', subjectName: livingParent.name, summary: `${livingParent.name} moved family (${neededCap}) to ${cand.h.name} (${acquiredMode}) for ${child.name}`, detail: { houseId: cand.h.id, mode: acquiredMode, capacity: cand.h.capacity, neededCap, score: cand.score, why: `House capacity full on ${child.name} birth`, what: `Moved family to ${cand.h.name} (cap ${cand.h.capacity})`, how: `${acquiredMode} (score ${cand.score})` } });
     return;
   }
 
@@ -144,5 +144,5 @@ export function handleFamilyHousingOnBirth(params: {
     chosenFactors: [{ label: 'Family Unity', value: 45 }], altFactors: [{ label: 'Overcrowding Stress', value: -20 }],
   });
   events.push(makeCityEvent(clock, `overcrowd_${child.id}`, { type: 'housing-search', citizenId: livingParent.id, citizenName: livingParent.name, title: 'Family Needs Bigger Home', detail: summary }));
-  recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'family_overcrowded', subjectId: livingParent.id, subjectKind: 'citizen', subjectName: livingParent.name, summary, detail: { houseId: curHouse?.id ?? null, neededCap, currentCap: curHouse?.capacity ?? 0 } });
+  recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'housing', subType: 'family_overcrowded', subjectId: livingParent.id, subjectKind: 'citizen', subjectName: livingParent.name, summary, detail: { houseId: curHouse?.id ?? null, neededCap, currentCap: curHouse?.capacity ?? 0, why: 'No affordable bigger house', what: 'Kept family together overcrowded', how: 'Set seekingHousing=true to keep searching' } });
 }

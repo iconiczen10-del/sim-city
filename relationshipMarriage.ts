@@ -1,5 +1,6 @@
 // relationshipMarriage.ts — Cohabitation housing merge, marriage proposals, accept/decline decisions, breakups, and Sharity announcements
 
+import { scheduleFirstConception } from './childConception';
 import { recordConsequentialDecision } from './citizenDecisionOutcomes';
 import { applyEmotionPulse } from './citizenEmotions';
 import { appendLifeLog } from './citizenLedger';
@@ -117,13 +118,11 @@ export function attemptMarriageProposal(a: Citizen, b: Citizen, city: CityState,
   linkMarriageInFamilyTree(fam, a, b);
 
   for (const [p, other] of [[a, b], [b, a]] as const) {
-    p.relationship = { ...p.relationship!, stage: 'married', partnerId: other.id, stageSinceDay: clock.totalDays, marriedSinceDay: clock.totalDays };
+    p.relationship = { ...p.relationship!, stage: 'married', partnerId: other.id, stageSinceDay: clock.totalDays, marriedSinceDay: clock.totalDays, lastBirthDayInMarriage: undefined, nextConceptionDay: undefined, conceptionRuleNote: undefined };
     p.mood = Math.round(clamp(p.mood + 18, 0, 100) * 10) / 10;
     p.healthProfile.mental = Math.round(clamp(p.healthProfile.mental + 14, 0, 100) * 10) / 10;
     p.respect = Math.round(clamp(p.respect + 4, 0, 100) * 10) / 10;
-    if (p.housingPrefs && (p.housingPrefs.preferredType === 'shared_room' || p.housingPrefs.preferredType === 'small_flat')) {
-      p.housingPrefs.preferredType = 'apartment';
-    }
+    if (p.housingPrefs && (p.housingPrefs.preferredType === 'shared_room' || p.housingPrefs.preferredType === 'small_flat')) p.housingPrefs.preferredType = 'apartment';
     applyEmotionPulse(p.emotions, 'joy', 36, `Married ${other.name}`, clock, dateLabel);
     applyEmotionPulse(p.emotions, 'gratitude', 28, `Partnered with ${other.name}`, clock, dateLabel);
     applyEmotionPulse(p.emotions, 'hope', 24, 'Starting married life together', clock, dateLabel);
@@ -137,6 +136,7 @@ export function attemptMarriageProposal(a: Citizen, b: Citizen, city: CityState,
       diarySentence: `Got married to ${other.name}.`,
     });
   }
+  if (a.age <= 54 && b.age <= 54) scheduleFirstConception(a, b, clock, dateLabel);
   if (!a.homeId || a.homeId !== b.homeId) moveCoupleTogether(a, b, city, clock, dateLabel, events, true);
   adjustAffinity(city.sharity, a.id, b.id, 18);
   const compMsg = a.employerId ? ` Congratulations from ${city.companies.find((co) => co.id === a.employerId)?.name ?? 'colleagues'}!` : '';

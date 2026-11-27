@@ -37,6 +37,10 @@ export interface CitizenRelationshipState {
   marriedSinceDay?: number;
   griefUntilDay?: number;
   compatibility?: number;
+  paceFactor?: number;
+  lastBirthDayInMarriage?: number;
+  nextConceptionDay?: number;
+  conceptionRuleNote?: string;
   pastSpouseIds: string[];
   exPartnerIds: string[];
 }

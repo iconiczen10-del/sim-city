@@ -1,21 +1,13 @@
 // CitizenFamilyTab.tsx — Citizen Family tab: legacy, aging/relationship/pregnancy status, 4-part bond, achievements, and tree
 
 import { MONTH_NAMES } from './constants';
+import { CitizenFamilyAchievements } from './CitizenFamilyAchievements';
 import { FamilyTreeDiagram } from './FamilyTreeDiagram';
-import type { FamilyAchievementCategory } from './familyTypes';
 import { ensureFamilyState } from './familyTreeEngine';
 import { formatDelta } from './formatters';
 import type { Citizen, CityState } from './types';
 
 interface CitizenFamilyTabProps { citizen: Citizen; city: CityState; onSelectCitizen?: (id: string) => void; }
-
-const CAT_BADGE: Record<FamilyAchievementCategory, string> = {
-  Economic: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  Social: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  Education: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  Survival: 'bg-teal-500/15 text-teal-300 border-teal-500/30',
-  Dark: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-};
 
 const STAGE_LABEL: Record<string, string> = {
   single: 'Single', awareness: 'Awareness', interest: 'Interest', pursuit: 'Pursuit',
@@ -26,13 +18,21 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
   const fam = ensureFamilyState(city);
   const line = citizen.familyId ? fam.families[citizen.familyId] : undefined;
   const byCit = new Map(city.citizens.map((c) => [c.id, c]));
-  const partner = citizen.relationship?.partnerId ? byCit.get(citizen.relationship.partnerId) : undefined;
+  const rel = citizen.relationship;
+  const partner = rel?.partnerId ? byCit.get(rel.partnerId) : undefined;
   const parents = (citizen.parentIds ?? []).map((id) => byCit.get(id)).filter((c): c is Citizen => Boolean(c));
   const children = (citizen.childrenIds ?? []).map((id) => byCit.get(id)).filter((c): c is Citizen => Boolean(c));
   const bMonth = MONTH_NAMES[((citizen.birthMonth ?? 1) - 1) % 12];
   const preg = fam.pregnancies.find((p) => p.carrierId === citizen.id || p.partnerId === citizen.id);
+  const nextConceptionDay = rel?.stage === 'married' && partner?.alive && citizen.age <= 54 && partner.age <= 54 ? rel.nextConceptionDay : undefined;
   const genPeaks = line ? Object.values(line.genPeaks).sort((a, b) => a.generation - b.generation) : [];
   const maxPeak = Math.max(...genPeaks.map((g) => g.peakSavings), 1);
+  const bondItems = citizen.parentBond ? [
+    ['Love', citizen.parentBond.love, 'text-emerald-300'],
+    ['Gratitude', citizen.parentBond.gratitude, 'text-sky-300'],
+    ['Financial Tension', citizen.parentBond.financialTension, 'text-amber-300'],
+    ['Indep. Tension', citizen.parentBond.independenceTension, 'text-rose-300'],
+  ] as const : [];
 
   return (
     <div className="space-y-4 text-xs">
@@ -55,14 +55,17 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800/70">
           <div className="bg-[#090d16] rounded p-2.5">
             <div className="text-[11px] text-slate-400">Relationship</div>
-            <div className="font-semibold text-slate-100 mt-0.5">{STAGE_LABEL[citizen.relationship?.stage ?? 'single']}</div>
-            {partner && (
-              <button type="button" onClick={() => onSelectCitizen?.(partner.id)} className="text-[11px] text-amber-300 hover:underline cursor-pointer mt-0.5">
-                {partner.name}
-              </button>
+            <div className="font-semibold text-slate-100 mt-0.5">{STAGE_LABEL[rel?.stage ?? 'single']}</div>
+            {partner && <button type="button" onClick={() => onSelectCitizen?.(partner.id)} className="text-[11px] text-amber-300 hover:underline cursor-pointer mt-0.5">{partner.name}</button>}
+            {preg && <div className="mt-1 text-[11px] text-pink-300 font-medium">Expecting · Due Day {preg.dueDay} ({Math.max(1, preg.dueDay - city.totalDays)}d left)</div>}
+            {!preg && nextConceptionDay !== undefined && (
+              <div className="mt-1 text-[11px] text-cyan-300">
+                Next child window: Day {nextConceptionDay} ({Math.max(0, nextConceptionDay - city.totalDays)}d)
+                {rel?.conceptionRuleNote && <div className="text-[10px] text-slate-400">{rel.conceptionRuleNote}</div>}
+              </div>
             )}
-            {preg && (
-              <div className="mt-1 text-[11px] text-pink-300 font-medium">Expecting child · {Math.max(1, preg.dueDay - city.totalDays)}d left</div>
+            {!preg && rel?.stage === 'married' && partner?.alive && (citizen.age > 54 || partner.age > 54) && (
+              <div className="mt-1 text-[10px] text-slate-500">Family complete (age &gt;54)</div>
             )}
           </div>
           <div className="bg-[#090d16] rounded p-2.5">
@@ -91,7 +94,7 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
             <span className="font-mono text-amber-300">Capability {citizen.capabilityScore ?? 0}/100 · {citizen.age < 25 ? 'Job-Locked (<25)' : citizen.youngAdultPhase}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {([['Love', citizen.parentBond.love, 'text-emerald-300'], ['Gratitude', citizen.parentBond.gratitude, 'text-sky-300'], ['Financial Tension', citizen.parentBond.financialTension, 'text-amber-300'], ['Indep. Tension', citizen.parentBond.independenceTension, 'text-rose-300']] as const).map(([lbl, val, cls]) => (
+            {bondItems.map(([lbl, val, cls]) => (
               <div key={lbl} className="bg-[#090d16] rounded px-2.5 py-1.5">
                 <div className="text-[10px] text-slate-400">{lbl}</div>
                 <div className={`font-mono font-semibold ${cls}`}>{Math.round(val)} / 100</div>
@@ -108,9 +111,7 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
             {genPeaks.map((g) => (
               <div key={g.generation} className="flex items-center gap-2">
                 <span className="font-mono text-[11px] text-slate-400 w-12 shrink-0">Gen {g.generation}</span>
-                <div className="flex-1 h-2 bg-slate-800 rounded overflow-hidden">
-                  <div className="h-full bg-amber-400" style={{ width: `${Math.max(4, Math.round((g.peakSavings / maxPeak) * 100))}%` }} />
-                </div>
+                <div className="flex-1 h-2 bg-slate-800 rounded overflow-hidden"><div className="h-full bg-amber-400" style={{ width: `${Math.max(4, Math.round((g.peakSavings / maxPeak) * 100))}%` }} /></div>
                 <span className="font-mono text-[11px] text-amber-300 shrink-0">{formatDelta(g.peakSavings)} ({g.bestRole})</span>
               </div>
             ))}
@@ -123,25 +124,7 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
         <FamilyTreeDiagram family={fam} familyId={citizen.familyId ?? ''} currentCitizenId={citizen.id} citizens={city.citizens} onSelectCitizen={onSelectCitizen} />
       </div>
 
-      <div className="bg-[#0c1220] border border-slate-800/80 rounded-md p-3.5 space-y-2">
-        <div className="font-semibold text-slate-200">Family Achievements ({line?.achievements.length ?? 0})</div>
-        {!line || line.achievements.length === 0 ? (
-          <div className="text-slate-500 text-[11px]">No family achievements unlocked yet.</div>
-        ) : (
-          <div className="space-y-1.5 max-h-48 overflow-y-auto">
-            {line.achievements.map((a) => (
-              <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 bg-[#090d16] rounded px-2.5 py-1.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={`px-1.5 py-0.5 rounded border text-[10px] font-semibold ${CAT_BADGE[a.category]}`}>{a.category}</span>
-                  <span className="text-slate-100 font-medium">{a.title}</span>
-                  <span className="text-slate-400 truncate">— {a.memberName}</span>
-                </div>
-                <span className="font-mono text-[10px] text-slate-500">Day {a.day} · {a.dateLabel}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <CitizenFamilyAchievements achievements={line?.achievements ?? []} />
     </div>
   );
 }

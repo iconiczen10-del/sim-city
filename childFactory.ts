@@ -1,4 +1,4 @@
-// childFactory.ts — Constructs newly arrived age-18 child citizens with inherited traits, skills, and starting funds
+// childFactory.ts — Constructs newly arrived age-22 child citizens with inherited traits, education, experience, skills, and starting funds
 
 import { buildMoodFactors } from './citizenBreakdowns';
 import { createSeedEmotions } from './citizenEmotions';
@@ -43,6 +43,20 @@ function pickChildName(p1: Citizen, p2: Citizen, existingNames: Set<string>): { 
   return { name: full, gender: entry.gender };
 }
 
+function pickChildEducation(p1: Citizen, p2: Citizen, traits: CitizenTraits): Citizen['education'] {
+  const parentEduAvg = (EDU_RANK[p1.education] + EDU_RANK[p2.education]) / 2;
+  const parentWealth = (p1.alive ? p1.savings : 0) + (p2.alive ? p2.savings : 0);
+  const parentIncome = (p1.alive ? p1.lastGrossPay : 0) + (p2.alive ? p2.lastGrossPay : 0);
+  const eduScore = parentEduAvg * 24
+    + (parentWealth >= 6000 ? 22 : parentWealth >= 2000 ? 12 : 0)
+    + (parentIncome >= 2200 ? 18 : parentIncome >= 1000 ? 8 : 0)
+    + (traits.curiosity + traits.ambition + traits.discipline) * 0.12
+    + simRandInt(-12, 14);
+  if (eduScore >= 82) return 'degree';
+  if (eduScore >= 52) return 'diploma';
+  return 'school';
+}
+
 export function buildBornChildCitizen(params: {
   childId: string;
   p1: Citizen;
@@ -59,8 +73,11 @@ export function buildBornChildCitizen(params: {
   const { name, gender } = pickChildName(p1, p2, existingNames);
   existingNames.add(name);
   const traits = inheritTraits(p1, p2);
-  const eduBonus = Math.round(((EDU_RANK[p1.education] + EDU_RANK[p2.education]) / 2) * 3);
-  const skill = Math.round(clamp(simRandInt(15, 35) + eduBonus + (traits.curiosity - 50) * 0.15, 10, 68));
+  const education = pickChildEducation(p1, p2, traits);
+  const experience = education === 'degree' ? simRandInt(0, 1) : simRandInt(0, 2);
+  const parentEduAvg = (EDU_RANK[p1.education] + EDU_RANK[p2.education]) / 2;
+  const eduSkillBase = education === 'degree' ? 32 : education === 'diploma' ? 24 : 15;
+  const skill = Math.round(clamp(eduSkillBase + simRandInt(4, 18) + parentEduAvg * 3 + (traits.curiosity + traits.discipline - 100) * 0.14, 12, 74) * 10) / 10;
 
   let giftSavings = 0;
   if (!isOrphan) {
@@ -77,8 +94,8 @@ export function buildBornChildCitizen(params: {
   const statusScore = computeTargetStatusScore({ savings: giftSavings, roleLevel: 'Unemployed', respect: 32 }, 0);
   const lucky = simRandInt(1, 10) === 1;
   const child: Citizen = {
-    id: childId, name, age: 18, gender, education: 'school', skill, experience: 0, traits,
-    birthDay: clock.day, birthMonth: clock.month, birthYear: clock.year - 18,
+    id: childId, name, age: 22, gender, education, skill, experience, traits,
+    birthDay: clock.day, birthMonth: clock.month, birthYear: clock.year - 22,
     lucky, luckyExtraYears: lucky ? simRandInt(1, 15) : 0, luckyYearsUsed: 0, retired: false, highMoodMonths: 0,
     savings: giftSavings, rentArrears: 0, mood: isOrphan ? 42 : 66, stress: isOrphan ? 46 : 16,
     hunger: 92, thirst: 94, health: 86, alive: true, roleLevel: 'Unemployed', respect: 34, statusScore,
@@ -92,7 +109,7 @@ export function buildBornChildCitizen(params: {
     employerId: null, bossId: null, bossRelationship: 0, tenureMonths: 0, monthsSincePromotion: 0, performanceScore: 0,
     unemployedDays: 0, jobHunting: false, workHistory: [], householdId: null,
     sharityHandle: buildUniqueHandle(name, takenHandles), socialReputation: 45, sharityMoodLines: [], sharityStressLines: [], sharityWorkNotes: [],
-    needs: createSeedNeeds(homeType, traits, 92, 94), healthProfile: createSeedHealthProfile(18, traits, 86),
+    needs: createSeedNeeds(homeType, traits, 92, 94), healthProfile: createSeedHealthProfile(22, traits, 86),
     emotions: createSeedEmotions(traits), emotionHistory: [], survivalPriority: [], survivalState: 'Stable',
     familyId, generation: Math.max(p1.generation ?? 1, p2.generation ?? 1) + 1,
     parentIds: [p1.id, p2.id], childrenIds: [], youngAdultPhase: 'dependent_youth',

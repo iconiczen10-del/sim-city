@@ -1,4 +1,4 @@
-# Vij — Mobile-Compatible Version (v1.5.0)
+# Vij — Mobile-Compatible Version (v1.6.0)
 
 ## Scope & Breakpoint
 - **Phone layout** activates automatically on narrow screens (`< 640px`, matching Tailwind `sm:` boundary via `matchMedia('(max-width: 639px)')`).
@@ -29,7 +29,7 @@
 
 ## Mobile Citizens & Housing Views
 - **Citizen Debt Tab**: Credit score & band, total debt, DTI ratio, stacked tap-to-expand loan cards (`44px+`), perceived vs actual debt, bank trust, debt shame, repayment strategy, garnishment %, coping actions, and Why/What/How borrowing log.
-- **Housing & Family Tabs**: Combined married **Household Income & Expense Pool** totals, dependent youth living with parents/guardians until 25 (with birth housing upgrades/overcrowding tracking, `Parental Support` income, and parent-paid daily `Child Food/Water`), orphan relative guardian / City Treasury care badges, minor inheritance trust funds, and inherited debt tracking.
+- **Housing & Family Tabs**: Combined married **Household Income & Expense Pool** totals, age-scaled courtship & marriage progression (`<= 30` fastest, same-sex inclusive), guaranteed spaced conception (`100d` + age delay, `120–300d` spacing, compulsory `60d` pregnancy, unlimited children up to age 54), Family tab **Expecting · Due Day** and **Next child window** status cards, age-22 child arrivals (`22–24` dependent youth living with parents/guardians until 25 with birth housing upgrades/overcrowding tracking, `Parental Support` income, and parent-paid daily `Child Food/Water`), orphan relative guardian / City Treasury care badges, minor inheritance trust funds, and inherited debt tracking.
 - **Housing Cards**: Each house card displays a clean subsidy status chip and absorbed `∆`, with a `44px+` tap-to-expand reason footer (zero hover-only details). House Detail includes a full Subsidy Status card and tap-to-expand monthly history.
 - **Citizen Housing Tab**: Includes the **What I Know & Electricity Subsidy** panel showing tariff/rule beliefs, active usage conservation %, `Trust in GJ` (`0–100`), latest billing reaction, and tap-to-expand personal bill/subsidy decision history.
 

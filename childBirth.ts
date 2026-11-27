@@ -1,5 +1,6 @@
-// childBirth.ts — Age-18 child arrival orchestration, orphan fallback, housing placement, and Sharity onboarding
+// childBirth.ts — Age-22 child arrival orchestration, orphan fallback, housing placement, next-child spacing, and Sharity onboarding
 
+import { scheduleNextConceptionAfterBirth } from './childConception';
 import { buildBornChildCitizen } from './childFactory';
 import { appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
@@ -42,10 +43,10 @@ export function processDuePregnanciesDaily(city: CityState, clock: SimClock, dat
     });
 
     if (isOrphan) {
-      addCitizenMemory(child, clock, dateLabel, 'orphan', `Arrived as an orphan after losing both ${p1.name} and ${p2.name}.`, -45);
-      appendLifeLog(child, clock.totalDays, dateLabel, 'mood', `Arrived at age 18 as an orphan; no parents survived to support.`);
+      addCitizenMemory(child, clock, dateLabel, 'orphan', `Arrived at age 22 as an orphan after losing both ${p1.name} and ${p2.name}.`, -45);
+      appendLifeLog(child, clock.totalDays, dateLabel, 'mood', `Arrived at age 22 as an orphan; placed under guardianship until 25.`);
     } else {
-      appendLifeLog(child, clock.totalDays, dateLabel, 'mood', `Joined the ${extractSurname(p1.name)} household at age 18 with ${formatDelta(child.savings)}.`);
+      appendLifeLog(child, clock.totalDays, dateLabel, 'mood', `Joined the ${extractSurname(p1.name)} household at age 22 with ${formatDelta(child.savings)}.`);
       for (const par of [p1, p2]) {
         if (par.alive) addCitizenMemory(par, clock, dateLabel, 'child_birth', `Welcomed child ${child.name} into the household.`, 40);
       }
@@ -59,6 +60,7 @@ export function processDuePregnanciesDaily(city: CityState, clock: SimClock, dat
     else if (livingParent) handleFamilyHousingOnBirth({ livingParent, otherParent: p1.id === livingParent.id ? p2 : p1, child, city, clock, dateLabel, events, moveFn: moveCitizenToHouse });
     fam.nodes[child.id] = makeTreeNodeFromCitizen(child, child.familyId!, child.generation!);
     for (const pid of [p1.id, p2.id]) if (fam.nodes[pid]) fam.nodes[pid].childrenIds.push(child.id);
+    scheduleNextConceptionAfterBirth(p1, p2, clock, dateLabel, events);
 
     city.sharity.profiles[child.id] = {
       id: child.id, kind: 'citizen', name: child.name, handle: child.sharityHandle,
@@ -73,16 +75,16 @@ export function processDuePregnanciesDaily(city: CityState, clock: SimClock, dat
 
     events.push(makeCityEvent(clock, `birth_${child.id}`, {
       type: 'child-birth', citizenId: child.id, citizenName: child.name,
-      title: isOrphan ? 'Orphan Child Arrived (Age 18)' : 'Child Arrived at Age 18',
+      title: isOrphan ? 'Orphan Child Arrived (Age 22)' : 'Child Arrived at Age 22',
       detail: isOrphan
-        ? `${child.name} entered Vij at 18 as an orphan (${p1.name} & ${p2.name} passed away).`
-        : `${child.name} joined ${p1.name} & ${p2.name} at age 18 (${formatDelta(child.savings)} gift).`,
+        ? `${child.name} entered Vij at 22 as an orphan (${p1.name} & ${p2.name} passed away).`
+        : `${child.name} joined ${p1.name} & ${p2.name} at age 22 (${formatDelta(child.savings)} gift).`,
     }));
     recordSimEvent({
       simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'child_birth',
       subjectId: child.id, subjectKind: 'citizen', subjectName: child.name,
-      summary: `${child.name} arrived at age 18 (${isOrphan ? 'Orphan' : `Parents: ${p1.name} & ${p2.name}`})`,
-      detail: { parentIds: [p1.id, p2.id], isOrphan, giftSavings: child.savings, skill: child.skill, traits: child.traits },
+      summary: `${child.name} arrived at age 22 (${isOrphan ? 'Orphan' : `Parents: ${p1.name} & ${p2.name}`})`,
+      detail: { parentIds: [p1.id, p2.id], isOrphan, age: 22, education: child.education, experience: child.experience, giftSavings: child.savings, skill: child.skill, traits: child.traits },
     });
   }
 

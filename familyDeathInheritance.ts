@@ -39,6 +39,9 @@ export function applyFamilyEffectsOnDeath(params: {
       partnerId: null,
       stageSinceDay: clock.totalDays,
       griefUntilDay: clock.totalDays + griefDays,
+      lastBirthDayInMarriage: undefined,
+      nextConceptionDay: undefined,
+      conceptionRuleNote: undefined,
       pastSpouseIds: [...new Set([...spouse.relationship.pastSpouseIds, deceased.id])],
     };
     spouse.mood = Math.round(clamp(spouse.mood - 24, 0, 100) * 10) / 10;
@@ -55,7 +58,7 @@ export function applyFamilyEffectsOnDeath(params: {
       detail: { spouseId: deceased.id, spouseName: deceased.name, griefUntilDay: clock.totalDays + griefDays },
     });
 
-    // Single-parent mental health strain if raising dependent youths 18-24
+    // Single-parent mental health strain if raising dependent youths 22-24
     const dependents = livingChildren.filter((ch) => ch.age < 25);
     if (dependents.length > 0) {
       spouse.healthProfile.mental = Math.round(clamp(spouse.healthProfile.mental - 8, 0, 100) * 10) / 10;
