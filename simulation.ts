@@ -1,6 +1,7 @@
 // simulation.ts — Whole-day cycle integrating seeded RNG, housing, Mart, board, and Sharity
 import { runVijIndustriesBoardStep } from './boardEngine';
 import type { BoardMeeting } from './boardTypes';
+import { supplyDependentChildrenDailyCare } from './childDailyCare';
 import { stepMoodWithBreakdown } from './citizenBreakdowns';
 import { appendChangeExplanation, appendLifeLog } from './citizenLedger';
 import { addCitizenMemory } from './citizenMemory';
@@ -23,6 +24,8 @@ import { runCityMonthEnd } from './monthlyCycle';
 import { getSimRngState, syncSimRng } from './rng';
 import { stepSharityDay } from './sharityEngine';
 import type { CityEvent, CityState, SimSpeed } from './types';
+import { stepVijBankDaily } from './vijBankEngine';
+import { createInitialVijBankState } from './vijBankSetup';
 
 export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: BoardMeeting, speed: SimSpeed = 1): { state: CityState; newMeeting: BoardMeeting | null } {
   syncSimRng(prev.rngState || prev.seed);
@@ -50,11 +53,13 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   processMartDayStart(mart, clock, newEvents);
 
   const family = prev.family ? structuredClone(prev.family) : createInitialFamilyState(prev.citizens);
+  const bank = prev.bank ? structuredClone(prev.bank) : createInitialVijBankState(prev.citizens);
   let treasury = prev.treasury, deathsToday = 0;
   const shortageMap = new Map<string, boolean>();
   let citizens = prev.citizens.map((orig) => (orig.alive ? structuredClone(orig) : orig));
-  const cityDraft: CityState = { ...prev, day, month, year, totalDays, treasury, citizens, companies, vacancies, jobEvents, mart, boardState, sharity, housing, electricity, family };
+  const cityDraft: CityState = { ...prev, day, month, year, totalDays, treasury, citizens, companies, vacancies, jobEvents, mart, boardState, sharity, housing, electricity, family, bank };
   const homelessCount = stepHousingDailyEffects({ citizens, housing, sharity, clock, dateLabel, events: newEvents });
+  supplyDependentChildrenDailyCare(citizens, clock, dateLabel);
 
   for (const c of citizens) {
     if (!c.alive) continue;
@@ -69,9 +74,9 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
       deathsToday += 1;
       if (prevEmployer && prevRole !== 'Unemployed' && prevRole !== 'Retired') {
         const comp = companies.find((co) => co.id === prevEmployer);
-        if (comp) openVacancy(vacancies, comp, prevRole, `${c.name} passed away`, clock, dateLabel);
+        if (comp) openVacancy(vacancies, comp, prevRole, `${c.name} passed away`, clock, dateLabel, comp.id === 'gjelectricity' ? c.gjJobTitle : undefined, comp.id === 'vijcapital' ? c.bankJobTitle : undefined);
       }
-      c.employerId = null; c.bossId = null;
+      c.employerId = null; c.bossId = null; c.gjJobTitle = undefined; c.bankJobTitle = undefined;
       treasury += handleSurvivalDeathFamilyEffects({ deceased: c, estate: res.estateToTreasury, city: cityDraft, clock, dateLabel, events: newEvents });
     }
     shortageMap.set(c.id, res.shortageToday);
@@ -79,9 +84,10 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   stepFamilyAndAgingDaily({ city: cityDraft, clock, dateLabel, events: newEvents });
   citizens = cityDraft.citizens;
   treasury = stepHousingMarketDaily({ citizens, housing, sharity, treasury, clock, dateLabel, events: newEvents });
-  stepElectricityDailyDemand({ electricity, housing, citizens, companies, clock, dateLabel });
+  stepElectricityDailyDemand({ electricity, housing, citizens, companies, sharity, bank, clock, dateLabel });
   stepElectricityGridDaily({ electricity, housing, citizens, companies, clock, dateLabel, events: newEvents });
   stepElectricityTappingDaily({ electricity, housing, citizens, clock, dateLabel, events: newEvents });
+  stepVijBankDaily({ bank, vijCapital: companies.find((co) => co.id === 'vijcapital'), citizens, housing, sharity, clock, dateLabel, events: newEvents });
 
   citizens = citizens.map((c) => {
     if (!c.alive) return c;
@@ -110,7 +116,7 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   let nextVacancies = vacancies;
 
   if (day === DAYS_PER_MONTH) {
-    const mr = runCityMonthEnd({ citizens, companies, vacancies: nextVacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity, electricity });
+    const mr = runCityMonthEnd({ citizens, companies, vacancies: nextVacancies, jobEvents, treasury, mart, clock, events: newEvents, boardState, housing, sharity, electricity, bank });
     citizens = mr.citizens; nextVacancies = mr.vacancies; jobEvents = mr.jobEvents; treasury = mr.treasury;
     tierMovementsThisMonth = mr.movements; lastMonthTaxCollected = mr.taxCollected; lastTotalPayroll = mr.totalPayroll; lastBusinessTaxCollected = mr.businessTaxCollected;
     cityDraft.citizens = citizens; cityDraft.vacancies = nextVacancies; cityDraft.jobEvents = jobEvents;
@@ -128,16 +134,12 @@ export function advanceSimulationDayWithBoard(prev: CityState, lastMeeting?: Boa
   }
   recordWholesaleLedgers({ vijMart: vijMartComp, vijInd: vijIndComp, wholesaleDelta, martCash: mart.cash, outsideSupplierActive, clock, dateLabel });
   if (vijMartComp) vijMartComp.cash = mart.cash;
-  stepSharityDay({
-    sharity, citizens, companies, mart, vacancies: nextVacancies, dayEvents: [...newEvents], prevEvents: prev.events,
-    events: newEvents, movements: day === DAYS_PER_MONTH ? tierMovementsThisMonth : [], clock, isMonthEnd: day === DAYS_PER_MONTH, speed,
-  });
-
+  stepSharityDay({ sharity, citizens, companies, mart, vacancies: nextVacancies, dayEvents: [...newEvents], prevEvents: prev.events, events: newEvents, movements: day === DAYS_PER_MONTH ? tierMovementsThisMonth : [], clock, isMonthEnd: day === DAYS_PER_MONTH, speed });
   return {
     newMeeting,
     state: {
       ...prev, rngState: getSimRngState(), day, month, year, totalDays, treasury, citizens, companies,
-      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing, electricity, family,
+      vacancies: nextVacancies, jobEvents, mart, boardState, sharity, housing, electricity, family, bank,
       events: [...newEvents.reverse(), ...prev.events].slice(0, 600),
       tierMovementsThisMonth, lastMonthTaxCollected, lastTotalPayroll, lastBusinessTaxCollected,
     },

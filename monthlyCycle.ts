@@ -17,6 +17,8 @@ import { processLivingCitizenMonthEnd } from './monthlyCitizenStep';
 import type { SharityState } from './sharityTypes';
 import { recordSimEvent } from './recordsStore';
 import type { Citizen, CityEvent, TierMovement } from './types';
+import { processVijBankMonthEnd } from './vijBankEngine';
+import type { VijBankState } from './vijBankTypes';
 
 export function runCityMonthEnd(params: {
   citizens: Citizen[];
@@ -31,6 +33,7 @@ export function runCityMonthEnd(params: {
   housing: HousingState;
   sharity: SharityState;
   electricity?: ElectricityState;
+  bank?: VijBankState;
 }): {
   citizens: Citizen[];
   vacancies: CompanyVacancy[];
@@ -41,7 +44,7 @@ export function runCityMonthEnd(params: {
   businessTaxCollected: number;
   movements: TierMovement[];
 } {
-  const { citizens, companies, mart, clock, events, boardState, housing, sharity, electricity } = params;
+  const { citizens, companies, mart, clock, events, boardState, housing, sharity, electricity, bank } = params;
   let treasury = params.treasury;
   const dateLabel = formatSimDate(clock.day, clock.month, clock.year);
   let vacancies = [...params.vacancies];
@@ -60,7 +63,8 @@ export function runCityMonthEnd(params: {
 
   treasury = processHousingMonthEnd({ citizens: paidCitizens, housing, sharity, treasury, clock, dateLabel, events });
   const nextCitizens = paidCitizens;
-  if (electricity) processElectricityMonthEnd({ electricity, housing, citizens: nextCitizens, companies, clock, dateLabel, events });
+  if (electricity) processElectricityMonthEnd({ electricity, housing, citizens: nextCitizens, companies, sharity, clock, dateLabel, events });
+  if (bank) processVijBankMonthEnd({ bank, companies, citizens: nextCitizens, housing, sharity, clock, dateLabel, events });
 
   mart.monthlyRevenue = 0;
   mart.monthlyWholesaleSpend = 0;

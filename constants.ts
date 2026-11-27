@@ -3,7 +3,7 @@
 import type { LivingStandard, MarginMood, ShoppingCategory } from './martTypes';
 import type { EducationLevel, HomeType, RoleLevel, TierId } from './types';
 
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.4.0';
 export const STORAGE_KEY = 'vij_city_state_v9_0';
 export const LEGACY_STORAGE_KEYS = ['vij_city_state_v8_0', 'vij_city_state_v7_0', 'vij_city_state_v6_0', 'vij_city_state_v5_8', 'vij_city_state_v5_7', 'vij_city_state_v5_6', 'vij_city_state_v5_5', 'vij_city_state_v5_4', 'vij_city_state_v5_3', 'vij_city_state_v5_2', 'vij_city_state_v5_1', 'vij_city_state_v5_0'] as const;
 export const INITIAL_TREASURY = 20000;

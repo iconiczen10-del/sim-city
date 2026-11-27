@@ -38,7 +38,8 @@ export type EventCategory =
   | 'electric-bill' | 'power-cut' | 'blackout' | 'plant-built' | 'plant-failed'
   | 'tariff-change' | 'appliance-buy' | 'appliance-broke'
   | 'birthday' | 'retired' | 'courtship' | 'marriage' | 'breakup' | 'pregnancy'
-  | 'child-birth' | 'child-adult' | 'family-achievement';
+  | 'child-birth' | 'child-adult' | 'family-achievement' | 'subsidy'
+  | 'loan' | 'debt-default' | 'inheritance';
 
 export interface CitizenTraits {
   ambition: number;

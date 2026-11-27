@@ -6,17 +6,22 @@ import type { SimClock } from './eventFactory';
 import { simIdSuffix } from './rng';
 import type { Citizen, RoleLevel } from './types';
 
+import type { GJStaffTitle } from './gjSubsidyTypes';
+import type { BankJobTitle } from './vijBankTypes';
+
 export function openVacancy(
   vacancies: CompanyVacancy[],
   company: Company,
   role: Exclude<RoleLevel, 'Unemployed' | 'Retired'>,
   reason: string,
   clock: SimClock,
-  dateLabel: string
+  dateLabel: string,
+  gjJobTitle?: GJStaffTitle,
+  bankJobTitle?: BankJobTitle
 ): void {
   if (company.bankrupt) return;
-  const dup = vacancies.filter((v) => v.companyId === company.id && v.role === role).length;
-  if (dup >= 2) return;
+  const dup = vacancies.filter((v) => v.companyId === company.id && v.role === role && v.gjJobTitle === gjJobTitle && v.bankJobTitle === bankJobTitle).length;
+  if (dup >= (company.id === 'gjelectricity' || gjJobTitle || bankJobTitle ? 1 : 2)) return;
   const req = ROLE_REQUIREMENTS[role];
   vacancies.push({
     id: `vac_${clock.totalDays}_${company.id}_${role}_${simIdSuffix()}`,
@@ -29,6 +34,8 @@ export function openVacancy(
     openedDay: clock.totalDays,
     openedDate: dateLabel,
     reason,
+    gjJobTitle,
+    bankJobTitle,
     applicants: [],
   });
 }

@@ -6,27 +6,17 @@ import { createSeedEmotions } from './citizenEmotions';
 import { createSeedHealthProfile } from './citizenHealthSystem';
 import { createSeedNeeds } from './citizenNeeds';
 import { buildStressFactors } from './citizenStress';
+import { createInitialElectricityAwareness } from './electricityAwarenessSeed';
 import { evaluateSurvivalLadder } from './citizenSurvivalEngine';
 import { MART_BASE_PRICES, SAVINGS_MILESTONES } from './constants';
-import {
-  calibrateInitialScore,
-  createSeedInventory,
-  createSeedTraits,
-  pick,
-  randInt,
-} from './citizenSeedHelpers';
-import {
-  calculateFixedMonthlyCosts,
-  calculateMarginalTax,
-  calculateMonthlyPay,
-  clamp,
-  selectHomeType,
-} from './economy';
+import { calibrateInitialScore, createSeedInventory, createSeedTraits, pick, randInt } from './citizenSeedHelpers';
+import { calculateFixedMonthlyCosts, calculateMarginalTax, calculateMonthlyPay, clamp, selectHomeType } from './economy';
 import { formatMonthYear } from './formatters';
 import { ROLE_CONFIGS, type SeedSlot } from './seedProfiles';
 import { chooseLivingStandards } from './standards';
 import { computeTargetStatusScore, initialTierFromScore } from './status';
 import type { Citizen } from './types';
+import { createSeedDebtProfile } from './vijBankSetup';
 
 export function buildSeedCitizen(
   index: number,
@@ -143,6 +133,7 @@ export function buildSeedCitizen(
   citizen.moodBreakdown = moodInfo.factors;
   citizen.moodCrashed = citizen.mood < 25;
   citizen.history.push({ totalDay: 1, label: formatMonthYear(1, 1), savings: citizen.savings, mood: citizen.mood, statusScore: citizen.statusScore });
-
+  citizen.electricityAwareness = createInitialElectricityAwareness(citizen); citizen.subsidyHistory = [];
+  citizen.debtProfile = createSeedDebtProfile(citizen);
   return citizen;
 }

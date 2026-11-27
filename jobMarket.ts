@@ -6,8 +6,10 @@ import { rebuildCompanyBossTree } from './companySetup';
 import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
 import { calculateMarginalTax, calculateMonthlyPay, clamp } from './economy';
 import { makeCityEvent, type SimClock } from './eventFactory';
+import { inferGJTitle } from './gjStaffCatalog';
 import { collectApplicantsForVacancy, openVacancy } from './jobScoring';
 import type { Citizen, CityEvent } from './types';
+import { inferBankTitle } from './vijBankCatalog';
 
 export function processJobMarketMonthEnd(params: {
   citizens: Citizen[];
@@ -47,17 +49,21 @@ export function processJobMarketMonthEnd(params: {
 
     const prevRole = hiree.roleLevel;
     const prevCompId = hiree.employerId;
+    const prevTitle = hiree.gjJobTitle;
+    const prevBankTitle = hiree.bankJobTitle;
     const wasInternal = prevCompId === comp.id;
 
     if (prevCompId && prevRole !== 'Unemployed' && prevRole !== 'Retired') {
       const oldComp = companies.find((co) => co.id === prevCompId);
       if (oldComp) {
-        openVacancy(queue, oldComp, prevRole, wasInternal ? `${hiree.name} promoted` : `${hiree.name} departed`, clock, dateLabel);
+        openVacancy(queue, oldComp, prevRole, wasInternal ? `${hiree.name} promoted` : `${hiree.name} departed`, clock, dateLabel, oldComp.id === 'gjelectricity' ? prevTitle : undefined, oldComp.id === 'vijcapital' ? prevBankTitle : undefined);
       }
     }
 
     hiree.employerId = comp.id;
     hiree.roleLevel = vac.role;
+    hiree.gjJobTitle = comp.id === 'gjelectricity' ? (vac.gjJobTitle ?? inferGJTitle({ roleLevel: vac.role })) : undefined;
+    hiree.bankJobTitle = comp.id === 'vijcapital' ? (vac.bankJobTitle ?? inferBankTitle({ roleLevel: vac.role })) : undefined;
     hiree.monthsSincePromotion = 0;
     hiree.unemployedDays = 0;
     if (!wasInternal) {
@@ -70,9 +76,11 @@ export function processJobMarketMonthEnd(params: {
     if (vac.role === 'CEO') comp.ceoId = hiree.id;
 
     const kind: JobMarketEvent['kind'] = wasInternal ? 'promoted' : 'hired';
+    const customTitle = hiree.gjJobTitle ?? hiree.bankJobTitle;
+    const titleStr = customTitle && customTitle !== 'CEO' ? `${customTitle} (${vac.role})` : vac.role;
     const detail = wasInternal
-      ? `${hiree.name} promoted from ${prevRole} to ${vac.role} at ${comp.name}.`
-      : `${hiree.name} hired as ${vac.role} at ${comp.name} (score ${picked.score}).`;
+      ? `${hiree.name} promoted from ${prevRole} to ${titleStr} at ${comp.name}.`
+      : `${hiree.name} hired as ${titleStr} at ${comp.name} (score ${picked.score}).`;
 
     hiree.workHistory = [{ id: `wh_${clock.totalDays}_${hiree.id}_${safety}`, dateLabel, companyId: comp.id, companyName: comp.name, role: vac.role, kind, note: detail }, ...hiree.workHistory].slice(0, 24);
     jobEvents.unshift({ id: `je_${clock.totalDays}_${hiree.id}_${safety}`, dateLabel, kind, citizenId: hiree.id, citizenName: hiree.name, companyId: comp.id, companyName: comp.name, role: vac.role, detail });

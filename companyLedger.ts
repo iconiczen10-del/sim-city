@@ -18,6 +18,10 @@ export const LEDGER_CATEGORY_LABELS: Record<CompanyLedgerCategory, string> = {
   plant_fuel: 'Plant Fuel',
   plant_upkeep: 'Plant Upkeep',
   plant_capex: 'Plant Build / Repair',
+  subsidy: 'Subsidy Absorbed',
+  loan_disbursement: 'Loan Disbursed',
+  loan_repayment: 'Loan Repayment & Fees',
+  loan_writeoff: 'Loan Default Write-Off',
   adjustment: 'Cash Adjustment',
 };
 

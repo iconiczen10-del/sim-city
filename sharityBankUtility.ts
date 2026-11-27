@@ -59,4 +59,27 @@ export const UTILITY_SHARITY_BANK: Record<string, VoiceTemplates> = {
       'Had a {item} break down at home today.',
     ],
   },
+  subsidy_relief: {
+    hopeful: [
+      'GJ Electricity approved a power subsidy for our house this month — huge relief on the monthly budget.',
+      'Customer Relations at GJ stepped in with power bill relief just when we needed it.',
+    ],
+    default: [
+      'Checked the power bill and saw GJ applied a household subsidy this month. Glad the program is reaching people.',
+      'Electric bill came down thanks to GJ Electricity assistance.',
+    ],
+  },
+  bill_shock_trust: {
+    angry: [
+      'Opened the GJ Electricity bill and barely recognized the numbers. Time to cut appliance hours way back.',
+      'Electric bills keep climbing faster than paychecks. Hard to trust GJ billing lately.',
+    ],
+    anxious: [
+      'Higher electric bill than expected this month — dialing back heating and appliances to stay under budget.',
+      'Worried about how steep the power bill got this month.',
+    ],
+    default: [
+      'Power bill jumped this month. Trying to keep usage under the 60u lifeline threshold from now on.',
+    ],
+  },
 };

@@ -7,7 +7,9 @@ import { addCitizenMemory } from './citizenMemory';
 import { clamp } from './economy';
 import type { SimClock } from './eventFactory';
 import { formatDelta } from './formatters';
+import { settleDeceasedEstateAndDebt } from './inheritanceDebt';
 import { openVacancy } from './jobScoring';
+import { placeOrphanWithGuardianOrTreasury } from './orphanCare';
 import { recordSimEvent } from './recordsStore';
 import { simRandInt } from './rng';
 import type { Citizen, CityEvent, CityState, DeathCause } from './types';
@@ -20,7 +22,7 @@ export function applyFamilyEffectsOnDeath(params: {
   dateLabel: string;
   events: CityEvent[];
 }): number {
-  const { deceased, estate, city, clock, dateLabel, events: _events } = params;
+  const { deceased, estate: rawEstate, city, clock, dateLabel, events } = params;
   const byId = new Map(city.citizens.map((c) => [c.id, c]));
   const partnerId = deceased.relationship?.stage === 'married' ? deceased.relationship.partnerId : null;
   const spouse = partnerId ? byId.get(partnerId) : undefined;
@@ -62,31 +64,40 @@ export function applyFamilyEffectsOnDeath(params: {
     }
   }
 
-  // Owned houses & estate inheritance (CEO seats never inherited)
+  // Settle Vij Bank debt from estate before inheritance distribution
+  const { remainingEstate: estate } = settleDeceasedEstateAndDebt({ deceased, initialEstate: rawEstate, spouse, livingChildren, city, clock, dateLabel, events });
+
+  // Place orphaned minor children (<25) with living relative guardian or City Treasury
+  for (const ch of livingChildren) {
+    if (ch.age >= 25) continue;
+    const otherParentAlive = (ch.parentIds ?? []).some((pid) => pid !== deceased.id && Boolean(byId.get(pid)?.alive));
+    if (!otherParentAlive) placeOrphanWithGuardianOrTreasury(ch, city, clock, dateLabel, events);
+  }
+
+  // Owned houses & remaining estate inheritance (minors held in trust until 25)
   const ownedHouses = city.housing.houses.filter((h) => h.ownerId === deceased.id);
   const heirs: Citizen[] = spouse && spouse.alive ? [spouse] : livingChildren;
 
   if (heirs.length > 0) {
     ownedHouses.forEach((h, idx) => {
       const heir = heirs[idx % heirs.length];
-      h.ownerId = heir.id;
-      h.forSale = false;
+      h.ownerId = heir.id; h.forSale = false;
       appendLifeLog(heir, clock.totalDays, dateLabel, 'money', `Inherited ${h.name} from ${deceased.name}.`);
     });
     if (estate > 0) {
       const share = Math.floor(estate / heirs.length);
       for (const heir of heirs) {
         if (share <= 0) continue;
-        heir.savings = Math.round((heir.savings + share) * 100) / 100;
-        appendLedgerEntry(heir, clock.totalDays, dateLabel, 'income', 'Inheritance', `Estate from ${deceased.name}`, share);
-        appendLifeLog(heir, clock.totalDays, dateLabel, 'money', `Inherited ${formatDelta(share)} from ${deceased.name}.`);
+        if (heir.age < 25) {
+          heir.trustFund = Math.round(((heir.trustFund ?? 0) + share) * 100) / 100;
+          appendLifeLog(heir, clock.totalDays, dateLabel, 'money', `${formatDelta(share)} from ${deceased.name} placed in age-25 trust fund.`);
+        } else {
+          heir.savings = Math.round((heir.savings + share) * 100) / 100;
+          appendLedgerEntry(heir, clock.totalDays, dateLabel, 'income', 'Inheritance', `Estate from ${deceased.name}`, share);
+          appendLifeLog(heir, clock.totalDays, dateLabel, 'money', `Inherited ${formatDelta(share)} from ${deceased.name}.`);
+        }
       }
-      recordSimEvent({
-        simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'inheritance',
-        subjectId: deceased.id, subjectKind: 'citizen', subjectName: deceased.name,
-        summary: `${deceased.name}'s estate (${formatDelta(estate)}) and ${ownedHouses.length} house(s) inherited by ${heirs.map((h) => h.name).join(', ')}`,
-        detail: { estate, houseCount: ownedHouses.length, heirIds: heirs.map((h) => h.id) },
-      });
+      recordSimEvent({ simDay: clock.totalDays, dateLabel, category: 'citizens', subType: 'inheritance', subjectId: deceased.id, subjectKind: 'citizen', subjectName: deceased.name, summary: `${deceased.name}'s net estate (${formatDelta(estate)}) & ${ownedHouses.length} house(s) inherited by ${heirs.map((h) => h.name).join(', ')}`, detail: { estate, houseCount: ownedHouses.length, heirIds: heirs.map((h) => h.id) } });
     }
     return 0;
   }
@@ -108,10 +119,9 @@ export function killCitizenWithFamily(params: {
   const estate = finalizeCitizenDeath(citizen, clock, dateLabel, events, cause);
   if (prevEmp && prevRole !== 'Unemployed' && prevRole !== 'Retired') {
     const comp = city.companies.find((co) => co.id === prevEmp);
-    if (comp) openVacancy(city.vacancies, comp, prevRole, `${citizen.name} passed away`, clock, dateLabel);
+    if (comp) openVacancy(city.vacancies, comp, prevRole, `${citizen.name} passed away`, clock, dateLabel, comp.id === 'gjelectricity' ? citizen.gjJobTitle : undefined, comp.id === 'vijcapital' ? citizen.bankJobTitle : undefined);
   }
-  citizen.employerId = null;
-  citizen.bossId = null;
+  citizen.employerId = null; citizen.bossId = null; citizen.gjJobTitle = undefined; citizen.bankJobTitle = undefined;
   const node = city.family?.nodes[citizen.id];
   if (node) node.alive = false;
   return applyFamilyEffectsOnDeath({ deceased: citizen, estate, city, clock, dateLabel, events });

@@ -82,6 +82,8 @@ export function applyCompanyStreaksAndBankruptcy(params: {
       for (const emp of employees) {
         emp.employerId = null;
         emp.bossId = null;
+        emp.gjJobTitle = undefined;
+        emp.bankJobTitle = undefined;
         emp.roleLevel = 'Unemployed';
         emp.lastGrossPay = 0;
         emp.lastTax = 0;

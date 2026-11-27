@@ -5,6 +5,7 @@ import { ElectricityLedgerCard } from './ElectricityLedgerCard';
 import { formatDelta, formatSignedDelta } from './formatters';
 import { DISTRICTS, HOUSE_SPECS } from './housingCatalog';
 import { getHouseMonthlyMaintenance, getTenantMonthlyRent } from './housingScores';
+import { HouseSubsidyCard } from './HouseSubsidyCard';
 import { HousingSimGodExtraPanel } from './HousingSimGodExtraPanel';
 import { HousingSimGodPanel } from './HousingSimGodPanel';
 import type { House } from './housingTypes';
@@ -12,13 +13,7 @@ import { RecordsPanel } from './RecordsPanel';
 import { SparkChart } from './SparkChart';
 import type { CityState } from './types';
 
-interface HousingDetailViewProps {
-  city: CityState;
-  house: House;
-  onBack: () => void;
-  onUpdateCity: (next: CityState) => void;
-  onSelectCitizen: (id: string) => void;
-}
+interface HousingDetailViewProps { city: CityState; house: House; onBack: () => void; onUpdateCity: (next: CityState) => void; onSelectCitizen: (id: string) => void; }
 
 export function HousingDetailView({ city, house, onBack, onUpdateCity, onSelectCitizen }: HousingDetailViewProps) {
   const owner = house.ownerId === 'gov' ? null : city.citizens.find((c) => c.id === house.ownerId) ?? null;
@@ -138,6 +133,7 @@ export function HousingDetailView({ city, house, onBack, onUpdateCity, onSelectC
         </div>
       </div>
 
+      <HouseSubsidyCard house={house} />
       <ElectricityLedgerCard title={`Electricity Ledger — ${house.name}`} ledger={house.electricLedger} profile={house.usageProfile} tariff={city.electricity?.tariff} />
       <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-4">
         <RecordsPanel pageSize={3} fixedSubjectId={house.id} title={`House Records — ${house.name}`} refreshKey={city.totalDays} maxDay={city.totalDays} />

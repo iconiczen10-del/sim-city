@@ -18,6 +18,7 @@ import { createRandomSeed, getSimRngState, normalizeSeed, syncSimRng } from './r
 import { SEED_ROSTER } from './seedProfiles';
 import { createInitialSharityState } from './sharityEngine';
 import type { CityState } from './types';
+import { createInitialVijBankState } from './vijBankSetup';
 
 export function createInitialCityState(providedSeed?: number): CityState {
   const seed = providedSeed !== undefined && Number.isFinite(providedSeed)
@@ -77,6 +78,7 @@ export function createInitialCityState(providedSeed?: number): CityState {
     housing,
     electricity,
     family: createInitialFamilyState(citizens),
+    bank: createInitialVijBankState(citizens),
     events: [
       {
         id: 'evt_init_1',

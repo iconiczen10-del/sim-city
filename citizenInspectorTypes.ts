@@ -1,53 +1,7 @@
 // citizenInspectorTypes.ts — Data types for citizen memory, stress, decisions, breakdowns, ledger, and life log
 
 import type { ShoppingCategory } from './inventoryTypes';
-
-export type LossCause = 'fire' | 'flood' | 'theft' | 'rats' | 'power_cut' | 'spoilage' | 'random';
-
-export type MemoryKind =
-  | 'loss'
-  | 'gift'
-  | 'theft_gain'
-  | 'stockout'
-  | 'price_shock'
-  | 'hunger'
-  | 'thirst'
-  | 'illness'
-  | 'death'
-  | 'broke'
-  | 'big_buy'
-  | 'rationing'
-  | 'board_contribution'
-  | 'employee_investment'
-  | 'investment_repaid'
-  | 'investment_lost'
-  | 'sharity_praise'
-  | 'sharity_humiliation'
-  | 'sharity_shade'
-  | 'sharity_tribute'
-  | 'theft_guilt'
-  | 'theft_victim'
-  | 'breakdown'
-  | 'helped'
-  | 'marriage'
-  | 'widowed'
-  | 'orphan'
-  | 'child_birth'
-  | 'retired'
-  | 'heartbreak'
-  | 'family_pride';
-
-export interface CitizenMemory {
-  id: string;
-  totalDay: number;
-  dateLabel: string;
-  kind: MemoryKind;
-  summary: string;
-  initialWeight: number;
-  currentWeight: number;
-  decayRate: number;
-  linkedDecisionIds: string[];
-}
+export type { CitizenMemory, LossCause, MemoryKind } from './citizenMemoryTypes';
 
 export interface SignedFactor {
   label: string;
@@ -90,7 +44,13 @@ export type DecisionKind =
   | 'cohabitation'
   | 'child_launch'
   | 'child_tuition'
-  | 'breakup';
+  | 'breakup'
+  | 'electric_bill_choice'
+  | 'subsidy_response'
+  | 'loan_borrow'
+  | 'debt_repay'
+  | 'debt_coping'
+  | 'inherited_debt_choice';
 
 export interface DecisionOutcome {
   day: number;

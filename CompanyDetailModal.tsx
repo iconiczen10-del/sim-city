@@ -3,15 +3,20 @@
 import { X } from 'lucide-react';
 import { CompanyOrgChart } from './CompanyOrgChart';
 import type { Company } from './companyTypes';
+import type { ElectricityState } from './electricityTypes';
 import { formatDelta, formatSignedDelta } from './formatters';
 import { RecordsPanel } from './RecordsPanel';
 import { SparkChart } from './SparkChart';
 import type { Citizen, CityEvent } from './types';
+import type { VijBankState } from './vijBankTypes';
+import { VijCapitalBankPanel } from './VijCapitalBankPanel';
 
 interface CompanyDetailModalProps {
   company: Company;
   citizens: Citizen[];
   events: CityEvent[];
+  bank?: VijBankState;
+  electricity?: ElectricityState;
   onSelectCitizen: (citizenId: string) => void;
   onClose: () => void;
 }
@@ -20,6 +25,8 @@ export function CompanyDetailModal({
   company,
   citizens,
   events,
+  bank,
+  electricity,
   onSelectCitizen,
   onClose,
 }: CompanyDetailModalProps) {
@@ -68,6 +75,10 @@ export function CompanyDetailModal({
         </div>
 
         <CompanyOrgChart company={company} citizens={citizens} onSelectCitizen={(id) => { onClose(); onSelectCitizen(id); }} />
+
+        {company.id === 'vijcapital' && bank && (
+          <VijCapitalBankPanel company={company} bank={bank} citizens={citizens} electricity={electricity} onSelectCitizen={(id) => { onClose(); onSelectCitizen(id); }} />
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SparkChart title="Monthly Profit Over Time (∆)" points={profitPoints} strokeColor="#34d399" formatValue={(v) => formatSignedDelta(v)} />

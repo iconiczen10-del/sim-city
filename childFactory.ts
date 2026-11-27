@@ -95,7 +95,7 @@ export function buildBornChildCitizen(params: {
     needs: createSeedNeeds(homeType, traits, 92, 94), healthProfile: createSeedHealthProfile(18, traits, 86),
     emotions: createSeedEmotions(traits), emotionHistory: [], survivalPriority: [], survivalState: 'Stable',
     familyId, generation: Math.max(p1.generation ?? 1, p2.generation ?? 1) + 1,
-    parentIds: [p1.id, p2.id], childrenIds: [], youngAdultPhase: isOrphan ? 'independent' : 'dependent_youth',
+    parentIds: [p1.id, p2.id], childrenIds: [], youngAdultPhase: 'dependent_youth',
     capabilityScore: Math.round(clamp(skill * 0.55 + traits.discipline * 0.3, 15, 78)),
     parentBond: { love: isOrphan ? 35 : 74, financialTension: isOrphan ? 0 : 12, independenceTension: 14, gratitude: isOrphan ? 10 : 62 },
     childSupportShortfalls: 0,

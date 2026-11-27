@@ -7,11 +7,7 @@ import { ensureFamilyState } from './familyTreeEngine';
 import { formatDelta } from './formatters';
 import type { Citizen, CityState } from './types';
 
-interface CitizenFamilyTabProps {
-  citizen: Citizen;
-  city: CityState;
-  onSelectCitizen?: (id: string) => void;
-}
+interface CitizenFamilyTabProps { citizen: Citizen; city: CityState; onSelectCitizen?: (id: string) => void; }
 
 const CAT_BADGE: Record<FamilyAchievementCategory, string> = {
   Economic: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
@@ -50,6 +46,9 @@ export function CitizenFamilyTab({ citizen, city, onSelectCitizen }: CitizenFami
             <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200">Bday {citizen.birthDay ?? 1} {bMonth}</span>
             {citizen.lucky && <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Lucky</span>}
             {citizen.retired && <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">Retired</span>}
+            {citizen.guardianId && <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">{citizen.guardianId === 'treasury' ? 'Treasury Foster' : `Guardian: ${byCit.get(citizen.guardianId)?.name ?? 'Relative'}`}</span>}
+            {(citizen.trustFund ?? 0) > 0 && <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">Trust {formatDelta(citizen.trustFund ?? 0)}</span>}
+            {citizen.inheritedDebtNote && <span className="px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">{citizen.inheritedDebtNote}</span>}
           </div>
         </div>
 

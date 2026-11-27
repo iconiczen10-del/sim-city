@@ -6,18 +6,26 @@ import {
   RENT_COSTS,
   ROLE_PAY_BANDS,
 } from './constants';
+import { calculateGJTitlePay } from './gjStaffCatalog';
 import type { Citizen, HomeType } from './types';
+import { calculateBankTitlePay } from './vijBankCatalog';
 
 export function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
 
 export function calculateMonthlyPay(
-  citizen: Pick<Citizen, 'roleLevel' | 'education' | 'skill' | 'experience' | 'traits'>,
+  citizen: Pick<Citizen, 'roleLevel' | 'education' | 'skill' | 'experience' | 'traits' | 'gjJobTitle' | 'bankJobTitle'>,
   companyHealthMult = 1.0,
   industryMult = 1.0
 ): number {
-  if (citizen.roleLevel === 'Unemployed') return 0;
+  if (citizen.roleLevel === 'Unemployed' || citizen.roleLevel === 'Retired') return 0;
+  if (citizen.gjJobTitle && citizen.gjJobTitle !== 'CEO') {
+    return calculateGJTitlePay(citizen, citizen.gjJobTitle, companyHealthMult);
+  }
+  if (citizen.bankJobTitle && citizen.bankJobTitle !== 'CEO') {
+    return calculateBankTitlePay(citizen, citizen.bankJobTitle, companyHealthMult);
+  }
   const band = ROLE_PAY_BANDS[citizen.roleLevel];
   const eduMult = EDUCATION_MULTIPLIERS[citizen.education];
   const skillMult = 0.8 + (citizen.skill / 100) * 0.5;

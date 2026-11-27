@@ -1,8 +1,10 @@
 // CitizenHousingTab.tsx — Citizen Housing tab: current home scores, landlord portfolio, housing history, and evictions
 
+import { CitizenElectricityAwarenessCard } from './CitizenElectricityAwarenessCard';
 import { CitizenHousingSatisfaction } from './CitizenHousingSatisfaction';
 import { ElectricityLedgerCard } from './ElectricityLedgerCard';
 import { formatDelta } from './formatters';
+import { getHouseholdSummary } from './householdPool';
 import { DISTRICTS, HOUSE_SPECS } from './housingCatalog';
 import { getHouseMonthlyMaintenance, getTenantMonthlyRent } from './housingScores';
 import type { Citizen, CityState } from './types';
@@ -17,6 +19,7 @@ export function CitizenHousingTab({ citizen, city, onSelectCitizen }: CitizenHou
   const house = citizen.homeId ? city.housing.houses.find((h) => h.id === citizen.homeId) ?? null : null;
   const ownedHouses = city.housing.houses.filter((h) => h.ownerId === citizen.id);
   const roommates = (citizen.roommateIds ?? []).map((id) => city.citizens.find((c) => c.id === id)).filter((c): c is Citizen => Boolean(c));
+  const pool = getHouseholdSummary(citizen, city.citizens, city.housing);
   const history = [...(citizen.housingHistory ?? [])].reverse();
   const evictions = [...(citizen.evictionRecords ?? [])].reverse();
 
@@ -60,7 +63,22 @@ export function CitizenHousingTab({ citizen, city, onSelectCitizen }: CitizenHou
         )}
       </section>
 
+      {(pool.spouse || pool.dependents.length > 0) && (
+        <section className="bg-[#0c1220] border border-cyan-500/30 rounded-md p-3.5 space-y-2">
+          <div className="font-semibold text-cyan-300">
+            Household Income &amp; Expense Pool ({pool.memberCount} members{pool.spouse ? ` · Spouse: ${pool.spouse.name}` : ''})
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div><div className="text-slate-400">Combined Gross</div><div className="font-mono text-emerald-300 font-semibold">{formatDelta(pool.combinedGrossPay)}/mo</div></div>
+            <div><div className="text-slate-400">Combined Savings</div><div className="font-mono text-amber-300 font-semibold">{formatDelta(pool.combinedSavings)}</div></div>
+            <div><div className="text-slate-400">Household Debt</div><div className="font-mono text-rose-300 font-semibold">{formatDelta(pool.combinedDebt)}</div></div>
+            <div><div className="text-slate-400">Est. Monthly Outlay</div><div className="font-mono text-slate-100 font-semibold">{formatDelta(pool.estimatedMonthlyExpenses)}/mo</div></div>
+          </div>
+        </section>
+      )}
+
       <CitizenHousingSatisfaction citizen={citizen} city={city} house={house} />
+      <CitizenElectricityAwarenessCard citizen={citizen} city={city} />
       {house && <ElectricityLedgerCard title="Home Electricity Ledger" ledger={house.electricLedger} profile={house.usageProfile} tariff={city.electricity?.tariff} />}
 
       {ownedHouses.length > 0 && (

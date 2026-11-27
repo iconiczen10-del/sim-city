@@ -2,8 +2,10 @@
 
 import { ROLE_PAY_BANDS } from './constants';
 import { EDUCATION_LABELS, formatDelta } from './formatters';
+import { GJ_SPEC_BY_TITLE } from './gjStaffCatalog';
 import { collectApplicantsForVacancy } from './jobScoring';
 import type { CityState } from './types';
+import { BANK_SPEC_BY_TITLE } from './vijBankCatalog';
 
 interface JobMarketViewProps {
   city: CityState;
@@ -51,7 +53,11 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
           ) : (
             <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1 text-xs">
               {city.vacancies.map((v) => {
-                const band = ROLE_PAY_BANDS[v.role];
+                const gjSpec = v.gjJobTitle && v.gjJobTitle !== 'CEO' ? GJ_SPEC_BY_TITLE[v.gjJobTitle] : null;
+                const bankSpec = v.bankJobTitle && v.bankJobTitle !== 'CEO' ? BANK_SPEC_BY_TITLE[v.bankJobTitle] : null;
+                const customSpec = gjSpec ?? bankSpec;
+                const band = customSpec ? { min: customSpec.minPay, max: customSpec.maxPay } : ROLE_PAY_BANDS[v.role];
+                const titleTag = v.gjJobTitle && v.gjJobTitle !== 'CEO' ? `${v.gjJobTitle} (${v.role})` : v.bankJobTitle && v.bankJobTitle !== 'CEO' ? `${v.bankJobTitle} (${v.role})` : v.role;
                 const comp = compMap.get(v.companyId);
                 const apps = v.applicants.length > 0 ? v.applicants : comp ? collectApplicantsForVacancy(city.citizens, v, comp) : [];
                 return (
@@ -59,7 +65,7 @@ export function JobMarketView({ city, onSelectCitizen }: JobMarketViewProps) {
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <span className="font-semibold text-slate-100">{v.companyName}</span>
-                        <span className="text-amber-300 font-medium ml-2">{v.role}</span>
+                        <span className="text-amber-300 font-medium ml-2">{titleTag}</span>
                       </div>
                       <span className="font-mono text-slate-300">{formatDelta(band.min)}–{formatDelta(band.max)}/mo</span>
                     </div>

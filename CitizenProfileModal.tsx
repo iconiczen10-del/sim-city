@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { CitizenDecisionsTab } from './CitizenDecisionsTab';
+import { CitizenDebtTab } from './CitizenDebtTab';
 import { CitizenEmotionsTab } from './CitizenEmotionsTab';
 import { CitizenFamilyTab } from './CitizenFamilyTab';
 import { CitizenFinancials } from './CitizenFinancials';
@@ -33,13 +34,12 @@ interface CitizenProfileModalProps {
   onClose: () => void;
 }
 
-type ProfileTab = 'overview' | 'family' | 'housing' | 'traits' | 'needs' | 'health' | 'emotions' | 'decisions' | 'inventory' | 'why' | 'memory' | 'records';
+type ProfileTab = 'overview' | 'family' | 'housing' | 'debt' | 'traits' | 'needs' | 'health' | 'emotions' | 'decisions' | 'inventory' | 'why' | 'memory' | 'records';
 
 const TABS: { id: ProfileTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' }, { id: 'family', label: 'Family' }, { id: 'housing', label: 'Housing' },
-  { id: 'traits', label: 'Traits' }, { id: 'needs', label: 'Needs' }, { id: 'health', label: 'Health' },
-  { id: 'emotions', label: 'Emotions' }, { id: 'decisions', label: 'Decisions' }, { id: 'inventory', label: 'Inventory' },
-  { id: 'why', label: 'Why?' }, { id: 'memory', label: 'Memory' }, { id: 'records', label: 'Records' },
+  { id: 'overview', label: 'Overview' }, { id: 'family', label: 'Family' }, { id: 'housing', label: 'Housing' }, { id: 'debt', label: 'Debt' },
+  { id: 'traits', label: 'Traits' }, { id: 'needs', label: 'Needs' }, { id: 'health', label: 'Health' }, { id: 'emotions', label: 'Emotions' },
+  { id: 'decisions', label: 'Decisions' }, { id: 'inventory', label: 'Inventory' }, { id: 'why', label: 'Why?' }, { id: 'memory', label: 'Memory' }, { id: 'records', label: 'Records' },
 ];
 
 export function CitizenProfileModal({ citizen, city, onUpdateCity, onSelectCitizen, onOpenSharityProfile, onOpenSharityPost, initialTab, onClose }: CitizenProfileModalProps) {
@@ -134,6 +134,7 @@ export function CitizenProfileModal({ citizen, city, onUpdateCity, onSelectCitiz
 
         {tab === 'family' && <CitizenFamilyTab citizen={citizen} city={city} onSelectCitizen={onSelectCitizen} />}
         {tab === 'housing' && <CitizenHousingTab citizen={citizen} city={city} onSelectCitizen={onSelectCitizen} />}
+        {tab === 'debt' && <CitizenDebtTab citizen={citizen} city={city} />}
         {tab === 'traits' && <CitizenTraitsTab citizen={citizen} />}
         {tab === 'needs' && <CitizenNeedsTab citizen={citizen} currentDay={city.totalDays} />}
         {tab === 'health' && <CitizenHealthTab citizen={citizen} currentDay={city.totalDays} />}

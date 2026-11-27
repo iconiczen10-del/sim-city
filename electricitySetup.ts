@@ -76,6 +76,13 @@ export function createInitialElectricityState(housing: HousingState, citizens: C
     monthlyCollectedTotal: 0,
     blackouts: [],
     demandHistory: [],
+    subsidyMood: 'balanced',
+    simgodMoodOverride: null,
+    simgodLevelOverride: 'auto',
+    monthlySubsidyAbsorbed: 0,
+    totalSubsidyAbsorbed: 0,
+    householdsHelpedCount: 0,
+    subsidyLog: [],
   };
 }
 
@@ -83,6 +90,7 @@ export function seedGJElectricityVacancies(companies: Company[], vacancies: Comp
   const gj = companies.find((c) => c.id === 'gjelectricity');
   if (!gj || gj.bankrupt) return;
   const clock = { totalDays: 1, day: 1, month: 1, year: 1 };
-  openVacancy(vacancies, gj, 'Staff', 'Plant Engineer opening at GJ Electricity', clock, '1 Jan, Year 1');
-  openVacancy(vacancies, gj, 'Team Lead', 'Finance Officer opening at GJ Electricity', clock, '1 Jan, Year 1');
+  openVacancy(vacancies, gj, 'Staff', 'Plant Engineer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Plant Engineer');
+  openVacancy(vacancies, gj, 'Team Lead', 'Finance Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Finance Officer');
+  openVacancy(vacancies, gj, 'Team Lead', 'Customer Relations Officer opening at GJ Electricity', clock, '1 Jan, Year 1', 'Customer Relations Officer');
 }

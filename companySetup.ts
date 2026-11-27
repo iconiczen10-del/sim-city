@@ -7,6 +7,7 @@ import { calculateMarginalTax, calculateMonthlyPay, clamp } from './economy';
 import type { MartState } from './martTypes';
 import { simRandInt } from './rng';
 import type { Citizen, RoleLevel } from './types';
+import { inferBankTitle } from './vijBankCatalog';
 
 export function createInitialCompanies(): Company[] {
   const base = {
@@ -45,7 +46,7 @@ const SEAT_QUOTAS: Record<Exclude<RoleLevel, 'Unemployed' | 'Retired'>, [Company
   Manager: [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 3]],
   'Team Lead': [['vijtech', 1], ['vijcapital', 1], ['vijindustries', 3], ['vijmart', 1]],
   Staff: [['vijtech', 2], ['vijcapital', 1], ['vijindustries', 7]],
-  Entry: [['vijindustries', 10], ['vijmart', 2]],
+  Entry: [['vijindustries', 9], ['vijmart', 2], ['vijcapital', 1]],
 };
 
 export function rebuildCompanyBossTree(companyId: CompanyId, citizens: Citizen[]): void {
@@ -89,6 +90,7 @@ export function assignInitialCitizensToCompanies(
     const cid = pools[c.roleLevel].shift() ?? 'vijindustries';
     const comp = companies.find((co) => co.id === cid)!;
     c.employerId = cid;
+    if (cid === 'vijcapital') c.bankJobTitle = inferBankTitle(c);
     c.tenureMonths = 6 + simRandInt(0, 23);
     c.bossRelationship = Math.round(clamp((c.traits.kindness + c.traits.loyalty - 100) * 0.4 + 18, -30, 65));
     c.lastGrossPay = calculateMonthlyPay(c, 0.96, comp.industryMultiplier);
@@ -101,11 +103,13 @@ export function assignInitialCitizensToCompanies(
       companyName: comp.name,
       role: c.roleLevel,
       kind: 'hired',
-      note: `Founding ${c.roleLevel} at ${comp.name}.`,
+      note: `Founding ${c.bankJobTitle ?? c.roleLevel} at ${comp.name}.`,
     }];
     if (c.roleLevel === 'CEO') {
       comp.ceoId = c.id;
       comp.direction = c.traits.ambition + c.traits.greed >= 115 ? 'aggressive' : 'conservative';
+      if (cid === 'gjelectricity') c.gjJobTitle = 'CEO';
+      if (cid === 'vijcapital') c.bankJobTitle = 'CEO';
     }
   }
 

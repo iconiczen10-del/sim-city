@@ -48,6 +48,7 @@ export function splitCityIntoSlices(city: CityState): CitySliceRow[] {
     { sliceKey: 'mart', data: city.mart },
     { sliceKey: 'electricity', data: city.electricity ?? null },
     { sliceKey: 'family', data: city.family ?? null },
+    { sliceKey: 'bank', data: city.bank ?? null },
     { sliceKey: 'sharity', data: city.sharity },
     { sliceKey: 'chatGroups', data: city.chatGroups },
     { sliceKey: 'events', data: city.events },
@@ -91,6 +92,7 @@ export function reassembleCityFromSlices(rows: CitySliceRow[]): CityState | unde
   };
   const electricity = map.get('electricity') as CityState['electricity'] | null | undefined;
   const family = map.get('family') as CityState['family'] | null | undefined;
+  const bank = map.get('bank') as CityState['bank'] | null | undefined;
   return {
     ...(meta as unknown as CityState),
     citizens: map.get('citizens') as CityState['citizens'],
@@ -101,6 +103,7 @@ export function reassembleCityFromSlices(rows: CitySliceRow[]): CityState | unde
     mart: map.get('mart') as CityState['mart'],
     ...(electricity ? { electricity } : {}),
     ...(family ? { family } : {}),
+    ...(bank ? { bank } : {}),
     sharity: map.get('sharity') as CityState['sharity'],
     chatGroups: map.get('chatGroups') as CityState['chatGroups'],
     events: map.get('events') as CityState['events'],

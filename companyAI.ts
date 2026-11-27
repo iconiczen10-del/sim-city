@@ -1,56 +1,19 @@
 // companyAI.ts — Monthly boss relationships, performance, quits, firings, layoffs, and CEO AI
 
 import { recordConsequentialDecision } from './citizenDecisionOutcomes';
-import { addCitizenMemory } from './citizenMemory';
 import { computeCitizenPerformance, ROLE_RANK, syncMartPersonalityFromCeo } from './companyRules';
+import { releaseEmployee } from './companySeparation';
 import { rebuildCompanyBossTree } from './companySetup';
 import type { Company, CompanyVacancy, JobMarketEvent } from './companyTypes';
 import { clamp } from './economy';
-import { makeCityEvent, type SimClock } from './eventFactory';
+import type { SimClock } from './eventFactory';
+import { syncGJStaffSeatsAndVacancies } from './gjStaffEngine';
 import { openVacancy } from './jobScoring';
 import { evaluateMartManagerMonthly, getMartFloorManager } from './martManager';
 import type { MartState } from './martTypes';
 import { simRand } from './rng';
 import type { Citizen, CityEvent, RoleLevel } from './types';
-
-function releaseEmployee(params: {
-  emp: Citizen;
-  comp: Company;
-  kind: 'fired' | 'quit' | 'layoff';
-  reason: string;
-  vacancies: CompanyVacancy[];
-  jobEvents: JobMarketEvent[];
-  clock: SimClock;
-  dateLabel: string;
-  events: CityEvent[];
-}): void {
-  const { emp, comp, kind, reason, vacancies, jobEvents, clock, dateLabel, events } = params;
-  const oldRole = emp.roleLevel;
-  if (oldRole !== 'Unemployed' && oldRole !== 'Retired' && kind !== 'layoff') {
-    openVacancy(vacancies, comp, oldRole, `${emp.name} (${kind})`, clock, dateLabel);
-  }
-  emp.employerId = null;
-  emp.bossId = null;
-  emp.roleLevel = 'Unemployed';
-  emp.lastGrossPay = 0;
-  emp.lastTax = 0;
-  emp.performanceScore = 0;
-  emp.tenureMonths = 0;
-  emp.monthsSincePromotion = 0;
-
-  if (kind !== 'quit') {
-    addCitizenMemory(emp, clock, dateLabel, 'loss', `${kind === 'fired' ? 'Fired' : 'Laid off'} from ${comp.name} (${oldRole}).`, -35);
-    comp.reputation = Math.round(clamp(comp.reputation - (kind === 'layoff' ? 4 : 1.5), 0, 100) * 10) / 10;
-  }
-
-  emp.workHistory = [{ id: `wh_${kind}_${clock.totalDays}_${emp.id}_${emp.workHistory.length}`, dateLabel, companyId: comp.id, companyName: comp.name, role: oldRole, kind, note: reason }, ...emp.workHistory].slice(0, 24);
-  jobEvents.unshift({ id: `je_${kind}_${clock.totalDays}_${emp.id}_${jobEvents.length}`, dateLabel, kind, citizenId: emp.id, citizenName: emp.name, companyId: comp.id, companyName: comp.name, role: oldRole, detail: reason });
-  events.push(makeCityEvent(clock, `${kind}_${emp.id}_${jobEvents.length}`, {
-    type: kind, citizenId: emp.id, citizenName: emp.name, companyId: comp.id,
-    title: kind === 'fired' ? 'Citizen Fired' : kind === 'layoff' ? 'Company Layoff' : 'Citizen Quit Job',
-    detail: reason,
-  }));
-}
+import { syncBankStaffSeatsAndVacancies } from './vijBankStaff';
 
 export function runCompanyMonthlyAI(params: {
   companies: Company[];
@@ -133,9 +96,12 @@ export function runCompanyMonthlyAI(params: {
       if (cut) {
         releaseEmployee({ emp: cut, comp, kind: 'layoff', reason: `${comp.name} laid off ${cut.name} (${cut.roleLevel}) after ${comp.negativeProfitStreak} unprofitable months.`, vacancies, jobEvents, clock, dateLabel, events });
       }
+    } else if (comp.id === 'gjelectricity') {
+      syncGJStaffSeatsAndVacancies(comp, citizens, vacancies, clock, dateLabel);
+    } else if (comp.id === 'vijcapital') {
+      syncBankStaffSeatsAndVacancies(comp, citizens, vacancies, clock, dateLabel);
     } else if (comp.id !== 'vijindustries' && comp.positiveProfitStreak >= 2 && comp.direction === 'aggressive' && comp.cash > 25000) {
-      if (comp.id === 'gjelectricity' && employees.length >= 3) continue;
-      const openRole: Exclude<RoleLevel, 'Unemployed' | 'Retired'> = comp.id === 'vijtech' || comp.id === 'vijcapital' || comp.id === 'gjelectricity' ? 'Staff' : 'Entry';
+      const openRole: Exclude<RoleLevel, 'Unemployed' | 'Retired'> = comp.id === 'vijtech' ? 'Staff' : 'Entry';
       openVacancy(vacancies, comp, openRole, `${comp.name} growth expansion`, clock, dateLabel);
     }
 

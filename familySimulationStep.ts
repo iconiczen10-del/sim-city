@@ -51,8 +51,8 @@ export function stepFamilyAndAgingMonthEnd(params: {
 }): number {
   const { city, clock, dateLabel, events } = params;
   ensureFamilyState(city);
-  stepYouthAndAge25Monthly(city, clock, dateLabel, events);
-  const treasuryDelta = runMonthlyAgingAndDeathRolls(city, clock, dateLabel, events);
+  const youthDelta = stepYouthAndAge25Monthly(city, clock, dateLabel, events);
+  const treasuryDelta = runMonthlyAgingAndDeathRolls(city, clock, dateLabel, events) + youthDelta;
   syncFamilyTreeStats(city);
   evaluateFamilyAchievements(city, clock, dateLabel, events);
   return treasuryDelta;

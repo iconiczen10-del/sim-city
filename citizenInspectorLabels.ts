@@ -58,6 +58,11 @@ export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {
   retired: 'Retirement',
   heartbreak: 'Relationship Breakup',
   family_pride: 'Family Milestone',
+  bill_shock: 'Electric Bill Shock',
+  subsidy_help: 'Utility Subsidy Relief',
+  debt_stress: 'Debt & Collection Stress',
+  loan_default: 'Loan Default Impact',
+  inherited_debt: 'Inherited Debt',
 };
 
 export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
@@ -81,6 +86,12 @@ export const DECISION_KIND_LABELS: Record<DecisionKind, string> = {
   child_launch: 'Age 25 Life Path',
   child_tuition: 'Child Tuition',
   breakup: 'Relationship Split',
+  electric_bill_choice: 'Electricity Bill Choice',
+  subsidy_response: 'Subsidy Response',
+  loan_borrow: 'Loan Borrowing Choice',
+  debt_repay: 'Debt Repayment Choice',
+  debt_coping: 'Debt Coping Action',
+  inherited_debt_choice: 'Inherited Debt Choice',
 };
 
 export const LIFE_LOG_LABELS: Record<LifeLogCategory, string> = {

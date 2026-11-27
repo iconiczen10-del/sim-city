@@ -1,4 +1,4 @@
-# Vij — PC Version (v1.2.0)
+# Vij — PC Version (v1.4.0)
 
 ## Scope & Breakpoint
 - **PC layout** renders on screens `>= 640px` (`sm:` and wider) with its full desktop layout, sidebar navigation, and high-speed controls completely unchanged.
@@ -11,10 +11,10 @@
 
 ## PC Sidebar Navigation (8 Tabs + Save Tools)
 1. **Overview**: City KPIs, Treasury & Mood sparklines, GJ Electricity grid metrics, Homelessness Index, **Tier Movement This Month**, Company cash list, and recent City Events preview.
-2. **Citizens**: Searchable, tier-filterable directory of all 50 citizens with Citizen Inspector modal (`Overview`, `Inventory`, `Housing`, `Needs`, `Health`, `Traits`, `Decisions`, `Why?`, `Emotions`, `Memories`, `Records`).
-3. **Housing**: 60 houses across 5 fictional districts (`Old Town`, `Mill Quarter`, `Greenfield`, `Riverside`, `Hilltop`), Preferences directory, Market Dynamics, House Detail, and SimGod controls.
-4. **Companies**: 5-company corporate cards (`Vijtech`, `Vij Capital`, `Vij Industries`, `Vij Mart`, `GJ Electricity`), Org Charts, Full Ledger (`Per Day` / `Per Week` / `Per Month`), GJ Electricity Operations, and Board Meetings.
-5. **Job Market**: Open vacancies, salary bands, and candidate matching.
+2. **Citizens**: Searchable, tier-filterable directory of all citizens with Citizen Inspector modal (`Overview`, `Family` with guardian/trust/inherited-debt status, `Housing` with **Household Income & Expense Pool** & **Electricity Subsidy**, `Debt` with credit score, loans & Why/What/How log, `Inventory`, `Needs`, `Health`, `Traits`, `Decisions`, `Why?`, `Emotions`, `Memories`, `Records`).
+3. **Housing**: 60 houses across 5 fictional districts (`Old Town`, `Mill Quarter`, `Greenfield`, `Riverside`, `Hilltop`), subsidy status indicators, Preferences directory, Market Dynamics, House Detail (with Subsidy Status & Electricity Ledger), and SimGod controls.
+4. **Companies**: 5-company corporate cards (`Vijtech`, `Vij Capital`, `Vij Industries`, `Vij Mart`, `GJ Electricity`), Org Charts, Full Ledger (`Per Day` / `Per Week` / `Per Month`), **Vij Bank Operations** inside `Vij Capital` (5 personalities, reserve ratio, lending strictly from bank cash, branch power scaling, banking roles, and filterable Loan Book), **GJ Electricity Operations** (`1–6` non-CEO staff roster, subsidy absorption KPIs, CEO mood & SimGod override controls), and Board Meetings.
+5. **Job Market**: Open vacancies (including Vij Bank & GJ named seats & bands), salary bands, and candidate matching.
 6. **Vij Mart**: Inventory levels across food, water, clothes, household goods, and 9 electronics appliances; pricing moods; delivery controls; manager AI; and sabotage tools.
 7. **Sharity**: Local social feed, reaction waves, trending hashtags, citizen profiles, and Employee Chat channels.
 8. **Event Log**: Simulation Records master archive browser (`3` rows/page, category/subject/day search, Jump to Day, expandable full JSON event details).

@@ -113,7 +113,7 @@ export function CompaniesView({ city, meetings, onMarkMeetingRead, onSelectCitiz
       )}
 
       {selectedCompany && (
-        <CompanyDetailModal company={selectedCompany} citizens={city.citizens} events={city.events} onSelectCitizen={onSelectCitizen} onClose={() => setSelectedId(null)} />
+        <CompanyDetailModal company={selectedCompany} citizens={city.citizens} events={city.events} bank={city.bank} electricity={city.electricity} onSelectCitizen={onSelectCitizen} onClose={() => setSelectedId(null)} />
       )}
     </div>
   );

@@ -1,6 +1,8 @@
 // companyTypes.ts — Data models for companies, org hierarchy, job market vacancies, and work history
 
 import type { EducationLevel, RoleLevel } from './cityBaseTypes';
+import type { GJStaffTitle } from './gjSubsidyTypes';
+import type { BankJobTitle } from './vijBankTypes';
 
 export type CompanyId = 'vijtech' | 'vijcapital' | 'vijindustries' | 'vijmart' | 'gjelectricity';
 export type CompanyDirection = 'aggressive' | 'conservative';
@@ -25,6 +27,8 @@ export interface CompanyVacancy {
   openedDay: number;
   openedDate: string;
   reason: string;
+  gjJobTitle?: GJStaffTitle;
+  bankJobTitle?: BankJobTitle;
   applicants: VacancyApplicant[];
 }
 
@@ -62,6 +66,10 @@ export type CompanyLedgerCategory =
   | 'plant_fuel'
   | 'plant_upkeep'
   | 'plant_capex'
+  | 'subsidy'
+  | 'loan_disbursement'
+  | 'loan_repayment'
+  | 'loan_writeoff'
   | 'adjustment';
 
 export interface CompanyLedgerEntry {

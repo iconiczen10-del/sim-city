@@ -28,7 +28,7 @@ function postFamilySharity(city: CityState, author: Citizen, key: string, text: 
   }, clock, dateLabel);
 }
 
-export function moveCoupleTogether(a: Citizen, b: Citizen, city: CityState, clock: SimClock, dateLabel: string, events: CityEvent[]): boolean {
+export function moveCoupleTogether(a: Citizen, b: Citizen, city: CityState, clock: SimClock, dateLabel: string, events: CityEvent[], keepMarried = false): boolean {
   const houses = city.housing.houses;
   const ha = a.homeId ? houses.find((h) => h.id === a.homeId) : undefined;
   const hb = b.homeId ? houses.find((h) => h.id === b.homeId) : undefined;
@@ -48,9 +48,9 @@ export function moveCoupleTogether(a: Citizen, b: Citizen, city: CityState, cloc
 
   for (const p of [a, b]) {
     const other = p.id === a.id ? b : a;
-    p.relationship!.stage = 'cohabiting';
+    if (!keepMarried) p.relationship!.stage = 'cohabiting';
     p.relationship!.stageSinceDay = clock.totalDays;
-    p.relationship!.cohabitingSinceDay = clock.totalDays;
+    p.relationship!.cohabitingSinceDay = p.relationship!.cohabitingSinceDay ?? clock.totalDays;
     appendLifeLog(p, clock.totalDays, dateLabel, 'mood', `Moved in with ${other.name} at ${target.name}.`);
     recordConsequentialDecision({
       citizen: p, clock, dateLabel, kind: 'cohabitation', category: 'family',
@@ -109,9 +109,10 @@ export function attemptMarriageProposal(a: Citizen, b: Citizen, city: CityState,
     return;
   }
 
-  const pooledEach = Math.round((a.savings + b.savings) / 2);
+  const total = a.savings + b.savings;
+  const pooledEach = Math.round(total / 2);
   a.savings = pooledEach;
-  b.savings = Math.round((a.savings + b.savings) - pooledEach); // exact conservation
+  b.savings = Math.round(total - pooledEach);
   const fam = ensureFamilyState(city);
   linkMarriageInFamilyTree(fam, a, b);
 
@@ -136,6 +137,7 @@ export function attemptMarriageProposal(a: Citizen, b: Citizen, city: CityState,
       diarySentence: `Got married to ${other.name}.`,
     });
   }
+  if (!a.homeId || a.homeId !== b.homeId) moveCoupleTogether(a, b, city, clock, dateLabel, events, true);
   adjustAffinity(city.sharity, a.id, b.id, 18);
   const compMsg = a.employerId ? ` Congratulations from ${city.companies.find((co) => co.id === a.employerId)?.name ?? 'colleagues'}!` : '';
   postFamilySharity(city, a, 'marriage', `Overjoyed to share that ${b.name} and I just got married! Here is to our future in Vij.`, 'positive', clock, dateLabel);

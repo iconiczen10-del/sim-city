@@ -79,6 +79,12 @@ export function ElectricityLedgerCard({ title, ledger, profile, tariff }: Electr
               <div className="flex justify-between"><span>Band 2 (61-180u: {latest.band2Units}u)</span><span>{formatPrice(latest.band2Charge)}</span></div>
               <div className="flex justify-between"><span>Band 3 (181+u: {latest.band3Units}u)</span><span>{formatPrice(latest.band3Charge)}</span></div>
               {latest.lateFee > 0 && <div className="flex justify-between text-rose-300"><span>5% Late Fee</span><span>{formatPrice(latest.lateFee)}</span></div>}
+              {(latest.subsidyAbsorbed ?? 0) > 0 && (
+                <div className="flex justify-between text-emerald-300"><span>GJ Subsidy Absorbed</span><span>-{formatPrice(latest.subsidyAbsorbed ?? 0)}</span></div>
+              )}
+              {latest.incomeCapApplied !== undefined && (
+                <div className="flex justify-between text-sky-300"><span>Income Cap Ceiling</span><span>{formatPrice(latest.incomeCapApplied)}</span></div>
+              )}
               <div className="flex justify-between border-t border-slate-800 pt-1 text-slate-100 font-semibold">
                 <span>Total {latest.units}u · Paid {formatPrice(latest.paidAmount)}</span>
                 <span>{formatPrice(latest.totalDue)}</span>

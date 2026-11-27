@@ -62,6 +62,8 @@ export function CompanyOrgChart({ company, citizens, onSelectCitizen }: CompanyO
                       className={`text-left rounded border px-2.5 py-2 transition-colors hover:border-amber-400/70 cursor-pointer ${ROLE_RING[role]}`}
                     >
                       <div className="text-xs font-semibold text-slate-100 truncate">{emp.name}</div>
+                      {emp.gjJobTitle && emp.gjJobTitle !== 'CEO' && <div className="text-[10px] text-sky-300 truncate">{emp.gjJobTitle}</div>}
+                      {emp.bankJobTitle && emp.bankJobTitle !== 'CEO' && <div className="text-[10px] text-cyan-300 truncate">{emp.bankJobTitle}</div>}
                       <div className="font-mono text-[11px] text-amber-300 mt-0.5">{formatDelta(emp.lastGrossPay)}/mo</div>
                       <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
                         <span>Perf {emp.performanceScore}</span>

@@ -6,12 +6,16 @@ import {
 } from './electricityCatalog';
 import { createEmptyElectricLedger } from './electricityCatalog';
 import { computeElectronicsDraw } from './electricityStats';
+import { stepElectricityAwarenessDaily } from './electricityAwarenessEngine';
 import type { ElectricLedger, ElectricityState } from './electricityTypes';
 import type { SimClock } from './eventFactory';
 import type { HousingState } from './housingTypes';
 import { recordSimEvent } from './recordsStore';
 import { simPick, simRand, simRandFloat, simRandInt } from './rng';
+import type { SharityState } from './sharityTypes';
 import type { Citizen } from './types';
+import { getVijBankPowerMultiplier } from './vijBankSetup';
+import type { VijBankState } from './vijBankTypes';
 
 const SPIKE_REASONS = [
   { reason: 'Guests staying overnight', extra: [3, 6], days: [2, 4] },
@@ -48,10 +52,13 @@ export function stepElectricityDailyDemand(params: {
   housing: HousingState;
   citizens: Citizen[];
   companies: Company[];
+  sharity?: SharityState;
+  bank?: VijBankState;
   clock: SimClock;
   dateLabel: string;
 }): { houseUnits: Map<string, number>; companyUnits: Map<CompanyId, number> } {
-  const { electricity, housing, citizens, companies, clock, dateLabel } = params;
+  const { electricity, housing, citizens, companies, sharity, bank, clock, dateLabel } = params;
+  if (sharity) stepElectricityAwarenessDaily({ citizens, housing, sharity, clock, dateLabel });
   const byId = new Map(citizens.map((c) => [c.id, c]));
   const season = getSeasonFromMonth(clock.month);
   const seasonMult = getSeasonDemandMult(season);
@@ -91,6 +98,8 @@ export function stepElectricityDailyDemand(params: {
     if (avgIncome > 2500) npcMod += 0.14;
     if (avgThrift > 65) npcMod -= 0.14;
     if (avgNeat > 68) npcMod += 0.05;
+    const avgConservation = occ.reduce((s, c) => s + (c.electricityAwareness?.monthlyConservationPct ?? 0), 0) / occ.length;
+    npcMod *= Math.max(0.7, 1 - avgConservation / 100);
     npcMod *= isWeekend ? 1.1 : 0.96;
 
     const occFactor = 1.0 + Math.max(0, occ.length - 1) * 0.16;
@@ -123,8 +132,9 @@ export function stepElectricityDailyDemand(params: {
     }
     const base = COMPANY_BASE_DAILY_UNITS[comp.id];
     const mult = electricity.companyProfiles[comp.id]?.profileMult ?? 1;
+    const bankMult = comp.id === 'vijcapital' ? getVijBankPowerMultiplier(bank, citizens, comp) : 1;
     const wknd = isWeekend && comp.id !== 'vijmart' && comp.id !== 'gjelectricity' ? 0.85 : 1.04;
-    const units = Math.round(base * mult * seasonMult * summerCoolingMult * wknd * simRandFloat(0.92, 1.08) * 10) / 10;
+    const units = Math.round(base * mult * bankMult * seasonMult * summerCoolingMult * wknd * simRandFloat(0.92, 1.08) * 10) / 10;
     cLedger.todayUnits = units;
     cLedger.monthUnits = Math.round((cLedger.monthUnits + units) * 10) / 10;
     cLedger.blackedOutToday = false;

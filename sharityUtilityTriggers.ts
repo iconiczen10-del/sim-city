@@ -23,6 +23,16 @@ export function collectUtilitySharityTriggers(params: {
       authorId: c.id, topic: 'city_mood', triggerKey: 'summer_blackout',
       triggerLabel: 'Evening grid blackout hit home', urgency: 72, isBigEvent: true, vars,
     });
+  } else if (c.subsidyHistory?.[0]?.day === totalDays && c.subsidyHistory[0].amountSaved >= 10) {
+    out.push({
+      authorId: c.id, topic: 'daily_life', triggerKey: 'subsidy_relief',
+      triggerLabel: 'Received GJ electricity subsidy', urgency: 56, isBigEvent: false, vars,
+    });
+  } else if (c.electricityAwareness && c.electricityAwareness.trustInGJ < 35 && c.electricityAwareness.lastKnownBill > 45) {
+    out.push({
+      authorId: c.id, topic: 'city_mood', triggerKey: 'bill_shock_trust',
+      triggerLabel: 'Frustrated with GJ billing', urgency: 60, isBigEvent: false, vars,
+    });
   }
 
   for (const app of c.inventory.electronics ?? []) {

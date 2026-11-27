@@ -10,6 +10,7 @@ import { backfillTraits18 } from './citizenTraits';
 import { createInitialCompanies } from './companySetup';
 import type { Company } from './companyTypes';
 import { APP_VERSION } from './constants';
+import { ensureCitizenElectricityAwareness } from './electricityAwarenessSeed';
 import { createInitialElectricityState, seedGJElectricityVacancies, seedHousingElectricity } from './electricitySetup';
 import { seedCitizenElectronics } from './electronicsCitizen';
 import { ensureMartElectronics } from './electronicsMart';
@@ -21,6 +22,8 @@ import { createInitialHousingState, ensureHousingMarketSnapshots } from './housi
 import { createRandomSeed, normalizeSeed } from './rng';
 import { ensureValidSharityState } from './sharityEngine';
 import type { CityState } from './types';
+import { inferBankTitle } from './vijBankCatalog';
+import { ensureVijBankState } from './vijBankSetup';
 
 export function validateAndMigrateCity(raw: unknown): CityState | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -64,6 +67,8 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     };
     evaluateSurvivalLadder(out);
     seedCitizenElectronics(out);
+    ensureCitizenElectricityAwareness(out);
+    if (out.employerId === 'vijcapital' && !out.bankJobTitle) out.bankJobTitle = inferBankTitle(out);
     return out;
   });
   const companies: Company[] = companyList.map((company) => ({
@@ -102,6 +107,8 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
   ensureMartElectronics(parsed.mart!);
   if (housing.houses.some((h) => !h.usageProfile || !h.electricLedger)) seedHousingElectricity(housing, citizens);
   const electricity = parsed.electricity ?? createInitialElectricityState(housing, citizens);
+  if (!electricity.subsidyMood) electricity.subsidyMood = 'balanced';
+  if (!Array.isArray(electricity.subsidyLog)) electricity.subsidyLog = [];
   const vacancies = Array.isArray(parsed.vacancies) ? [...parsed.vacancies] : [];
   if (!parsed.electricity) seedGJElectricityVacancies(companies, vacancies);
 
@@ -118,8 +125,10 @@ export function validateAndMigrateCity(raw: unknown): CityState | null {
     chatGroups,
     housing,
     electricity,
+    bank: parsed.bank,
   };
   ensureFamilyState(migrated);
+  ensureVijBankState(migrated);
   return migrated;
 }
 

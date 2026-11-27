@@ -1,6 +1,6 @@
 // HousingListPanel.tsx — Filterable and sortable grid of all 60 Vij houses
 
-import { Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { formatDelta } from './formatters';
 import { DISTRICTS, DISTRICT_ORDER, HOUSE_SPECS } from './housingCatalog';
@@ -23,6 +23,7 @@ export function HousingListPanel({ city, onSelectHouse }: HousingListPanelProps)
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>('all');
   const [vacancyFilter, setVacancyFilter] = useState<VacancyFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('name');
+  const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
 
   const citById = useMemo(() => new Map(city.citizens.map((c) => [c.id, c])), [city.citizens]);
 
@@ -56,11 +57,7 @@ export function HousingListPanel({ city, onSelectHouse }: HousingListPanelProps)
       <div className="bg-[#111827] border border-slate-800/90 rounded-lg p-3.5 flex flex-wrap items-center gap-2.5 text-xs">
         <label className="relative flex-1 min-w-[180px]">
           <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
-          <input
-            type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter by house, district, or occupant..."
-            className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/70"
-          />
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by house, district, or occupant..." className="w-full bg-[#090d16] border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/70" />
         </label>
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as 'all' | HomeType)} className="bg-[#090d16] border border-slate-800 rounded-md px-2.5 py-1.5 text-slate-200">
           <option value="all">All Types</option>
@@ -99,24 +96,39 @@ export function HousingListPanel({ city, onSelectHouse }: HousingListPanelProps)
           const ownerName = h.ownerId === 'gov' ? 'Government' : citById.get(h.ownerId)?.name ?? 'Citizen';
           const statusText = h.condemned ? 'Condemned' : h.occupantIds.length === 0 ? 'Vacant' : `${h.occupantIds.length}/${h.capacity} Occupied`;
           const statusCls = h.condemned ? 'text-rose-400' : h.occupantIds.length === 0 ? 'text-teal-300' : 'text-slate-300';
+          const sub = h.electricLedger?.currentSubsidy;
+          const isSubOpen = expandedSubId === h.id;
           return (
-            <button
-              key={h.id} type="button" onClick={() => onSelectHouse(h.id)}
-              className="text-left bg-[#111827] border border-slate-800/90 hover:border-amber-500/60 rounded-lg p-4 space-y-2 transition-colors cursor-pointer"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="font-display text-sm font-semibold text-slate-100 truncate">{h.name}</div>
-                <span className={`font-mono tabular-nums text-[11px] shrink-0 ${statusCls}`}>{statusText}</span>
-              </div>
-              <div className="text-xs text-slate-400">
-                {HOUSE_SPECS[h.type].label} · {DISTRICTS[h.district].label} · {ownerName}
-              </div>
-              <div className="flex items-center justify-between pt-1.5 border-t border-slate-800/70 font-mono tabular-nums text-xs">
-                <span className="text-amber-300">{formatDelta(h.rentPrice)}/mo</span>
-                <span className="text-slate-400">{h.buyPrice ? (h.forSale ? `Buy ${formatDelta(h.buyPrice)}` : `Val ${formatDelta(h.buyPrice)}`) : 'Rent only'}</span>
-                <span className={h.condition < 40 ? 'text-rose-300' : 'text-emerald-300'}>Cond {h.condition}</span>
-              </div>
-            </button>
+            <div key={h.id} className="bg-[#111827] border border-slate-800/90 hover:border-amber-500/60 rounded-lg p-4 space-y-2 transition-colors">
+              <button type="button" onClick={() => onSelectHouse(h.id)} className="w-full text-left space-y-2 cursor-pointer">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-display text-sm font-semibold text-slate-100 truncate">{h.name}</div>
+                  <span className={`font-mono tabular-nums text-[11px] shrink-0 ${statusCls}`}>{statusText}</span>
+                </div>
+                <div className="text-xs text-slate-400">{HOUSE_SPECS[h.type].label} · {DISTRICTS[h.district].label} · {ownerName}</div>
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-800/70 font-mono tabular-nums text-xs">
+                  <span className="text-amber-300">{formatDelta(h.rentPrice)}/mo</span>
+                  <span className="text-slate-400">{h.buyPrice ? (h.forSale ? `Buy ${formatDelta(h.buyPrice)}` : `Val ${formatDelta(h.buyPrice)}`) : 'Rent only'}</span>
+                  <span className={h.condition < 40 ? 'text-rose-300' : 'text-emerald-300'}>Cond {h.condition}</span>
+                </div>
+              </button>
+              {sub && (
+                <button
+                  type="button"
+                  onClick={() => setExpandedSubId(isSubOpen ? null : h.id)}
+                  className="w-full min-h-[44px] sm:min-h-[30px] pt-1.5 border-t border-slate-800/60 text-left font-mono tabular-nums text-[11px] text-slate-300 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="uppercase text-emerald-300">Sub: {sub.status.replace('_', ' ')}</span>
+                    <span className="flex items-center gap-1 text-slate-300">
+                      {sub.monthlyAbsorbed > 0 ? `-${formatDelta(sub.monthlyAbsorbed)}` : '∆0'}
+                      {isSubOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                    </span>
+                  </div>
+                  {isSubOpen && <div className="mt-1 font-sans text-slate-400">{sub.reasonSummary} (Score {sub.score})</div>}
+                </button>
+              )}
+            </div>
           );
         })}
       </div>

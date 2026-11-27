@@ -1,7 +1,11 @@
 // electricityTypes.ts — Data structures for GJ Electricity, gas plants, usage profiles, bills, and blackouts
 
 import type { CompanyId } from './companyTypes';
+import type { CompanyUsageProfile, HouseUsageProfile, UsageSpikeEvent } from './electricityProfileTypes';
+import type { GJSubsidyLogEntry, GJSubsidyMood, HouseSubsidyPackage, SimGodSubsidyLevel } from './gjSubsidyTypes';
 import type { DistrictId } from './housingPrefTypes';
+
+export type { CompanyUsageProfile, HouseUsageProfile, UsageSpikeEvent };
 
 export type VijSeason = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
 export type RationingTier = 'ill_homes' | 'vijmart' | 'homes' | 'companies';
@@ -34,38 +38,6 @@ export interface TariffHistoryPoint {
   effectiveBand2: number;
 }
 
-export interface HouseUsageProfile {
-  sizeLabel: string;
-  workPattern: string;
-  cooling: string;
-  heating: string;
-  cooking: string;
-  appliances: string;
-  lighting: string;
-  waterHeating: string;
-  habit: string;
-  profileMult: number;
-  summary: string;
-}
-
-export interface CompanyUsageProfile {
-  companyId: CompanyId;
-  shiftPattern: string;
-  equipmentLoad: string;
-  cooling: string;
-  efficiency: string;
-  profileMult: number;
-  summary: string;
-}
-
-export interface UsageSpikeEvent {
-  id: string;
-  startDay: number;
-  endDay: number;
-  extraUnitsPerDay: number;
-  reason: string;
-}
-
 export interface ElectricBillRecord {
   id: string;
   month: number;
@@ -83,6 +55,10 @@ export interface ElectricBillRecord {
   lateFee: number;
   totalDue: number;
   paidAmount: number;
+  subsidyAbsorbed?: number;
+  subsidySummary?: string;
+  incomeCapApplied?: number;
+  paymentPlanUsed?: number;
   status: 'paid' | 'partial' | 'unpaid' | 'disconnected' | 'reconnected';
 }
 
@@ -100,6 +76,10 @@ export interface ElectricLedger {
   blackedOutToday: boolean;
   lastPowerCutDay?: number;
   disconnectNotice: string | null;
+  currentSubsidy?: HouseSubsidyPackage | null;
+  subsidyHistory?: HouseSubsidyPackage[];
+  paymentPlanBalance?: number;
+  paymentPlanMonthsLeft?: number;
 }
 
 export interface BlackoutRecord {
@@ -135,4 +115,11 @@ export interface ElectricityState {
   monthlyCollectedTotal: number;
   blackouts: BlackoutRecord[];
   demandHistory: { day: number; label: string; totalUnits: number; peakPerHour: number; capacityPerHour: number }[];
+  subsidyMood?: GJSubsidyMood;
+  simgodMoodOverride?: GJSubsidyMood | null;
+  simgodLevelOverride?: SimGodSubsidyLevel;
+  monthlySubsidyAbsorbed?: number;
+  totalSubsidyAbsorbed?: number;
+  householdsHelpedCount?: number;
+  subsidyLog?: GJSubsidyLogEntry[];
 }
